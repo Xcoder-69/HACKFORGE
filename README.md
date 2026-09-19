@@ -17,7 +17,7 @@
 | **Metric / Detail** | **Specification** |
 |---|---|
 | **Problem Statement** | **Problem Statement 6: Autonomous Farm-to-Field Advisory & Action Orchestration Agents** |
-| **Hackathon Event** | `[Insert Hackathon Name / Event Here]` |
+| **Hackathon Event** | **Bit N Build'26 Gujarat** 🚀 |
 | **Repository** | [https://github.com/Xcoder-69/HACKFORGE](https://github.com/Xcoder-69/HACKFORGE) |
 | **Live Demo URL** | `[https://agromind-ai.vercel.app - Placeholder / In Progress]` |
 | **Target Audience** | Small & mid-scale farmers, Farmer Producer Organizations (FPOs), agronomists |
@@ -714,7 +714,7 @@ Step 6: Action Center & Wrap-Up (15s)
 
 ## 25. Team & Contributors
 
-Developed with ❤️ by **Team HACKFORGE** for Problem Statement 6:
+Developed with ❤️ by **Team HACKFORGE** for **Bit N Build'26 Gujarat** (Problem Statement 6):
 
 | Member Name | Role & Specialization | GitHub Profile / Branch |
 |---|---|---|
