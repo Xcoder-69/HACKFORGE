@@ -1,8 +1,8 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { WelcomeLanguageSelector } from '../pages/farmer/WelcomeLanguageSelector';
+import { WelcomeLanguageSelector } from '../pages/public/WelcomeLanguageSelector';
 import { Login } from '../pages/auth/Login';
-import { Onboarding } from '../pages/farmer/Onboarding';
+import { Onboarding } from '../pages/onboarding/Onboarding';
 import { MyFarm } from '../pages/farmer/MyFarm';
 import { CropRecommendations } from '../pages/farmer/CropRecommendations';
 import { WeatherSoilIntelligence } from '../pages/farmer/WeatherSoilIntelligence';

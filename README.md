@@ -103,6 +103,63 @@ flowchart TD
 2. **13 Relational Cloud Tables**: Fully structured PostgreSQL backend covering `profiles`, `farms`, `plots`, `crops`, `expenses`, `revenues`, `diagnoses`, `crop_scans`, `alerts`, `mandi_prices`, `chat_messages`, `user_preferences`, and `sync_queue`.
 3. **Edge Multilingual Engine**: Dynamic translation architecture rendering native Gujarati, Hindi, and English without layout reflows.
 
+### Project Directory and Folder Hierarchy
+
+```text
+HACKFORGE/
+├── public/                       # Static web assets, brand icons, and favicons
+│   ├── farmer-hero.jpg           # Hero visual for landing screen
+│   ├── favicon.svg               # Application SVG brand icon
+│   ├── icons.svg                 # SVG sprite set
+│   ├── leaf.svg                  # Brand favicon
+│   └── mermaid-diagram.png       # Architectural diagram graphic
+├── src/                          # Application source code
+│   ├── assets/                   # Bundled graphics and image assets
+│   ├── components/               # Reusable UI elements and security wrappers
+│   │   ├── auth/                 # Route guards (ProtectedRoute, AdminRoute)
+│   │   └── ui/                   # Modals, Language selectors, Benefit cards
+│   ├── contexts/                 # Global React state (AuthContext, LanguageContext)
+│   ├── contracts/                # Typed TypeScript interfaces for all domain services
+│   │   ├── ai.contract.ts        # Gemini Vision & Advisory contracts
+│   │   ├── farm.contract.ts      # Plot & parcel management contracts
+│   │   ├── sync.contract.ts      # Offline queue & reconciliation contracts
+│   │   └── ...                   # Auth, Alert, Financial, Market, Weather contracts
+│   ├── data/                     # Offline static datasets (All-India 28-state Geo Engine)
+│   ├── i18n/                     # Trilingual translations (Gujarati, Hindi, English)
+│   ├── layouts/                  # App shells (FarmerLayout, AdminLayout)
+│   ├── lib/                      # Client instances & offline sync engine
+│   │   ├── firebaseClient.ts     # Firebase Phone OTP Auth client
+│   │   ├── supabaseClient.ts     # Supabase PostgreSQL client
+│   │   └── syncEngine.ts         # Reactive L1/L2 offline sync engine
+│   ├── pages/                    # Domain-routed application screens
+│   │   ├── admin/                # KVK Extension Officer Command Center
+│   │   ├── auth/                 # Fast Phone + SMS OTP Login & Registration
+│   │   ├── farmer/               # 10 Core Farmer dashboard modules
+│   │   ├── onboarding/           # 4-Step guided farm parcel setup wizard
+│   │   ├── public/               # Welcome landing & interactive language selector
+│   │   └── shared/               # Route fallback placeholders
+│   ├── routes/                   # Declarative routing table (AppRoutes.tsx)
+│   ├── services/                 # Concrete domain business logic implementations
+│   │   ├── aiAssistantService.ts # Gemini agronomic chat service
+│   │   ├── aiVisionService.ts    # Gemini 1.5 Vision leaf pathology service
+│   │   ├── farmService.ts        # Plot lifecycle & crop stage service
+│   │   ├── storageService.ts     # L1 LocalStorage reactive cache
+│   │   └── ...                   # Location, Weather, Alert, Mandi services
+│   ├── types/                    # Core TypeScript domain models
+│   ├── App.tsx                   # Top-level application component
+│   ├── index.css                 # Tailwind CSS directives and custom typography
+│   └── main.tsx                  # React DOM bootstrap entry point
+├── supabase/                     # Cloud database & serverless edge functions
+│   ├── functions/                # Supabase Edge Functions (agronomy-chat, diagnose-leaf)
+│   └── migrations/               # PostgreSQL schema definitions & RLS policies
+├── scripts/                      # Repository maintenance and development scripts
+│   └── sync-branches.ps1         # Git branch synchronization utility
+├── stitch_screens/               # Screen-by-screen UI benchmarks & mockups
+├── APP_STRUCTURE.md              # Technical specifications, AI models & flow architecture
+├── README.md                     # Main hackathon presentation & overview
+└── vite.config.ts                # Vite 6 configuration
+```
+
 ---
 
 ## 4. Web Application Workflow and User Journey

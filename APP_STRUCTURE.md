@@ -15,6 +15,7 @@ This document provides a structured explanation of the core technical pillars po
 5. [5. Geolocation and All-India Administrative Hierarchy](#5-geolocation-and-all-india-administrative-hierarchy)
 6. [6. Cloud Database and Offline-First Sync Architecture](#6-cloud-database-and-offline-first-sync-architecture)
 7. [7. Complete Feature-by-Feature Matrix](#7-complete-feature-by-feature-matrix)
+8. [8. Project Directory and Folder Hierarchy](#8-project-directory-and-folder-hierarchy)
 
 ---
 
@@ -337,6 +338,94 @@ flowchart TD
 
 ---
 
+## 8. Project Directory and Folder Hierarchy
+
+AgroMind AI follows a modular, layer-separated architecture that isolates domain logic (`services`), strict type agreements (`contracts`), state containers (`contexts`), offline persistence (`lib/syncEngine.ts`), and route presentations (`pages`):
+
+```text
+HACKFORGE/
+├── public/                       # Static web assets, brand icons, and favicons
+│   ├── farmer-hero.jpg           # Hero visual for landing screen
+│   ├── favicon.svg               # Application SVG brand icon
+│   ├── icons.svg                 # SVG sprite set
+│   ├── leaf.svg                  # Brand favicon
+│   └── mermaid-diagram.png       # Architectural diagram graphic
+├── src/                          # Application source code
+│   ├── assets/                   # Bundled graphics and image assets
+│   ├── components/               # Reusable UI elements and security wrappers
+│   │   ├── auth/                 # Route guards (ProtectedRoute, AdminRoute)
+│   │   └── ui/                   # Modals, Language selectors, Benefit cards
+│   ├── contexts/                 # Global React state (AuthContext, LanguageContext)
+│   ├── contracts/                # Typed TypeScript interfaces for all domain services
+│   │   ├── ai.contract.ts        # Gemini Vision & Advisory contracts
+│   │   ├── alert.contract.ts     # Action checklist & notifications contract
+│   │   ├── auth.contract.ts      # Authentication & session contract
+│   │   ├── farm.contract.ts      # Plot & parcel management contracts
+│   │   ├── financial.contract.ts # OpEx & Revenue contracts
+│   │   ├── market.contract.ts    # APMC mandi pricing contract
+│   │   ├── sync.contract.ts      # Offline queue & reconciliation contracts
+│   │   └── weather.contract.ts   # Meteorological telemetry contract
+│   ├── data/                     # Offline static datasets (All-India 28-state Geo Engine)
+│   │   └── indiaGeoData.ts       # 28 States, UTs, Talukas & Villages
+│   ├── i18n/                     # Trilingual translations (Gujarati, Hindi, English)
+│   │   └── translations.ts       # Centralized locale dictionary
+│   ├── layouts/                  # App shells
+│   │   ├── AdminLayout.tsx       # KVK Extension Command Center layout
+│   │   └── FarmerLayout.tsx      # Responsive mobile/desktop farmer shell
+│   ├── lib/                      # Client instances & offline sync engine
+│   │   ├── firebaseClient.ts     # Firebase Phone OTP Auth client
+│   │   ├── supabaseClient.ts     # Supabase PostgreSQL client
+│   │   └── syncEngine.ts         # Reactive L1/L2 offline sync engine
+│   ├── pages/                    # Domain-routed application screens
+│   │   ├── admin/                # KVK Extension Officer Command Center
+│   │   ├── auth/                 # Fast Phone + SMS OTP Login & Registration
+│   │   ├── farmer/               # 10 Core Farmer dashboard modules
+│   │   │   ├── AiAdvisoryChat.tsx
+│   │   │   ├── AlertsActionCenter.tsx
+│   │   │   ├── CropHealthScanner.tsx
+│   │   │   ├── CropRecommendations.tsx
+│   │   │   ├── ExpenseTracker.tsx
+│   │   │   ├── FarmerProfile.tsx
+│   │   │   ├── MarketMandi.tsx
+│   │   │   ├── MyFarm.tsx
+│   │   │   ├── ProfitYieldOverview.tsx
+│   │   │   └── WeatherSoilIntelligence.tsx
+│   │   ├── onboarding/           # 4-Step guided farm parcel setup wizard
+│   │   │   └── Onboarding.tsx
+│   │   ├── public/               # Welcome landing & interactive language selector
+│   │   │   └── WelcomeLanguageSelector.tsx
+│   │   └── shared/               # Route fallback placeholders
+│   │       └── RoutePlaceholder.tsx
+│   ├── routes/                   # Declarative routing table (AppRoutes.tsx)
+│   ├── services/                 # Concrete domain business logic implementations
+│   │   ├── aiAssistantService.ts # Gemini agronomic chat service
+│   │   ├── aiVisionService.ts    # Gemini 1.5 Vision leaf pathology service
+│   │   ├── alertService.ts       # Automated checklist generator
+│   │   ├── authService.ts        # OTP and authentication management
+│   │   ├── dataInitializer.ts   # Seed farm profile and default telemetry
+│   │   ├── farmService.ts        # Plot lifecycle & crop stage service
+│   │   ├── financialService.ts   # Farm ledger and unit break-even calculus
+│   │   ├── locationService.ts    # GPS coordinate lookup
+│   │   ├── marketService.ts      # APMC rates and trends
+│   │   ├── storageService.ts     # L1 LocalStorage reactive cache
+│   │   └── weatherService.ts     # Open-Meteo atmospheric telemetry
+│   ├── types/                    # Core TypeScript domain models (index.ts)
+│   ├── App.tsx                   # Top-level application component
+│   ├── index.css                 # Tailwind CSS directives and custom typography
+│   └── main.tsx                  # React DOM bootstrap entry point
+├── supabase/                     # Cloud database & serverless edge functions
+│   ├── functions/                # Supabase Edge Functions (agronomy-chat, diagnose-leaf)
+│   └── migrations/               # PostgreSQL schema definitions & RLS policies
+├── scripts/                      # Repository maintenance and development scripts
+│   └── sync-branches.ps1         # Git branch synchronization utility
+├── stitch_screens/               # Screen-by-screen UI benchmarks & mockups
+├── APP_STRUCTURE.md              # Technical specifications, AI models & flow architecture
+├── README.md                     # Main hackathon presentation & overview
+└── vite.config.ts                # Vite 6 configuration
+```
+
+---
+
 ## Quick Code Linkages for Developers
 
 - **Edge Function (Gemini Vision Proxy)**: [supabase/functions/diagnose-leaf/index.ts](file:///c:/Users/mahen/OneDrive/Desktop/HACKFORGE/supabase/functions/diagnose-leaf/index.ts)
@@ -345,6 +434,8 @@ flowchart TD
 - **Dynamic Farm and Plot Service**: [src/services/farmService.ts](file:///c:/Users/mahen/OneDrive/Desktop/HACKFORGE/src/services/farmService.ts)
 - **AI Assistant Service**: [src/services/aiAssistantService.ts](file:///c:/Users/mahen/OneDrive/Desktop/HACKFORGE/src/services/aiAssistantService.ts)
 - **Farmer Main Dashboard**: [src/pages/farmer/MyFarm.tsx](file:///c:/Users/mahen/OneDrive/Desktop/HACKFORGE/src/pages/farmer/MyFarm.tsx)
+- **Farmer Onboarding**: [src/pages/onboarding/Onboarding.tsx](file:///c:/Users/mahen/OneDrive/Desktop/HACKFORGE/src/pages/onboarding/Onboarding.tsx)
+- **Public Welcome Screen**: [src/pages/public/WelcomeLanguageSelector.tsx](file:///c:/Users/mahen/OneDrive/Desktop/HACKFORGE/src/pages/public/WelcomeLanguageSelector.tsx)
 - **Application Routing**: [src/routes/AppRoutes.tsx](file:///c:/Users/mahen/OneDrive/Desktop/HACKFORGE/src/routes/AppRoutes.tsx)
 
 ---
