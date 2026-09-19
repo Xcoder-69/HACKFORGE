@@ -31,89 +31,117 @@ export const FarmerLayout: React.FC = () => {
         </div>
 
         {/* Primary Desktop Navigation Links */}
-        <nav className="flex items-center gap-1.5 lg:gap-2">
+        <nav className="flex items-center gap-1 xl:gap-2 flex-wrap">
           <NavLink
             to="/home"
             className={({ isActive }) =>
-              `flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+              `flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
                 isActive
                   ? 'bg-secondary text-white shadow-sm'
                   : 'text-on-surface-variant hover:bg-surface-container hover:text-primary'
               }`
             }
           >
-            <span className="material-symbols-outlined text-[20px]">home</span>
+            <span className="material-symbols-outlined text-[18px]">home</span>
             <span>{t('nav.home')}</span>
           </NavLink>
 
           <NavLink
-            to="/my-farm"
+            to="/recommendations"
             className={({ isActive }) =>
-              `flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+              `flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
                 isActive
                   ? 'bg-secondary text-white shadow-sm'
                   : 'text-on-surface-variant hover:bg-surface-container hover:text-primary'
               }`
             }
           >
-            <span className="material-symbols-outlined text-[20px]">agriculture</span>
-            <span>{t('nav.myFarm')}</span>
-          </NavLink>
-
-          <NavLink
-            to="/ai-camera"
-            className={({ isActive }) =>
-              `flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
-                isActive
-                  ? 'bg-secondary text-white shadow-sm'
-                  : 'text-on-surface-variant hover:bg-surface-container hover:text-primary'
-              }`
-            }
-          >
-            <span className="material-symbols-outlined text-[20px]">photo_camera</span>
-            <span>{t('nav.camera')}</span>
+            <span className="material-symbols-outlined text-[18px]">eco</span>
+            <span>Crops</span>
           </NavLink>
 
           <NavLink
             to="/weather-soil"
             className={({ isActive }) =>
-              `flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+              `flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
                 isActive
                   ? 'bg-secondary text-white shadow-sm'
                   : 'text-on-surface-variant hover:bg-surface-container hover:text-primary'
               }`
             }
           >
-            <span className="material-symbols-outlined text-[20px]">wb_sunny</span>
-            <span>Weather & Soil</span>
+            <span className="material-symbols-outlined text-[18px]">wb_sunny</span>
+            <span>Weather</span>
+          </NavLink>
+
+          <NavLink
+            to="/ai-camera"
+            className={({ isActive }) =>
+              `flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+                isActive
+                  ? 'bg-secondary text-white shadow-sm'
+                  : 'text-on-surface-variant hover:bg-surface-container hover:text-primary'
+              }`
+            }
+          >
+            <span className="material-symbols-outlined text-[18px]">photo_camera</span>
+            <span>AI Camera</span>
           </NavLink>
 
           <NavLink
             to="/market"
             className={({ isActive }) =>
-              `flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+              `flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
                 isActive
                   ? 'bg-secondary text-white shadow-sm'
                   : 'text-on-surface-variant hover:bg-surface-container hover:text-primary'
               }`
             }
           >
-            <span className="material-symbols-outlined text-[20px]">storefront</span>
-            <span>{t('nav.market')}</span>
+            <span className="material-symbols-outlined text-[18px]">storefront</span>
+            <span>Mandi</span>
+          </NavLink>
+
+          <NavLink
+            to="/expenses"
+            className={({ isActive }) =>
+              `flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+                isActive
+                  ? 'bg-secondary text-white shadow-sm'
+                  : 'text-on-surface-variant hover:bg-surface-container hover:text-primary'
+              }`
+            }
+          >
+            <span className="material-symbols-outlined text-[18px]">receipt_long</span>
+            <span>Expenses</span>
           </NavLink>
 
           <NavLink
             to="/alerts"
             className={({ isActive }) =>
-              `flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+              `flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
                 isActive
                   ? 'bg-secondary text-white shadow-sm'
                   : 'text-on-surface-variant hover:bg-surface-container hover:text-primary'
               }`
             }
           >
-            <span className="material-symbols-outlined text-[20px]">notifications</span>
+            <span className="material-symbols-outlined text-[18px]">notifications</span>
             <span>Alerts</span>
+          </NavLink>
+
+          <NavLink
+            to="/ai-assistant"
+            className={({ isActive }) =>
+              `flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+                isActive
+                  ? 'bg-secondary text-white shadow-sm'
+                  : 'text-on-surface-variant hover:bg-surface-container hover:text-primary'
+              }`
+            }
+          >
+            <span className="material-symbols-outlined text-[18px]">chat</span>
+            <span>AI Advisory</span>
           </NavLink>
         </nav>
 
