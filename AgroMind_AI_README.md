@@ -46,6 +46,36 @@ The official PS-6 problem focuses on fragmented farming decisions involving:
 
 AgroMind AI addresses these requirements through a unified dashboard and an AI-assisted action workflow.
 
+### 2.1 Autonomous Agent Architecture Workflow
+
+```mermaid
+flowchart TD
+    FarmField["🌾 Farm / Field"] --> DataCollection["📡 Data Collection"]
+
+    DataCollection --> WeatherData["🌧️ Weather Data"]
+    DataCollection --> SoilData["🌱 Soil Data"]
+    DataCollection --> CropData["🌾 Crop Data"]
+    DataCollection --> SatelliteData["🛰️ Satellite Data"]
+    DataCollection --> CropImage["📷 Optional Crop Image"]
+    DataCollection --> MarketData["📊 Market Data"]
+
+    WeatherData --> SpecialistAgents["🧠 Specialist Agents"]
+    SoilData --> SpecialistAgents
+    CropData --> SpecialistAgents
+    SatelliteData --> SpecialistAgents
+    CropImage --> SpecialistAgents
+    MarketData --> SpecialistAgents
+
+    SpecialistAgents --> RiskDetectionAgent["⚠️ Risk Detection Agent"]
+    RiskDetectionAgent --> DecisionAgent["🤖 Decision Agent"]
+    DecisionAgent --> ActionPlan["📋 Action Plan"]
+
+    DecisionAgent --> AlertApproval["🔔 Alert / Approval"]
+    AlertApproval --> SimulatedFieldAction["⚙️ Simulated Field Action"]
+    SimulatedFieldAction --> FeedbackCollection["📈 Feedback Collection"]
+    FeedbackCollection --> SpecialistAgents
+```
+
 ### Our simplified approach
 
 Instead of building a complex real-world IoT deployment, the hackathon MVP will use:

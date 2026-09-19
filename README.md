@@ -38,28 +38,32 @@ Small- and mid-scale farmers encounter four critical challenges every season:
 
 **AgroMind AI** functions as an autonomous digital agronomist on the farmer's smartphone. It ingests environmental data, evaluates crop risks, and produces a simple, prioritized daily action plan:
 
-```text
-┌─────────────────────────┐   ┌──────────────────────────┐   ┌─────────────────────────┐
-│     FARMER CONTEXT      │   │     LIVE TELEMETRY       │   │    SMART CROP CAMERA    │
-│  Location, Crop, Soil   │   │  Open-Meteo Weather API  │   │  Gemini 1.5 Vision Scan │
-└────────────┬────────────┘   └────────────┬─────────────┘   └────────────┬────────────┘
-             │                             │                              │
-             └─────────────────────────────┼──────────────────────────────┘
-                                           │
-                                           ▼
-                    ┌──────────────────────────────────────────────┐
-                    │          AGROMIND HYBRID DECISION CORE       │
-                    │   - Deterministic Agronomy Rule Safety Net   │
-                    │   - Google Gemini Contextual Reasoning Engine│
-                    └──────────────────────┬───────────────────────┘
-                                           │
-                                           ▼
-                    ┌──────────────────────────────────────────────┐
-                    │               DAILY ACTION CENTER            │
-                    │      1. Prioritized Tasks (High/Med/Low)     │
-                    │      2. Safe Cultural Interventions          │
-                    │      3. Cost vs. Mandi Profit Visibility     │
-                    └──────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    FarmField["🌾 Farm / Field"] --> DataCollection["📡 Data Collection"]
+
+    DataCollection --> WeatherData["🌧️ Weather Data"]
+    DataCollection --> SoilData["🌱 Soil Data"]
+    DataCollection --> CropData["🌾 Crop Data"]
+    DataCollection --> SatelliteData["🛰️ Satellite Data"]
+    DataCollection --> CropImage["📷 Optional Crop Image"]
+    DataCollection --> MarketData["📊 Market Data"]
+
+    WeatherData --> SpecialistAgents["🧠 Specialist Agents"]
+    SoilData --> SpecialistAgents
+    CropData --> SpecialistAgents
+    SatelliteData --> SpecialistAgents
+    CropImage --> SpecialistAgents
+    MarketData --> SpecialistAgents
+
+    SpecialistAgents --> RiskDetectionAgent["⚠️ Risk Detection Agent"]
+    RiskDetectionAgent --> DecisionAgent["🤖 Decision Agent"]
+    DecisionAgent --> ActionPlan["📋 Action Plan"]
+
+    DecisionAgent --> AlertApproval["🔔 Alert / Approval"]
+    AlertApproval --> SimulatedFieldAction["⚙️ Simulated Field Action"]
+    SimulatedFieldAction --> FeedbackCollection["📈 Feedback Collection"]
+    FeedbackCollection --> SpecialistAgents
 ```
 
 ---
