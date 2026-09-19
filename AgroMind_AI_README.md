@@ -1,7 +1,8 @@
 # 🌾 AgroMind AI
 ## Autonomous Farm-to-Field Advisory & Action Orchestration Platform
 
-> **Hackathon Problem Statement: PS-6**
+> **Hackathon**: **Bit N Build'26 Gujarat**  
+> **Problem Statement**: **PS-6 (Autonomous Farm-to-Field Advisory & Action Orchestration Agents)**
 >
 > Build a simple, intelligent, location-aware farmer dashboard that combines weather, soil information, crop recommendations, crop-health camera analysis, farming cost estimation, and market-price insights in one easy-to-use platform.
 

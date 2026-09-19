@@ -9,6 +9,7 @@
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com/)
 [![Google Gemini API](https://img.shields.io/badge/Google_Gemini-Pro_%2F_Vision-8E75B2?style=for-the-badge&logo=google)](https://ai.google.dev/)
 [![Open-Meteo](https://img.shields.io/badge/Open--Meteo-Weather_API-orange?style=for-the-badge)](https://open-meteo.com/)
+[![Event](https://img.shields.io/badge/Event-Bit_N_Build'26_Gujarat-blueviolet?style=for-the-badge)](#-metric--detail)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](#26-license)
 [![Status](https://img.shields.io/badge/Status-Hackathon_MVP_Architecture-yellow?style=for-the-badge)](#-project-status-notice)
 
