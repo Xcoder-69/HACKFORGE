@@ -360,7 +360,7 @@ export const FarmerLayout: React.FC = () => {
       </header>
 
       {/* ========================================================================= */}
-      {/* 3. MOBILE & TABLET SLIDE-OVER DRAWER                                      */}
+      {/* 3. MOBILE & TABLET SLIDE-OVER DRAWER (Responsive & Compact)               */}
       {/* ========================================================================= */}
       {isDrawerOpen && (
         <div
@@ -370,37 +370,38 @@ export const FarmerLayout: React.FC = () => {
           aria-label="Navigation Menu"
           id="farmer-navigation-drawer"
         >
-          {/* Backdrop Overlay */}
+          {/* Backdrop Overlay with click-to-dismiss */}
           <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity duration-300"
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity duration-300"
             onClick={() => setIsDrawerOpen(false)}
             aria-hidden="true"
           />
 
-          {/* Drawer Container */}
+          {/* Drawer Container: Proportional width and compact mobile-first height */}
           <div
             ref={drawerRef}
-            className="relative w-[85vw] max-w-[320px] bg-surface-container-lowest h-full shadow-2xl flex flex-col justify-between overflow-y-auto z-10 border-r border-outline-variant/20 animate-in slide-in-from-left duration-300"
+            className="relative w-72 max-w-[78vw] bg-surface-container-lowest h-full shadow-2xl flex flex-col justify-between overflow-y-auto z-10 border-r border-outline-variant/30 animate-in slide-in-from-left duration-250"
           >
             <div>
-              {/* Drawer Header */}
-              <div className="p-4 sm:p-5 border-b border-outline-variant/20 flex items-center justify-between">
+              {/* Unified Compact Mobile Header with Farmer Profile & Close */}
+              <div className="p-3.5 border-b border-outline-variant/20 flex items-center justify-between bg-surface-container-low/60">
                 <div
-                  className="flex items-center gap-2.5 cursor-pointer"
                   onClick={() => {
-                    navigate('/home');
+                    navigate('/profile');
                     setIsDrawerOpen(false);
                   }}
+                  className="flex items-center gap-2.5 min-w-0 cursor-pointer group"
+                  title="Farmer Profile"
                 >
-                  <div className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center text-white shadow-md">
-                    <span className="material-symbols-outlined text-[22px]">eco</span>
+                  <div className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+                    {user?.name ? user.name.charAt(0) : 'M'}
                   </div>
-                  <div>
-                    <span className="font-extrabold text-primary text-base leading-tight block">
-                      AgroMind AI
+                  <div className="flex flex-col min-w-0 text-left">
+                    <span className="text-xs font-bold text-primary truncate leading-tight">
+                      {user?.name || 'Mahendra Suryavanshi'}
                     </span>
-                    <span className="text-[10px] text-secondary font-bold">
-                      Smart Autonomous Farm Platform
+                    <span className="text-[10px] text-secondary font-bold truncate">
+                      {user?.district || 'Surat'} • Kisan
                     </span>
                   </div>
                 </div>
@@ -410,35 +411,14 @@ export const FarmerLayout: React.FC = () => {
                   type="button"
                   onClick={() => setIsDrawerOpen(false)}
                   aria-label={t('nav.close')}
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-secondary/40"
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors shrink-0"
                 >
-                  <span className="material-symbols-outlined text-[22px]">close</span>
+                  <span className="material-symbols-outlined text-[20px]">close</span>
                 </button>
               </div>
 
-              {/* Farmer Profile Card in Drawer */}
-              <div
-                onClick={() => {
-                  navigate('/profile');
-                  setIsDrawerOpen(false);
-                }}
-                className="mx-3 mt-3 p-3 rounded-2xl bg-surface-container-low hover:bg-surface-container transition-colors cursor-pointer border border-outline-variant/30 flex items-center gap-3"
-              >
-                <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm shadow-sm shrink-0">
-                  {user?.name ? user.name.charAt(0) : 'R'}
-                </div>
-                <div className="flex flex-col text-left min-w-0">
-                  <span className="text-xs font-bold text-primary truncate">
-                    {user?.name || 'Rameshbhai Patel'}
-                  </span>
-                  <span className="text-[10px] text-on-surface-variant truncate">
-                    {user?.district || 'Surat'} • Verified Farmer
-                  </span>
-                </div>
-              </div>
-
-              {/* Navigation Items List */}
-              <nav className="p-3 space-y-1" aria-label="Mobile Drawer Navigation">
+              {/* Compact Navigation Items List */}
+              <nav className="p-2 space-y-0.5" aria-label="Mobile Drawer Navigation">
                 {NAV_ITEMS.map((item) => {
                   const active = isItemActive(item);
                   return (
@@ -446,17 +426,19 @@ export const FarmerLayout: React.FC = () => {
                       key={item.to}
                       to={item.to}
                       onClick={() => setIsDrawerOpen(false)}
-                      className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                      className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
                         active
-                          ? 'bg-secondary text-white shadow-sm font-bold'
-                          : 'text-on-surface-variant hover:bg-surface-container hover:text-primary'
+                          ? 'bg-secondary text-white shadow-xs font-bold'
+                          : 'text-on-surface-variant hover:bg-surface-container-low hover:text-primary'
                       }`}
                     >
-                      <div className="flex items-center gap-3">
-                        <span className="material-symbols-outlined text-[22px]">{item.icon}</span>
-                        <span>{t(item.labelKey) || item.fallbackLabel}</span>
+                      <div className="flex items-center gap-2.5">
+                        <span className={`material-symbols-outlined text-[20px] ${active ? 'fill' : ''}`}>
+                          {item.icon}
+                        </span>
+                        <span className="truncate">{t(item.labelKey) || item.fallbackLabel}</span>
                       </div>
-                      <span className="material-symbols-outlined text-[18px] opacity-60">
+                      <span className="material-symbols-outlined text-[15px] opacity-40">
                         chevron_right
                       </span>
                     </NavLink>
@@ -465,50 +447,45 @@ export const FarmerLayout: React.FC = () => {
               </nav>
             </div>
 
-            {/* Drawer Footer Actions */}
-            <div className="p-4 border-t border-outline-variant/20 space-y-3 bg-surface-container-low/50">
-              {/* Language Selector */}
-              <div>
-                <span className="text-[11px] font-bold text-on-surface-variant block mb-1.5">
-                  {language === 'gu' ? 'ભાષા પસંદ કરો' : language === 'hi' ? 'भाषा चुनें' : 'Language'}
-                </span>
-                <div className="grid grid-cols-3 gap-1 bg-surface-container rounded-xl p-1 border border-outline-variant/30 text-xs">
-                  {(['gu', 'hi', 'en'] as Language[]).map((code) => (
-                    <button
-                      key={code}
-                      type="button"
-                      onClick={() => setLanguage(code)}
-                      className={`py-1.5 rounded-lg font-bold transition-all text-center ${
-                        language === code
-                          ? 'bg-secondary text-white shadow-sm'
-                          : 'text-on-surface-variant hover:text-primary'
-                      }`}
-                    >
-                      {code === 'gu' ? 'ગુજરાતી' : code === 'hi' ? 'हिन्दी' : 'English'}
-                    </button>
-                  ))}
-                </div>
+            {/* Compact Drawer Footer */}
+            <div className="p-3 border-t border-outline-variant/20 space-y-2 bg-surface-container-low/40">
+              {/* Compact Language Switcher Pill */}
+              <div className="flex items-center justify-between bg-surface-container rounded-xl p-0.5 border border-outline-variant/30 text-xs">
+                {(['gu', 'hi', 'en'] as Language[]).map((code) => (
+                  <button
+                    key={code}
+                    type="button"
+                    onClick={() => setLanguage(code)}
+                    className={`flex-1 py-1 rounded-lg font-bold transition-all text-center text-[11px] ${
+                      language === code
+                        ? 'bg-secondary text-white shadow-xs'
+                        : 'text-on-surface-variant hover:text-primary'
+                    }`}
+                  >
+                    {code === 'gu' ? 'ગુજરાતી' : code === 'hi' ? 'हिन्दी' : 'EN'}
+                  </button>
+                ))}
               </div>
 
-              {/* KVK Admin Navigation Link */}
+              {/* Compact KVK Admin Switch */}
               <NavLink
                 to="/admin"
                 onClick={() => setIsDrawerOpen(false)}
-                className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-surface-container-high hover:bg-surface-variant text-primary text-xs font-bold transition-colors border border-outline-variant/30"
+                className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-surface-container-high hover:bg-surface-variant text-primary text-xs font-bold transition-colors border border-outline-variant/30"
               >
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[20px] text-secondary">
+                  <span className="material-symbols-outlined text-[18px] text-secondary">
                     admin_panel_settings
                   </span>
                   <span>{t('nav.admin')}</span>
                 </div>
-                <span className="material-symbols-outlined text-[18px] text-on-surface-variant">
+                <span className="material-symbols-outlined text-[15px] text-on-surface-variant">
                   open_in_new
                 </span>
               </NavLink>
 
-              <div className="text-[10px] text-on-surface-variant text-center pt-1">
-                AgroMind AI • Version 1.0.0
+              <div className="text-[9px] text-on-surface-variant text-center pt-0.5 opacity-60">
+                AgroMind AI • v1.0
               </div>
             </div>
           </div>
