@@ -11,6 +11,8 @@
 [![Weather API](https://img.shields.io/badge/Weather-Open--Meteo-orange?style=for-the-badge)](https://open-meteo.com/)
 [![Auth](https://img.shields.io/badge/Auth-Firebase_SMS_OTP-FFCA28?style=for-the-badge&logo=firebase)](https://firebase.google.com/)
 
+> **Looking for technical architecture & feature flow?** See [APP_STRUCTURE.md](./APP_STRUCTURE.md) for detailed AI model schemas, authentication mechanics, trained heuristics, and geolocation specifications.
+
 ---
 
 ## Quick Pitch for Judges (At a Glance)

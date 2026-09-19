@@ -1,6 +1,7 @@
 # AgroMind AI — Application Structure and Technical Specification
 > **Comprehensive Guide to App Flow, AI Models, Authentication, Heuristic Engines, and Geolocation**  
 > *Designed for Evaluators, Judges, and Developers — Bit N Build '26 Gujarat*
+> **Looking for the main project pitch, problem statement & quick start?** See the primary [README.md](./README.md).
 
 ---
 
