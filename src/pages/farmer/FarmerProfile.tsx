@@ -1,16 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { storageService } from '../../services/storageService';
+
+const PREFS_KEY = 'agromind_farmer_prefs';
 
 export const FarmerProfile: React.FC = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, updateProfile } = useAuth();
   const { language, setLanguage } = useLanguage();
 
-  const [smsAlerts, setSmsAlerts] = useState(true);
-  const [whatsappAlerts, setWhatsappAlerts] = useState(true);
-  const [voiceAssistance, setVoiceAssistance] = useState(true);
+  const savedPrefs = storageService.get(PREFS_KEY, {
+    sms: true,
+    whatsapp: true,
+    voice: true,
+    pin: '1234',
+  });
+
+  const [smsAlerts, setSmsAlerts] = useState(savedPrefs.sms);
+  const [whatsappAlerts, setWhatsappAlerts] = useState(savedPrefs.whatsapp);
+  const [voiceAssistance, setVoiceAssistance] = useState(savedPrefs.voice);
+  const [newPin, setNewPin] = useState(savedPrefs.pin || '1234');
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -19,8 +30,23 @@ export const FarmerProfile: React.FC = () => {
   const [phone, setPhone] = useState(user?.phone || '9876543210');
   const [district, setDistrict] = useState(user?.district || 'Surat');
   const [taluka, setTaluka] = useState('Kamrej');
-  const [village, setVillage] = useState('Kamrej Gam');
+  const [village, setVillage] = useState(user?.village || 'Kamrej Gam');
   const [pmKisanId, setPmKisanId] = useState(user?.pmKisanId || 'GJ-SUR-88412');
+
+  useEffect(() => {
+    if (user) {
+      setFullName(user.name);
+      setPhone(user.phone || '9876543210');
+      setDistrict(user.district || 'Surat');
+      setVillage(user.village || 'Kamrej Gam');
+      setPmKisanId(user.pmKisanId || 'GJ-SUR-88412');
+    }
+  }, [user]);
+
+  const updatePreferences = (updated: Partial<typeof savedPrefs>) => {
+    const current = storageService.get(PREFS_KEY, savedPrefs);
+    storageService.set(PREFS_KEY, { ...current, ...updated });
+  };
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -29,8 +55,21 @@ export const FarmerProfile: React.FC = () => {
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
+    updateProfile({
+      name: fullName,
+      phone,
+      district,
+      village,
+      pmKisanId,
+    });
     setShowEditModal(false);
     showToast('Profile updated successfully! / પ્રોફાઇલ સફળતાપૂર્વક અપડેટ થઈ.');
+  };
+
+  const handleUpdatePin = () => {
+    updatePreferences({ pin: newPin });
+    setShowPinModal(false);
+    showToast('Security PIN updated successfully! / પિન સફળતાપૂર્વક બદલાયો.');
   };
 
   const handleLogout = () => {
@@ -227,7 +266,10 @@ export const FarmerProfile: React.FC = () => {
             <input
               type="checkbox"
               checked={voiceAssistance}
-              onChange={(e) => setVoiceAssistance(e.target.checked)}
+              onChange={(e) => {
+                setVoiceAssistance(e.target.checked);
+                updatePreferences({ voice: e.target.checked });
+              }}
               className="w-5 h-5 accent-emerald-700 rounded cursor-pointer"
             />
           </div>
@@ -252,7 +294,10 @@ export const FarmerProfile: React.FC = () => {
               <input
                 type="checkbox"
                 checked={smsAlerts}
-                onChange={(e) => setSmsAlerts(e.target.checked)}
+                onChange={(e) => {
+                  setSmsAlerts(e.target.checked);
+                  updatePreferences({ sms: e.target.checked });
+                }}
                 className="w-5 h-5 accent-emerald-700 rounded cursor-pointer"
               />
             </div>
@@ -268,7 +313,10 @@ export const FarmerProfile: React.FC = () => {
               <input
                 type="checkbox"
                 checked={whatsappAlerts}
-                onChange={(e) => setWhatsappAlerts(e.target.checked)}
+                onChange={(e) => {
+                  setWhatsappAlerts(e.target.checked);
+                  updatePreferences({ whatsapp: e.target.checked });
+                }}
                 className="w-5 h-5 accent-emerald-700 rounded cursor-pointer"
               />
             </div>
@@ -392,16 +440,15 @@ export const FarmerProfile: React.FC = () => {
             <h3 className="text-lg font-extrabold text-[#163A2D]">Set New 4-Digit PIN</h3>
             <p className="text-xs text-[#717974] mt-1">Enter your new security PIN for AgroMind AI</p>
 
-            <div className="flex justify-center gap-2 my-5">
-              {[0, 1, 2, 3].map((i) => (
-                <input
-                  key={i}
-                  type="password"
-                  maxLength={1}
-                  defaultValue="1"
-                  className="w-12 h-12 text-center text-xl font-bold rounded-xl border border-[#C1C8C3] focus:border-emerald-600"
-                />
-              ))}
+            <div className="my-5">
+              <input
+                type="password"
+                maxLength={4}
+                value={newPin}
+                onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ''))}
+                placeholder="4-digit PIN"
+                className="w-40 mx-auto text-center text-2xl tracking-widest font-black py-2.5 rounded-xl border-2 border-[#C1C8C3] focus:border-emerald-600 focus:outline-none"
+              />
             </div>
 
             <div className="flex items-center gap-2">
@@ -412,10 +459,7 @@ export const FarmerProfile: React.FC = () => {
                 Cancel
               </button>
               <button
-                onClick={() => {
-                  setShowPinModal(false);
-                  showToast('Security PIN updated successfully!');
-                }}
+                onClick={handleUpdatePin}
                 className="flex-1 py-2.5 bg-emerald-700 text-white rounded-xl text-xs font-bold shadow hover:bg-emerald-800"
               >
                 Update PIN

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { farmService } from '../../services/farmService';
+import { locationService } from '../../services/locationService';
 
 interface CropRec {
   id: string;
@@ -205,6 +207,7 @@ export const CropRecommendations: React.FC = () => {
   };
 
   const handleApplyToFarm = (crop: CropRec) => {
+    farmService.applyCropToFarm(crop, 'A');
     setSavedSuccess(true);
     setTimeout(() => {
       setSavedSuccess(false);
@@ -226,7 +229,7 @@ export const CropRecommendations: React.FC = () => {
               Crop Recommendations & Cultivation Planning
             </h1>
             <p className="text-emerald-100/80 text-sm mt-0.5">
-              Personalized agro-climatic matching for Surat, Kamrej Block A (Black Cotton Soil, pH 7.4)
+              Personalized agro-climatic matching for {locationService.getSavedLocation().district} ({locationService.getSavedLocation().latitude.toFixed(2)}°N, {locationService.getSavedLocation().longitude.toFixed(2)}°E) • Block A (Black Cotton Soil, pH 7.4)
             </p>
           </div>
 

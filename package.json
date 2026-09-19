@@ -11,7 +11,9 @@
     "sync": "git push origin darshil && git push origin darshil:main"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.116.0",
     "clsx": "^2.1.1",
+    "firebase": "^12.19.0",
     "lucide-react": "^1.47.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

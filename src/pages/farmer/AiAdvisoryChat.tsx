@@ -1,89 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
-
-interface ChatMessage {
-  id: string;
-  sender: 'user' | 'assistant';
-  textEn: string;
-  textGu: string;
-  time: string;
-  suggestions?: string[];
-}
-
-const INITIAL_MESSAGES: ChatMessage[] = [
-  {
-    id: 'msg-1',
-    sender: 'assistant',
-    textEn: 'Namaste Ramesh Patel! I am AgroMind AI, your personalized agronomist. How can I assist with your 10 Vigha farm in Kamrej today?',
-    textGu: 'નમસ્તે રમેશભાઈ! હું એગ્રોમાઇન્ડ AI છું, તમારો અંગત ખેતી સલાહકાર. આજે કામરેજ સ્થિત તમારા ૧૦ વીઘા ખેતર માટે હું શું મદદ કરી શકું?',
-    time: '10:00 AM',
-    suggestions: [
-      'Pink Bollworm symptoms in Cotton? (ગુલાબી ઈયળના ઉપાય)',
-      'Should I start Drip today? (આજે પિયત આપવું?)',
-      'Today Surat APMC Cotton rate? (સુરત માર્કેટ ભાવ)',
-      'Soil Phosphorus deficiency treatment? (ફોસ્ફરસ ખાતર)',
-    ],
-  },
-];
+import { ChatMessage } from '../../types';
+import { aiAssistantService } from '../../services/aiAssistantService';
 
 export const AiAdvisoryChat: React.FC = () => {
   const navigate = useNavigate();
   const { language } = useLanguage();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
+  const [messages, setMessages] = useState<ChatMessage[]>(aiAssistantService.getMessages());
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
 
-  const handleSendMessage = (textToSend?: string) => {
+  useEffect(() => {
+    setMessages(aiAssistantService.getMessages());
+    const unsub = aiAssistantService.subscribeToMessages((newMsgs) => {
+      setMessages(newMsgs);
+    });
+    return unsub;
+  }, []);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isTyping]);
+
+  const handleSendMessage = async (textToSend?: string) => {
     const text = textToSend || inputText;
-    if (!text.trim()) return;
+    if (!text.trim() || isTyping) return;
 
-    const userMsg: ChatMessage = {
-      id: `usr-${Date.now()}`,
-      sender: 'user',
-      textEn: text,
-      textGu: text,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-
-    setMessages((prev) => [...prev, userMsg]);
     setInputText('');
     setIsTyping(true);
 
-    // Simulate smart agronomic reasoning
-    setTimeout(() => {
-      let replyEn = 'I have analyzed your farm telemetry in Kamrej Block A. Conditions are currently optimal with 34% soil moisture and 31°C ambient temperature.';
-      let replyGu = 'તમારા બ્લોક A ના સેન્સર મુજબ જમીનમાં ૩૪% પૂરતો ભેજ છે અને ૩૧°C તાપમાન છે.';
-      let suggestions: string[] = [];
-
-      const lower = text.toLowerCase();
-      if (lower.includes('bollworm') || lower.includes('ઈયળ') || lower.includes('pest')) {
-        replyEn = 'For Pink Bollworm in Cotton: Install 5 pheromone traps per acre immediately with Gossyplure septa. If trap catches exceed 8 moths/day, spray Emamectin Benzoate 5% SG @ 5g per 10L water in late afternoon.';
-        replyGu = 'કપાસમાં ગુલાબી ઈયળ માટે: એકરે ૫ ફેરોમોન ટ્રેપ લગાવો. જો ઉપદ્રવ વધુ હોય તો ૧૦ લીટર પાણીમાં ૫ ગ્રામ એમામેક્ટીન બેન્ઝોએટ ૫% એસજી દવા સાંજના સમયે છાંટો.';
-        suggestions = ['Open Camera to scan leaf', 'Order Pheromone Traps'];
-      } else if (lower.includes('drip') || lower.includes('water') || lower.includes('પિયત')) {
-        replyEn = 'Soil moisture is currently at 34% (Optimal) in Block A and 38% in Block B. With rainfall expected on Monday, postpone drip irrigation for 24-48 hours to prevent root waterlogging.';
-        replyGu = 'સોમવારે વરસાદની શક્યતા હોવાથી હાલ ડ્રિપ ચાલુ ન કરો જેથી કપાસના મૂળિયાંમાં પાણી ભરાઈ ન રહે.';
-        suggestions = ['View 7-day weather radar', 'Check soil depth sensors'];
-      } else if (lower.includes('mandi') || lower.includes('rate') || lower.includes('ભાવ')) {
-        replyEn = 'Surat APMC Cotton rate today is ₹7,250/Qtl (up +₹180). Rajkot APMC is quoting ₹7,420/Qtl. We advise holding export-quality bolls for 10 more days.';
-        replyGu = 'સુરત માર્કેટ યાર્ડમાં આજે કપાસનો ભાવ ₹૭,૨૫૦ પ્રતિ ક્વિન્ટલ છે. હજુ ૧૦ દિવસ માલ રોકી રાખવાની ભલામણ છે.';
-        suggestions = ['Book Mandi Gate Pass', 'Compare Rajkot APMC'];
-      }
-
-      const botMsg: ChatMessage = {
-        id: `bot-${Date.now()}`,
-        sender: 'assistant',
-        textEn: replyEn,
-        textGu: replyGu,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        suggestions,
-      };
-
-      setMessages((prev) => [...prev, botMsg]);
+    try {
+      await aiAssistantService.sendMessage(text);
+    } catch (err) {
+      console.error('Failed to send advisory message:', err);
+    } finally {
       setIsTyping(false);
-    }, 1200);
+    }
+  };
+
+  const handleClearChat = () => {
+    aiAssistantService.clearChat();
   };
 
   return (
@@ -110,6 +69,13 @@ export const AiAdvisoryChat: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleClearChat}
+              className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+              title="Reset Chat History"
+            >
+              <span className="material-symbols-outlined text-[18px]">refresh</span>
+            </button>
             <button
               onClick={() => navigate('/ai-camera')}
               className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow transition-all"
@@ -177,6 +143,7 @@ export const AiAdvisoryChat: React.FC = () => {
             <span>AI Analyzing...</span>
           </div>
         )}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Input Dock */}

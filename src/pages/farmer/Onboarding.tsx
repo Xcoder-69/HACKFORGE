@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { farmService } from '../../services/farmService';
+import { storageService, STORAGE_KEYS } from '../../services/storageService';
+import type { FarmParcel } from '../../types';
 
 type UnitType = 'Vigha (વીઘા)' | 'Acre (એકર)' | 'Guntha (ગુંઠા)' | 'Hectare (હેક્ટર)';
 type OwnershipType = 'Own Land' | 'Leased' | 'Shared';
@@ -17,7 +20,7 @@ interface CropOption {
 
 export const Onboarding: React.FC = () => {
   const { language, setLanguage, t } = useLanguage();
-  const { user } = useAuth();
+  const { user, updateProfile } = useAuth();
   const navigate = useNavigate();
 
   // Wizard Step State (1 to 4)
@@ -87,7 +90,58 @@ export const Onboarding: React.FC = () => {
       setCurrentStep((prev) => prev + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      // Finish Onboarding
+      // Finish Onboarding & persist all collected farm data
+      const farmParcel: FarmParcel = {
+        id: 'farm_' + Date.now(),
+        farmerId: user?.id || 'usr_demo',
+        totalArea,
+        cultivableArea,
+        fallowArea,
+        unit,
+        ownership,
+        soilType,
+        waterSources: waterSource,
+        irrigationTechnique,
+        waterAvailability,
+        coordinates: {
+          lat: parseFloat(lat) || 21.2721,
+          lng: parseFloat(lng) || 72.9546,
+          accuracy,
+        },
+        season,
+        surveyNo,
+        landmark,
+        selectedCrops,
+      };
+      farmService.saveFarmParcel(farmParcel);
+
+      // Update farmer account
+      updateProfile({
+        name: farmerName,
+        phone,
+        district,
+        village,
+        taluka,
+        pincode,
+        ageGroup,
+        kycDone: true,
+      });
+
+      // Synchronize plots
+      const currentPlots = farmService.getPlots();
+      if (currentPlots.A) {
+        currentPlots.A.area = `${(cultivableArea * 0.6).toFixed(1)} ${unit.includes('Vigha') ? 'Vigha' : 'Acres'}`;
+        currentPlots.A.soilType = soilType;
+        currentPlots.A.irrigation = irrigationTechnique;
+        farmService.savePlot(currentPlots.A);
+      }
+      if (currentPlots.B) {
+        currentPlots.B.area = `${(cultivableArea * 0.4).toFixed(1)} ${unit.includes('Vigha') ? 'Vigha' : 'Acres'}`;
+        currentPlots.B.soilType = soilType;
+        currentPlots.B.irrigation = irrigationTechnique;
+        farmService.savePlot(currentPlots.B);
+      }
+
       showToast('Farm parcel registered successfully with Sentinel-2 link!');
       setTimeout(() => {
         navigate('/my-farm');

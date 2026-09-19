@@ -1,88 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
-
-interface AlertItem {
-  id: string;
-  category: 'urgent' | 'weather' | 'irrigation';
-  categoryLabel: string;
-  titleEn: string;
-  titleGu: string;
-  severity: 'Critical' | 'High' | 'Medium';
-  severityColor: string;
-  time: string;
-  descriptionEn: string;
-  descriptionGu: string;
-  actionText: string;
-  actionRoute: string;
-  isRead: boolean;
-}
-
-const INITIAL_ALERTS: AlertItem[] = [
-  {
-    id: 'alert-1',
-    category: 'urgent',
-    categoryLabel: 'Pest Outbreak / જીવાત',
-    titleEn: 'Pink Bollworm Infestation in Kamrej Cluster',
-    titleGu: 'કામરેજ વિસ્તારમાં ગુલાબી ઈયળનો ઉપદ્રવ',
-    severity: 'Critical',
-    severityColor: 'bg-red-100 text-red-800 border-red-300',
-    time: '25 mins ago',
-    descriptionEn: 'Cluster telemetry detected >8 adult moths per trap in neighboring cotton fields. Immediate pheromone trap installation required.',
-    descriptionGu: 'નજીકના કપાસના ખેતરોમાં ટ્રેપ દીઠ ૮ થી વધુ પુખ્ત ફૂદાં નોંધાયા છે. તાત્કાલિક ફેરોમોન ટ્રેપ લગાવો.',
-    actionText: 'Scan Field with AI Camera',
-    actionRoute: '/ai-camera',
-    isRead: false,
-  },
-  {
-    id: 'alert-2',
-    category: 'weather',
-    categoryLabel: 'Weather Advisory / હવામાન',
-    titleEn: 'Heavy Convective Rain Forecast (28mm)',
-    titleGu: 'સોમવારે બપોરે ભારે વરસાદની શક્યતા (૨૮ મીમી)',
-    severity: 'High',
-    severityColor: 'bg-amber-100 text-amber-800 border-amber-300',
-    time: '2 hours ago',
-    descriptionEn: 'IMD Surat warns of strong convective thunderstorms on Monday afternoon. Delay pesticide spray and clear field drainage furrows.',
-    descriptionGu: 'દવા છંટકાવ મુલતવી રાખો અને પાળા સાફ કરો જેથી પાણી ભરાઈ ન રહે.',
-    actionText: 'Check Weather & Spray Window',
-    actionRoute: '/weather-soil',
-    isRead: false,
-  },
-  {
-    id: 'alert-3',
-    category: 'irrigation',
-    categoryLabel: 'Soil & Nutrition / ખાતર',
-    titleEn: 'Phosphorus Deficit in Block A Root Zone',
-    titleGu: 'બ્લોક A માં ફોસ્ફરસની અછત નોંધાઈ',
-    severity: 'Medium',
-    severityColor: 'bg-blue-100 text-blue-800 border-blue-300',
-    time: 'Yesterday',
-    descriptionEn: 'Soil sensor readings indicate available P is below 24 kg/ha. Apply 25kg Single Super Phosphate (SSP) with next irrigation cycle.',
-    descriptionGu: 'જમીન વિશ્લેષણ મુજબ ૨૫ કિગ્રા એસએસપી ખાતર આપવાની ભલામણ છે.',
-    actionText: 'Track Fertilizer in Expenses',
-    actionRoute: '/expenses',
-    isRead: false,
-  },
-];
+import { AlertItem } from '../../types';
+import { alertService } from '../../services/alertService';
 
 export const AlertsActionCenter: React.FC = () => {
   const navigate = useNavigate();
   const { language } = useLanguage();
 
-  const [alerts, setAlerts] = useState<AlertItem[]>(INITIAL_ALERTS);
+  const [alerts, setAlerts] = useState<AlertItem[]>(alertService.getAlerts());
   const [filter, setFilter] = useState<'all' | 'urgent' | 'weather' | 'irrigation'>('all');
+
+  useEffect(() => {
+    setAlerts(alertService.getAlerts());
+    const unsub = alertService.subscribeToAlerts((updated) => setAlerts(updated));
+    return unsub;
+  }, []);
 
   const unreadCount = alerts.filter((a) => !a.isRead).length;
 
   const markAllRead = () => {
-    setAlerts(alerts.map((a) => ({ ...a, isRead: true })));
+    alertService.markAllAsRead();
   };
 
   const toggleRead = (id: string) => {
-    setAlerts(
-      alerts.map((a) => (a.id === id ? { ...a, isRead: !a.isRead } : a))
-    );
+    alertService.toggleRead(id);
   };
 
   const filteredAlerts = alerts.filter((a) => {

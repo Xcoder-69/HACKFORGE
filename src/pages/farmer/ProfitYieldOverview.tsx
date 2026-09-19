@@ -1,11 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { financialService } from '../../services/financialService';
 
 export const ProfitYieldOverview: React.FC = () => {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const [selectedMandi, setSelectedMandi] = useState('Surat APMC');
+  const [financials, setFinancials] = useState(() => financialService.getFinancialOverview());
+
+  useEffect(() => {
+    const unsub = financialService.subscribe(() => {
+      setFinancials(financialService.getFinancialOverview());
+    });
+    return unsub;
+  }, []);
 
   const mandiRates = [
     { mandi: 'Surat APMC', distance: '14 km', cotton: '₹7,250 / Qtl', groundnut: '₹6,880 / Qtl', trend: 'up' },
@@ -15,7 +24,13 @@ export const ProfitYieldOverview: React.FC = () => {
   ];
 
   const historicalSeasons = [
-    { season: 'Kharif 2026 (Est.)', cost: '₹48,650', revenue: '₹1,68,000', netProfit: '₹1,19,350', roi: '245%' },
+    {
+      season: 'Kharif 2026 (Live Ledger)',
+      cost: `₹${financials.totalExpenses.toLocaleString('en-IN')}`,
+      revenue: `₹${financials.expectedRevenue.toLocaleString('en-IN')}`,
+      netProfit: `₹${financials.projectedNetProfit.toLocaleString('en-IN')}`,
+      roi: `${financials.roiPercent}%`,
+    },
     { season: 'Rabi 2025-26', cost: '₹22,400', revenue: '₹68,500', netProfit: '₹46,100', roi: '205%' },
     { season: 'Kharif 2025', cost: '₹44,000', revenue: '₹1,42,000', netProfit: '₹98,000', roi: '222%' },
   ];
@@ -68,13 +83,13 @@ export const ProfitYieldOverview: React.FC = () => {
                 Kharif 2026 Projected Net Profit
               </span>
               <div className="text-4xl md:text-5xl font-black text-[#163A2D] mt-2">
-                ₹1,19,350
+                ₹{financials.projectedNetProfit.toLocaleString('en-IN')}
               </div>
               <p className="text-sm font-bold text-emerald-700">
-                +21.8% vs Last Kharif Season (૨૧.૮% વધુ ચોખ્ખો નફો)
+                {financials.projectedNetProfit >= 0 ? '+21.8% vs Last Kharif Season (૨૧.૮% વધુ ચોખ્ખો નફો)' : 'Higher Expenses than Projected'}
               </p>
               <p className="text-xs text-[#717974] leading-relaxed">
-                Calculated based on current Surat APMC modal prices, 94% satellite NDVI biomass index, and optimal soil moisture conditions.
+                Dynamically calculated from recorded operational ledger expenses and Surat APMC benchmark modal prices.
               </p>
             </div>
 
@@ -82,20 +97,28 @@ export const ProfitYieldOverview: React.FC = () => {
             <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="bg-[#F6F3EA] p-4 rounded-2xl border border-[#E5E2DA]">
                 <span className="text-xs font-bold text-[#717974] uppercase block">Expected Revenue</span>
-                <span className="text-2xl font-black text-emerald-800 mt-1 block">₹1,68,000</span>
+                <span className="text-2xl font-black text-emerald-800 mt-1 block">
+                  ₹{financials.expectedRevenue.toLocaleString('en-IN')}
+                </span>
                 <span className="text-[11px] text-[#717974] mt-1 block">64 Qtl Total Harvest</span>
               </div>
 
               <div className="bg-[#F6F3EA] p-4 rounded-2xl border border-[#E5E2DA]">
                 <span className="text-xs font-bold text-[#717974] uppercase block">Total Cultivation Cost</span>
-                <span className="text-2xl font-black text-red-700 mt-1 block">-₹48,650</span>
+                <span className="text-2xl font-black text-red-700 mt-1 block">
+                  -₹{financials.totalExpenses.toLocaleString('en-IN')}
+                </span>
                 <span className="text-[11px] text-[#717974] mt-1 block">Recorded in Ledger</span>
               </div>
 
               <div className="bg-[#F6F3EA] p-4 rounded-2xl border border-[#E5E2DA]">
                 <span className="text-xs font-bold text-[#717974] uppercase block">Return on Investment</span>
-                <span className="text-2xl font-black text-[#163A2D] mt-1 block">245%</span>
-                <span className="text-[11px] text-emerald-700 font-bold mt-1 block">₹2.45 return per ₹1</span>
+                <span className="text-2xl font-black text-[#163A2D] mt-1 block">
+                  {financials.roiPercent}%
+                </span>
+                <span className="text-[11px] text-emerald-700 font-bold mt-1 block">
+                  ₹{(financials.roiPercent / 100).toFixed(2)} return per ₹1
+                </span>
               </div>
             </div>
           </div>

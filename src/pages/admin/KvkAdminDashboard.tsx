@@ -1,22 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-interface FarmerRecord {
-  id: string;
-  name: string;
-  code: string;
-  village: string;
-  district: string;
-  acreage: string;
-  plots: string;
-  crop: string;
-  cropBadgeColor: string;
-  ndvi: number;
-  ndviLabel: string;
-  ndviColor: string;
-  lastActivity: string;
-  kycDone: boolean;
-}
+import { FarmerRecord, DiagnosisResult, MandiRecord } from '../../types';
+import { storageService, STORAGE_KEYS } from '../../services/storageService';
+import { alertService } from '../../services/alertService';
+import { aiVisionService } from '../../services/aiVisionService';
+import { marketService } from '../../services/marketService';
 
 const INITIAL_FARMERS: FarmerRecord[] = [
   {
@@ -90,8 +78,9 @@ export const KvkAdminDashboard: React.FC = () => {
 
   // Moderation state
   const [moderationStatus, setModerationStatus] = useState<'pending' | 'approved' | 'corrected' | 'flagged'>('pending');
-  const [moderationNote, setModerationNote] = useState('');
-  const [farmers, setFarmers] = useState<FarmerRecord[]>(INITIAL_FARMERS);
+  const [farmers, setFarmers] = useState<FarmerRecord[]>([]);
+  const [scans, setScans] = useState<DiagnosisResult[]>([]);
+  const [mandiRecords, setMandiRecords] = useState<MandiRecord[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [districtFilter, setDistrictFilter] = useState('All');
   const [cropFilter, setCropFilter] = useState('All');
@@ -107,14 +96,48 @@ export const KvkAdminDashboard: React.FC = () => {
   // Selected telemetry farmer modal
   const [telemetryFarmer, setTelemetryFarmer] = useState<FarmerRecord | null>(null);
 
+  useEffect(() => {
+    // Load farmers
+    const storedFarmers = storageService.get<FarmerRecord[]>(STORAGE_KEYS.ADMIN_FARMERS, INITIAL_FARMERS);
+    setFarmers(storedFarmers);
+
+    // Load scans
+    setScans(aiVisionService.getScanHistory());
+    const unsubScans = aiVisionService.subscribeToScans((s) => setScans(s));
+
+    // Load mandi records
+    marketService.getMandiRecords().then(setMandiRecords);
+
+    return unsubScans;
+  }, []);
+
   const handleApprove = () => {
     setModerationStatus('approved');
   };
 
+  const handleToggleKyc = (id: string) => {
+    const updated = farmers.map((f) => (f.id === id ? { ...f, kycDone: !f.kycDone } : f));
+    setFarmers(updated);
+    storageService.set(STORAGE_KEYS.ADMIN_FARMERS, updated);
+  };
+
   const handleDispatch = (e: React.FormEvent) => {
     e.preventDefault();
+    alertService.addAlert({
+      category: 'weather',
+      categoryLabel: 'KVK Emergency Advisory / પ્રસારણ',
+      titleEn: advisoryTitle,
+      titleGu: 'કેવીકે સુરત તરફથી ખાસ હવામાન સલાહ',
+      severity: 'Critical',
+      severityColor: 'bg-red-100 text-red-800 border-red-300',
+      time: 'Just now',
+      descriptionEn: `Broadcast to ${advisoryTarget}: IMD alerts 45mm rainfall. Postpone chemical foliar spray and clear drainage furrows. Channels: ${channelApp ? 'App ' : ''}${channelWhatsapp ? 'WhatsApp ' : ''}${channelSms ? 'SMS' : ''}`,
+      descriptionGu: 'તાત્કાલિક કેવીકે પ્રસારણ: આગામી ૩૬ કલાકમાં ભારે વરસાદની શક્યતા હોવાથી દવા છંટકાવ મુલતવી રાખો.',
+      actionText: 'Check Weather & Spray Window',
+      actionRoute: '/weather-soil',
+    });
     setAdvisoryDispatched(true);
-    setTimeout(() => setAdvisoryDispatched(false), 3000);
+    setTimeout(() => setAdvisoryDispatched(false), 3500);
   };
 
   const filteredFarmers = farmers.filter((f) => {
@@ -126,6 +149,8 @@ export const KvkAdminDashboard: React.FC = () => {
     }
     return true;
   });
+
+  const latestScan = scans.length > 0 ? scans[0] : null;
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-12">
@@ -280,20 +305,24 @@ export const KvkAdminDashboard: React.FC = () => {
                 {/* Visualizer */}
                 <div className="md:col-span-5 space-y-2">
                   <div className="relative rounded-2xl overflow-hidden bg-[#163A2D] aspect-[4/3] shadow-inner flex items-center justify-center group">
-                    {/* Simulated foliage specimen */}
-                    <div className="text-center p-4">
-                      <span className="material-symbols-outlined text-[54px] text-emerald-400">
-                        psychiatry
-                      </span>
-                      <p className="text-xs text-emerald-200 mt-1">Cotton Shankar-6 Foliage</p>
-                      <span className="text-[10px] text-amber-300">Marginal yellowing + leaf curling</span>
-                    </div>
+                    {/* Simulated or uploaded foliage specimen */}
+                    {latestScan?.imageUrl ? (
+                      <img src={latestScan.imageUrl} alt="Scanned Leaf" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="text-center p-4">
+                        <span className="material-symbols-outlined text-[54px] text-emerald-400">
+                          psychiatry
+                        </span>
+                        <p className="text-xs text-emerald-200 mt-1">{latestScan?.crop || 'Cotton Shankar-6'} Foliage</p>
+                        <span className="text-[10px] text-amber-300">{latestScan?.symptoms?.[0] || 'Marginal yellowing + leaf curling'}</span>
+                      </div>
+                    )}
 
                     <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-black/60 text-white text-[11px] font-bold">
-                      #AG-1024
+                      #{latestScan?.id || 'AG-1024'}
                     </div>
                     <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-black/60 text-white text-[10px]">
-                      Captured 45m ago
+                      {latestScan?.timestamp || 'Captured 45m ago'}
                     </div>
                   </div>
 
@@ -308,10 +337,10 @@ export const KvkAdminDashboard: React.FC = () => {
                   <div>
                     <div className="flex items-center justify-between pb-2 border-b border-[#F1EEE5]">
                       <span className="text-xs font-bold text-[#163A2D] bg-[#F6F3EA] px-2.5 py-1 rounded-lg">
-                        Cotton (Shankar-6) • Plot 2 (2.2 Ac)
+                        {latestScan?.crop || 'Cotton (Shankar-6)'} • Plot 2 (2.2 Ac)
                       </span>
                       <span className="text-xs font-bold text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full">
-                        70% Model Confidence
+                        {latestScan?.confidence || 70}% Model Confidence
                       </span>
                     </div>
 
@@ -321,10 +350,10 @@ export const KvkAdminDashboard: React.FC = () => {
                         <span className="text-emerald-700 font-bold">Vision-Transformer Agro-v4</span>
                       </div>
                       <h4 className="font-extrabold text-base text-[#163A2D]">
-                        Jassid Infestation / લીલા તડતડિયા <span className="font-normal text-xs text-[#717974]">(Amrasca biguttula)</span>
+                        {latestScan?.diseaseName || 'Jassid Infestation / લીલા તડતડિયા'} <span className="font-normal text-xs text-[#717974]">({latestScan?.scientificName || 'Amrasca biguttula'})</span>
                       </h4>
                       <p className="text-xs text-[#414844] leading-relaxed">
-                        Observed pattern: Marginal leaf yellowing, pronounced downward hopperburn curling indicative of second-instar nymph feeding.
+                        {latestScan?.symptoms?.[0] || 'Observed pattern: Marginal leaf yellowing, pronounced downward hopperburn curling indicative of second-instar nymph feeding.'}
                       </p>
                     </div>
 
@@ -489,9 +518,17 @@ export const KvkAdminDashboard: React.FC = () => {
                         <span className="text-[10px] text-[#717974] font-medium">{farmer.ndviLabel}</span>
                       </td>
                       <td className="py-3.5 px-2">
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 text-[11px] font-bold">
+                        <button
+                          onClick={() => handleToggleKyc(farmer.id)}
+                          className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold transition-all cursor-pointer ${
+                            farmer.kycDone
+                              ? 'bg-emerald-100 text-emerald-900 hover:bg-emerald-200'
+                              : 'bg-amber-100 text-amber-900 hover:bg-amber-200'
+                          }`}
+                          title="Click to toggle KYC verification status"
+                        >
                           {farmer.kycDone ? 'KYC Done' : 'Pending'}
-                        </span>
+                        </button>
                       </td>
                       <td className="py-3.5 px-2 text-right">
                         <button
@@ -625,27 +662,24 @@ export const KvkAdminDashboard: React.FC = () => {
             </div>
 
             <div className="p-4 space-y-3">
-              <div className="p-3 rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA] flex items-center justify-between">
-                <div>
-                  <h4 className="font-bold text-xs text-[#163A2D]">Cotton (Shankar-6)</h4>
-                  <span className="text-[10px] text-[#717974]">Surat APMC • 2,400 bags</span>
+              {(mandiRecords.length > 0
+                ? mandiRecords.slice(0, 3)
+                : [
+                    { id: '1', crop: 'Cotton (Shankar-6)', mandi: 'Surat APMC', modalPrice: 7450, arrivals: '2,400 bags', change: '+₹180 (2.4%)' },
+                    { id: '2', crop: 'Groundnut (GG-20)', mandi: 'Rajkot APMC', modalPrice: 7590, arrivals: '1,850 bags', change: '+₹120 (1.6%)' },
+                  ]
+              ).map((rec: any) => (
+                <div key={rec.id} className="p-3 rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA] flex items-center justify-between">
+                  <div>
+                    <h4 className="font-bold text-xs text-[#163A2D]">{rec.crop}</h4>
+                    <span className="text-[10px] text-[#717974]">{rec.mandi} • {rec.arrivals || 'Active'}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-sm font-black text-emerald-800">₹{rec.modalPrice?.toLocaleString('en-IN')} / Qtl</span>
+                    <span className="text-[10px] text-emerald-700 font-bold block">↑ {rec.change || '+₹150'}</span>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <span className="text-sm font-black text-emerald-800">₹7,450 / Qtl</span>
-                  <span className="text-[10px] text-emerald-700 font-bold block">↑ +₹180 (2.4%)</span>
-                </div>
-              </div>
-
-              <div className="p-3 rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA] flex items-center justify-between">
-                <div>
-                  <h4 className="font-bold text-xs text-[#163A2D]">Groundnut (GG-20)</h4>
-                  <span className="text-[10px] text-[#717974]">Rajkot APMC • 1,850 bags</span>
-                </div>
-                <div className="text-right">
-                  <span className="text-sm font-black text-emerald-800">₹7,590 / Qtl</span>
-                  <span className="text-[10px] text-emerald-700 font-bold block">↑ +₹120 (1.6%)</span>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>

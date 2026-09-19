@@ -1,28 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { farmService } from '../../services/farmService';
+import type { PlotKey, PlotInfo } from '../../types';
 
-type PlotKey = 'A' | 'B';
-
-interface PlotInfo {
-  title: string;
-  crop: string;
-  subCrop: string;
-  area: string;
-  stageBadge: string;
-  stageName: string;
-  dayCount: string;
-  progressBar: string;
-  health: string;
-  moisture: string;
-  soilType: string;
-  irrigation: string;
-  syncTime: string;
-  provenance: string;
-}
-
-const INITIAL_PLOT_DATA: Record<PlotKey, PlotInfo> = {
+const INITIAL_PLOT_DATA: Record<string, PlotInfo> = {
   A: {
     title: 'Plot Details: Block A (બ્લોક એ - કપાસ)',
     crop: 'Shankar-6 Cotton',
@@ -62,9 +45,21 @@ export const MyFarm: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Active Plot State
+  // Active Plot & Farm State from farmService
+  const [plots, setPlots] = useState<Record<string, PlotInfo>>(() => {
+    const loaded = farmService.getPlots();
+    return Object.keys(loaded).length > 0 ? loaded : INITIAL_PLOT_DATA;
+  });
   const [activePlot, setActivePlot] = useState<PlotKey>('A');
-  const [plots, setPlots] = useState<Record<PlotKey, PlotInfo>>(INITIAL_PLOT_DATA);
+
+  useEffect(() => {
+    const unsubscribe = farmService.subscribePlots((updatedPlots) => {
+      if (updatedPlots && Object.keys(updatedPlots).length > 0) {
+        setPlots(updatedPlots);
+      }
+    });
+    return unsubscribe;
+  }, []);
 
   // History Accordion State
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
@@ -87,7 +82,6 @@ export const MyFarm: React.FC = () => {
 
   const openEditModal = () => {
     setModalMode('edit');
-    const p = plots[activePlot];
     setFormPlotName(activePlot === 'A' ? 'Block A (કપાસ)' : 'Block B (મગફળી)');
     setFormArea(activePlot === 'A' ? '2.5' : '2.0');
     setFormCrop(activePlot === 'A' ? 'Cotton (કપાસ)' : 'Groundnut (મગફળી)');
@@ -105,19 +99,28 @@ export const MyFarm: React.FC = () => {
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (modalMode === 'edit') {
-      setPlots((prev) => ({
-        ...prev,
-        [activePlot]: {
-          ...prev[activePlot],
+      const existing = plots[activePlot];
+      if (existing) {
+        const updated: PlotInfo = {
+          ...existing,
           title: `Plot Details: ${formPlotName}`,
-          area: `${formArea} Acres`,
+          area: formArea.includes('Acre') ? formArea : `${formArea} Acres`,
           crop: formCrop,
-          soilType: `${formSoil}`,
-          irrigation: `${formIrrigation}`,
-        },
-      }));
+          soilType: formSoil,
+          irrigation: formIrrigation,
+        };
+        farmService.savePlot(updated);
+      }
       showToast(`Plot ${activePlot} details saved successfully!`);
     } else {
+      const created = farmService.addPlot({
+        title: `Plot Details: ${formPlotName}`,
+        area: formArea,
+        crop: formCrop,
+        soilType: formSoil,
+        irrigation: formIrrigation,
+      });
+      setActivePlot(created.key);
       showToast(`New plot "${formPlotName}" registered with Sentinel-2 link!`);
     }
     setIsModalOpen(false);

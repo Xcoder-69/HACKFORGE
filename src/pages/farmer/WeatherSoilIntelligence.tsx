@@ -1,14 +1,128 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { weatherService, type WeatherData } from '../../services/weatherService';
+import { farmService } from '../../services/farmService';
+import {
+  locationService,
+  GUJARAT_DISTRICT_PRESETS,
+  type GeoCoordinates,
+  type GujaratDistrictPreset,
+} from '../../services/locationService';
 
 export const WeatherSoilIntelligence: React.FC = () => {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const [activeTab, setActiveTab] = useState<'weather' | 'soil' | 'spray'>('weather');
   const [selectedDay, setSelectedDay] = useState<number>(0);
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
-  const weeklyForecast = [
+  // Automatic Location Detection State
+  const [currentLocation, setCurrentLocation] = useState<GeoCoordinates>(() =>
+    locationService.getSavedLocation()
+  );
+  const [isDetectingLocation, setIsDetectingLocation] = useState<boolean>(false);
+  const [locationNotice, setLocationNotice] = useState<{
+    message: string;
+    type: 'info' | 'warning' | 'success';
+  } | null>(null);
+  const [showDistrictModal, setShowDistrictModal] = useState<boolean>(false);
+
+  const fetchWeather = async (
+    lat?: number,
+    lng?: number,
+    force: boolean = false
+  ) => {
+    if (force) setIsRefreshing(true);
+    const targetLat = typeof lat === 'number' ? lat : currentLocation.latitude;
+    const targetLng = typeof lng === 'number' ? lng : currentLocation.longitude;
+
+    const data = await weatherService.getWeather(
+      targetLat,
+      targetLng,
+      force,
+      currentLocation.locationName
+    );
+    setWeatherData(data);
+    setIsLoading(false);
+    setIsRefreshing(false);
+  };
+
+  useEffect(() => {
+    const saved = locationService.getSavedLocation();
+    setCurrentLocation(saved);
+    fetchWeather(saved.latitude, saved.longitude);
+
+    // If source is fallback, attempt an automatic geolocation check
+    if (saved.source === 'fallback') {
+      setIsDetectingLocation(true);
+      locationService.getCurrentLocation().then((result) => {
+        setIsDetectingLocation(false);
+        if (result.success) {
+          setCurrentLocation(result.coords);
+          fetchWeather(result.coords.latitude, result.coords.longitude, true);
+        }
+      });
+    }
+
+    // Subscribe to external location updates
+    const unsub = locationService.subscribeToLocation((coords) => {
+      setCurrentLocation(coords);
+    });
+    return unsub;
+  }, []);
+
+  const handleDetectLocation = async () => {
+    setIsDetectingLocation(true);
+    setLocationNotice(null);
+
+    const result = await locationService.getCurrentLocation();
+    setIsDetectingLocation(false);
+    setCurrentLocation(result.coords);
+
+    if (result.success) {
+      setLocationNotice({
+        message:
+          language === 'gu'
+            ? `જીવંત જીપીએસ દ્વારા સ્થાન મળ્યું: ${result.coords.locationNameGu}`
+            : `Live GPS detected: ${result.coords.locationName} (Accuracy: ±${result.coords.accuracy || 15}m)`,
+        type: 'success',
+      });
+      fetchWeather(result.coords.latitude, result.coords.longitude, true);
+    } else {
+      setLocationNotice({
+        message:
+          language === 'gu'
+            ? result.errorGu ||
+              'સ્થાન પરવાનગી નકારી છે. કૃપા કરીને જિલ્લો જાતે પસંદ કરો.'
+            : result.error ||
+              'Location permission denied. Please select district manually.',
+        type: 'warning',
+      });
+      fetchWeather(result.coords.latitude, result.coords.longitude, true);
+      if (result.errorType === 'denied') {
+        setShowDistrictModal(true);
+      }
+    }
+  };
+
+  const handleSelectDistrict = (preset: GujaratDistrictPreset) => {
+    const coords = locationService.setManualLocation(preset);
+    setCurrentLocation(coords);
+    setShowDistrictModal(false);
+    setLocationNotice({
+      message:
+        language === 'gu'
+          ? `પસંદ કરેલ જિલ્લો: ${preset.nameGu}`
+          : `District manually set: ${preset.name}`,
+      type: 'info',
+    });
+    fetchWeather(preset.lat, preset.lng, true);
+  };
+
+  const weeklyForecast = weatherData?.daily || [
     { day: 'Today', dayGu: 'આજે', tempMax: 33, tempMin: 24, condition: 'Partly Cloudy', icon: 'partly_cloudy_day', rainProb: 20, rainMm: '0.0 mm', sprayScore: 'Safe' },
     { day: 'Sun', dayGu: 'રવિ', tempMax: 34, tempMin: 25, condition: 'Sunny & Clear', icon: 'wb_sunny', rainProb: 5, rainMm: '0.0 mm', sprayScore: 'Optimal' },
     { day: 'Mon', dayGu: 'સોમ', tempMax: 32, tempMin: 24, condition: 'Isolated Showers', icon: 'rainy', rainProb: 65, rainMm: '14.2 mm', sprayScore: 'Unsafe' },
@@ -24,20 +138,122 @@ export const WeatherSoilIntelligence: React.FC = () => {
       <div className="bg-[#163A2D] text-white py-6 px-4 md:px-8 shadow-sm">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-1">
+            <div className="flex items-center gap-2 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-1 flex-wrap">
               <span className="material-symbols-outlined text-[18px]">satellite_alt</span>
               <span>Open-Meteo & IMD Live Radar • હવામાન અને જમીન બુદ્ધિમત્તા</span>
+              {weatherData && (
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${weatherData.isOffline ? 'bg-amber-500/20 text-amber-300 border border-amber-400/40' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/40'}`}>
+                  {weatherData.isOffline ? '● Offline Cache' : '● Live API'}
+                </span>
+              )}
+              {/* Dynamic Location Source Badge */}
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 ${
+                  currentLocation.source === 'gps'
+                    ? 'bg-blue-500/20 text-blue-300 border border-blue-400/40'
+                    : currentLocation.source === 'saved_farm'
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/40'
+                    : currentLocation.source === 'manual'
+                    ? 'bg-purple-500/20 text-purple-300 border border-purple-400/40'
+                    : 'bg-amber-500/20 text-amber-300 border border-amber-400/40'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[12px]">
+                  {currentLocation.source === 'gps'
+                    ? 'near_me'
+                    : currentLocation.source === 'saved_farm'
+                    ? 'home_pin'
+                    : currentLocation.source === 'manual'
+                    ? 'edit_location'
+                    : 'info'}
+                </span>
+                <span>
+                  {language === 'gu'
+                    ? currentLocation.sourceLabelGu
+                    : currentLocation.sourceLabel}
+                </span>
+              </span>
             </div>
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
               Weather & Soil Intelligence
             </h1>
-            <p className="text-emerald-100/80 text-sm mt-0.5">
-              Hyperlocal telemetry for Kamrej, Surat (21.27° N, 72.96° E) • Station: GJ-SUR-04
+            <p className="text-emerald-100/80 text-sm mt-0.5 flex items-center gap-1.5 flex-wrap">
+              <span>
+                Hyperlocal telemetry for{' '}
+                <strong className="text-white">
+                  {language === 'gu'
+                    ? currentLocation.locationNameGu
+                    : currentLocation.locationName}
+                </strong>
+              </span>
+              <span>•</span>
+              <span>Station: {weatherData?.stationId || 'GJ-Live'}</span>
             </p>
           </div>
 
           {/* Action pills */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+            {/* GPS Detection Button */}
+            <button
+              onClick={handleDetectLocation}
+              disabled={isDetectingLocation}
+              className="px-3.5 py-2.5 bg-emerald-600/80 hover:bg-emerald-600 text-white rounded-xl font-bold text-sm flex items-center gap-1.5 transition-colors border border-emerald-400/40 active:scale-95 shadow-sm"
+              title="Detect current location using GPS"
+            >
+              <span
+                className={`material-symbols-outlined text-[18px] ${
+                  isDetectingLocation ? 'animate-spin' : ''
+                }`}
+              >
+                {isDetectingLocation ? 'progress_activity' : 'my_location'}
+              </span>
+              <span>
+                {isDetectingLocation
+                  ? language === 'gu'
+                    ? 'શોધાય છે...'
+                    : 'Detecting GPS...'
+                  : language === 'gu'
+                  ? 'GPS સ્થાન'
+                  : 'Detect GPS'}
+              </span>
+            </button>
+
+            {/* Manual District Selection Button */}
+            <button
+              onClick={() => setShowDistrictModal(true)}
+              className="px-3 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold text-sm flex items-center gap-1.5 transition-colors border border-white/20 active:scale-95"
+              title="Select Gujarat agricultural district"
+            >
+              <span className="material-symbols-outlined text-[18px]">
+                location_on
+              </span>
+              <span>
+                {language === 'gu' ? 'જિલ્લો બદલો' : 'Change District'}
+              </span>
+            </button>
+
+            {/* Refresh Live Forecast */}
+            <button
+              onClick={() =>
+                fetchWeather(
+                  currentLocation.latitude,
+                  currentLocation.longitude,
+                  true
+                )
+              }
+              disabled={isRefreshing}
+              className="px-3.5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold text-sm flex items-center gap-1.5 transition-colors border border-white/20 active:scale-95"
+              title="Refresh live Open-Meteo forecast"
+            >
+              <span
+                className={`material-symbols-outlined text-[18px] ${
+                  isRefreshing ? 'animate-spin' : ''
+                }`}
+              >
+                sync
+              </span>
+              <span>{isRefreshing ? 'Syncing...' : 'Refresh'}</span>
+            </button>
             <button
               onClick={() => navigate('/alerts')}
               className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded-xl text-sm flex items-center gap-1.5 shadow-md transition-all active:scale-95"
@@ -58,6 +274,36 @@ export const WeatherSoilIntelligence: React.FC = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 pt-6 space-y-6">
+        {/* Dynamic Location Feedback Notification */}
+        {locationNotice && (
+          <div
+            className={`p-3.5 rounded-2xl border flex items-center justify-between gap-3 text-xs md:text-sm font-semibold transition-all ${
+              locationNotice.type === 'success'
+                ? 'bg-emerald-50 text-emerald-900 border-emerald-300'
+                : locationNotice.type === 'warning'
+                ? 'bg-amber-50 text-amber-900 border-amber-300'
+                : 'bg-blue-50 text-blue-900 border-blue-300'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[20px]">
+                {locationNotice.type === 'success'
+                  ? 'check_circle'
+                  : locationNotice.type === 'warning'
+                  ? 'warning'
+                  : 'info'}
+              </span>
+              <span>{locationNotice.message}</span>
+            </div>
+            <button
+              onClick={() => setLocationNotice(null)}
+              className="p-1 rounded-full hover:bg-black/10 transition-colors"
+            >
+              <span className="material-symbols-outlined text-[18px]">close</span>
+            </button>
+          </div>
+        )}
+
         {/* Extreme Weather Advisory Banner */}
         <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-sm">
           <div className="flex items-center gap-3">
@@ -72,7 +318,8 @@ export const WeatherSoilIntelligence: React.FC = () => {
                 <span className="text-xs text-amber-800 font-semibold">Forecast for Monday & Tuesday</span>
               </div>
               <p className="text-sm font-bold text-[#163A2D] mt-0.5">
-                Convective rainfall (25-40mm) anticipated in Surat district. Postpone foliar pesticide sprays.
+                {weatherData?.advisory.message ||
+                  `Convective weather advisory active for ${currentLocation.district}. Postpone foliar pesticide sprays.`}
               </p>
             </div>
           </div>
@@ -132,18 +379,18 @@ export const WeatherSoilIntelligence: React.FC = () => {
                 {/* Main Gauge / Temp */}
                 <div className="md:col-span-6 flex items-center gap-6">
                   <div className="w-24 h-24 rounded-3xl bg-amber-100 text-amber-700 flex items-center justify-center shadow-inner shrink-0">
-                    <span className="material-symbols-outlined text-[54px]">partly_cloudy_day</span>
+                    <span className="material-symbols-outlined text-[54px]">{weatherData?.current.icon || 'partly_cloudy_day'}</span>
                   </div>
                   <div>
                     <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider bg-emerald-100 px-2.5 py-1 rounded-full">
-                      Kamrej Micro-Station • Live
+                      Kamrej Micro-Station • {weatherData?.isOffline ? 'Cached' : 'Live Open-Meteo'}
                     </span>
                     <div className="flex items-baseline gap-2 mt-1">
-                      <span className="text-5xl md:text-6xl font-black text-[#163A2D]">31°C</span>
-                      <span className="text-base font-semibold text-[#717974]">Feels like 34°C</span>
+                      <span className="text-5xl md:text-6xl font-black text-[#163A2D]">{weatherData?.current.temp ?? 31}°C</span>
+                      <span className="text-base font-semibold text-[#717974]">Feels like {Math.round((weatherData?.current.temp ?? 31) + 2)}°C</span>
                     </div>
                     <p className="text-sm font-bold text-[#414844] mt-0.5">
-                      Partly Cloudy • પવન દિશા: દક્ષિણ-પશ્ચિમ (SW)
+                      {weatherData?.current.condition ?? 'Partly Cloudy'} • પવન: {weatherData?.current.windSpeed ?? 14} km/h
                     </p>
                   </div>
                 </div>
@@ -154,14 +401,14 @@ export const WeatherSoilIntelligence: React.FC = () => {
                     <span className="text-xs text-[#717974] block">Humidity</span>
                     <span className="text-base font-extrabold text-[#163A2D] flex items-center gap-1 mt-0.5">
                       <span className="material-symbols-outlined text-blue-600 text-sm">humidity_mid</span>
-                      68%
+                      {weatherData?.current.humidity ?? 68}%
                     </span>
                   </div>
                   <div className="bg-[#F6F3EA] p-3 rounded-2xl border border-[#E5E2DA]">
                     <span className="text-xs text-[#717974] block">Wind Velocity</span>
                     <span className="text-base font-extrabold text-[#163A2D] flex items-center gap-1 mt-0.5">
                       <span className="material-symbols-outlined text-teal-600 text-sm">air</span>
-                      14 km/h
+                      {weatherData?.current.windSpeed ?? 14} km/h
                     </span>
                   </div>
                   <div className="bg-[#F6F3EA] p-3 rounded-2xl border border-[#E5E2DA]">
@@ -436,6 +683,90 @@ export const WeatherSoilIntelligence: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Manual District Selection Modal */}
+      {showDistrictModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-[#E5E2DA] max-h-[85vh] flex flex-col animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E5E2DA]">
+              <div>
+                <h3 className="font-extrabold text-lg text-[#163A2D] flex items-center gap-2">
+                  <span className="material-symbols-outlined text-emerald-700">pin_drop</span>
+                  <span>
+                    {language === 'gu'
+                      ? 'કૃષિ જિલ્લો પસંદ કરો'
+                      : 'Select Agricultural District'}
+                  </span>
+                </h3>
+                <p className="text-xs text-[#717974] mt-0.5">
+                  {language === 'gu'
+                    ? 'તમારા વિસ્તારનું હવામાન અને દવા છંટકાવ વિગતો મેળવવા જિલ્લો પસંદ કરો'
+                    : 'Choose your district to load localized Open-Meteo weather forecasts'}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowDistrictModal(false)}
+                className="w-8 h-8 rounded-full hover:bg-[#F1EEE5] flex items-center justify-center text-[#717974] transition-colors"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+
+            {/* District list grid */}
+            <div className="overflow-y-auto space-y-2 pr-1 flex-1 py-1">
+              {GUJARAT_DISTRICT_PRESETS.map((preset) => {
+                const isSelected = currentLocation.district === preset.district;
+                return (
+                  <button
+                    key={preset.district}
+                    onClick={() => handleSelectDistrict(preset)}
+                    className={`w-full text-left p-3.5 rounded-2xl border transition-all flex items-center justify-between active:scale-[0.99] ${
+                      isSelected
+                        ? 'bg-emerald-50 border-emerald-600 shadow-sm ring-1 ring-emerald-600'
+                        : 'bg-[#FCF9F0] hover:bg-[#F6F3EA] border-[#E5E2DA]'
+                    }`}
+                  >
+                    <div>
+                      <div className="font-extrabold text-sm text-[#163A2D] flex items-center gap-1.5">
+                        <span>{language === 'gu' ? preset.nameGu : preset.name}</span>
+                        {preset.district === 'Surat' && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">
+                            KVK Main Node
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[11px] text-[#717974] mt-0.5">
+                        Coordinates: {preset.lat.toFixed(3)}° N, {preset.lng.toFixed(3)}° E
+                      </div>
+                    </div>
+                    {isSelected && (
+                      <span className="material-symbols-outlined text-emerald-700 text-[22px]">
+                        check_circle
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="pt-3 border-t border-[#E5E2DA] flex items-center justify-between text-xs text-[#717974]">
+              <span className="truncate max-w-[220px]">
+                Active: <strong className="text-[#163A2D]">{currentLocation.locationName}</strong>
+              </span>
+              <button
+                onClick={() => {
+                  setShowDistrictModal(false);
+                  handleDetectLocation();
+                }}
+                className="font-bold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 transition-colors"
+              >
+                <span className="material-symbols-outlined text-[15px]">my_location</span>
+                <span>Use Device GPS</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

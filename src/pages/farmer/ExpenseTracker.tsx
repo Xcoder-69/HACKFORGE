@@ -1,40 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
-
-interface ExpenseItem {
-  id: string;
-  date: string;
-  category: 'Seeds' | 'Fertilizers' | 'Pesticides' | 'Labor' | 'Machinery' | 'Irrigation';
-  categoryGu: string;
-  title: string;
-  plot: string;
-  amount: number;
-  paymentMethod: 'UPI' | 'Cash' | 'Mandli Credit';
-}
-
-const INITIAL_EXPENSES: ExpenseItem[] = [
-  { id: 'exp-1', date: '18 Aug 2026', category: 'Fertilizers', categoryGu: 'ખાતર', title: 'Single Super Phosphate (SSP) 50kg x 3', plot: 'Block A', amount: 1450, paymentMethod: 'UPI' },
-  { id: 'exp-2', date: '12 Aug 2026', category: 'Labor', categoryGu: 'મજૂરી', title: 'Weeding & intercultural hoeing (4 workers)', plot: 'Block A', amount: 3200, paymentMethod: 'Cash' },
-  { id: 'exp-3', date: '04 Aug 2026', category: 'Pesticides', categoryGu: 'દવા', title: 'Emamectin Benzoate 5% SG (Pest Control)', plot: 'Block A', amount: 980, paymentMethod: 'UPI' },
-  { id: 'exp-4', date: '28 Jul 2026', category: 'Seeds', categoryGu: 'બિયારણ', title: 'Certified Gujarat Cotton G.Cot-16 Bt Packets', plot: 'Block A', amount: 8400, paymentMethod: 'Mandli Credit' },
-  { id: 'exp-5', date: '25 Jul 2026', category: 'Machinery', categoryGu: 'ટ્રેક્ટર / ડીઝલ', title: 'Deep Ploughing & Rotavator (6 hours tractor)', plot: 'Block A & B', amount: 7200, paymentMethod: 'Cash' },
-  { id: 'exp-6', date: '15 Jul 2026', category: 'Seeds', categoryGu: 'બિયારણ', title: 'Gujarat Groundnut GG-20 Seed Stock 120kg', plot: 'Block B', amount: 12600, paymentMethod: 'Mandli Credit' },
-  { id: 'exp-7', date: '02 Jul 2026', category: 'Irrigation', categoryGu: 'સિંચાઈ', title: 'Drip Lateral Filters & Flush Valve Service', plot: 'Both Plots', amount: 2400, paymentMethod: 'UPI' },
-];
+import { financialService } from '../../services/financialService';
+import type { ExpenseItem, ExpenseCategory } from '../../types';
 
 export const ExpenseTracker: React.FC = () => {
   const navigate = useNavigate();
   const { language } = useLanguage();
 
-  const [expenses, setExpenses] = useState<ExpenseItem[]>(INITIAL_EXPENSES);
+  const [expenses, setExpenses] = useState<ExpenseItem[]>(() => financialService.getExpenses());
   const [filterPlot, setFilterPlot] = useState<string>('All');
   const [filterCat, setFilterCat] = useState<string>('All');
   const [showAddModal, setShowAddModal] = useState(false);
 
+  useEffect(() => {
+    const unsub = financialService.subscribe(() => {
+      setExpenses(financialService.getExpenses());
+    });
+    return unsub;
+  }, []);
+
   // Form state
   const [formDate, setFormDate] = useState('2026-08-20');
-  const [formCat, setFormCat] = useState<'Seeds' | 'Fertilizers' | 'Pesticides' | 'Labor' | 'Machinery' | 'Irrigation'>('Fertilizers');
+  const [formCat, setFormCat] = useState<ExpenseCategory>('Fertilizers');
   const [formTitle, setFormTitle] = useState('');
   const [formPlot, setFormPlot] = useState('Block A');
   const [formAmount, setFormAmount] = useState('');
@@ -54,8 +42,7 @@ export const ExpenseTracker: React.FC = () => {
     e.preventDefault();
     if (!formTitle || !formAmount) return;
 
-    const newExp: ExpenseItem = {
-      id: `exp-${Date.now()}`,
+    financialService.addExpense({
       date: formDate,
       category: formCat,
       categoryGu: formCat === 'Fertilizers' ? 'ખાતર' : formCat === 'Seeds' ? 'બિયારણ' : formCat === 'Labor' ? 'મજૂરી' : 'અન્ય',
@@ -63,9 +50,8 @@ export const ExpenseTracker: React.FC = () => {
       plot: formPlot,
       amount: parseFloat(formAmount),
       paymentMethod: formPay,
-    };
+    });
 
-    setExpenses([newExp, ...expenses]);
     setShowAddModal(false);
     setFormTitle('');
     setFormAmount('');

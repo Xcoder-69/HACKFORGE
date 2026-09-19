@@ -1,84 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
-
-interface DiagnosisResult {
-  pestNameEn: string;
-  pestNameGu: string;
-  scientificName: string;
-  confidence: number;
-  severity: 'Low' | 'Moderate' | 'High' | 'Severe';
-  crop: string;
-  stage: string;
-  symptoms: string[];
-  remedies: {
-    type: 'Organic / જૈવિક' | 'Chemical / રાસાયણિક' | 'Cultural / વ્યવસ્થાપન';
-    action: string;
-    dosage: string;
-  }[];
-  warning: string;
-}
-
-const SAMPLE_DIAGNOSES: Record<string, DiagnosisResult> = {
-  cotton_bollworm: {
-    pestNameEn: 'Pink Bollworm Infestation',
-    pestNameGu: 'ગુલાબી ઈયળનો ઉપદ્રવ (Pink Bollworm)',
-    scientificName: 'Pectinophora gossypiella',
-    confidence: 96.4,
-    severity: 'High',
-    crop: 'Bt Cotton (કપાસ)',
-    stage: 'Squaring & Flowering Stage',
-    symptoms: [
-      'Rosetted or flared squares (કમળ જેવી બંધ કળીઓ)',
-      'Entry pin-holes in developing green bolls',
-      'Premature boll dropping and stained lint',
-    ],
-    remedies: [
-      {
-        type: 'Organic / જૈવિક',
-        action: 'Install Pheromone Traps with Gossyplure Septa',
-        dosage: '5-8 traps / acre at canopy height',
-      },
-      {
-        type: 'Chemical / રાસાયણિક',
-        action: 'Emamectin Benzoate 5% SG or Chlorantraniliprole 18.5% SC',
-        dosage: '5g per 10L water in late afternoon',
-      },
-      {
-        type: 'Cultural / વ્યવસ્થાપન',
-        action: 'Collect and bury dropped rosetted flowers in deep soil pit',
-        dosage: 'Daily field sanitation',
-      },
-    ],
-    warning: 'Convective rainfall expected within 48h. Perform spraying only before rain or in clear weather window.',
-  },
-  groundnut_tikka: {
-    pestNameEn: 'Tikka Leaf Spot (Cercospora)',
-    pestNameGu: 'ટિક્કા રોગ / પાન પર ટપકાં (Tikka Leaf Spot)',
-    scientificName: 'Cercospora arachidicola',
-    confidence: 94.8,
-    severity: 'Moderate',
-    crop: 'Groundnut GG-20 (મગફળી)',
-    stage: 'Pegging Stage',
-    symptoms: [
-      'Circular dark brown/black spots with yellow chlorotic halo',
-      'Lower leaves defoliating early',
-    ],
-    remedies: [
-      {
-        type: 'Chemical / રાસાયણિક',
-        action: 'Carbendazim 12% + Mancozeb 63% WP (Saaf)',
-        dosage: '25g per 15L spray pump',
-      },
-      {
-        type: 'Organic / જૈવિક',
-        action: 'Neem seed kernel extract (NSKE 5%)',
-        dosage: '50ml per 10L water',
-      },
-    ],
-    warning: 'High humidity (>70%) accelerates spore proliferation. Ensure good air circulation.',
-  },
-};
+import { DiagnosisResult } from '../../types';
+import { aiVisionService } from '../../services/aiVisionService';
 
 export const CropHealthScanner: React.FC = () => {
   const navigate = useNavigate();
@@ -92,18 +16,30 @@ export const CropHealthScanner: React.FC = () => {
   const [isScanning, setIsScanning] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [diagnosis, setDiagnosis] = useState<DiagnosisResult | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
+  const [pastScans, setPastScans] = useState<DiagnosisResult[]>([]);
 
-  const handleCapture = () => {
+  useEffect(() => {
+    setPastScans(aiVisionService.getScanHistory());
+    const unsub = aiVisionService.subscribeToScans((scans) => setPastScans(scans));
+    return unsub;
+  }, []);
+
+  const handleCapture = async (imageData?: string) => {
     setIsScanning(true);
-    // Simulate AI inference
-    setTimeout(() => {
+    try {
+      const img = imageData || capturedImage || undefined;
+      const result = await aiVisionService.diagnoseLeaf({
+        imageBase64: img,
+        crop: cropSelection,
+        stage: stageSelection,
+      });
+      setDiagnosis(result);
+    } catch (err) {
+      console.error('Diagnosis failed:', err);
+    } finally {
       setIsScanning(false);
-      if (cropSelection === 'Groundnut') {
-        setDiagnosis(SAMPLE_DIAGNOSES.groundnut_tikka);
-      } else {
-        setDiagnosis(SAMPLE_DIAGNOSES.cotton_bollworm);
-      }
-    }, 1600);
+    }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -111,8 +47,9 @@ export const CropHealthScanner: React.FC = () => {
     if (file) {
       const reader = new FileReader();
       reader.onload = (event) => {
-        setCapturedImage(event.target?.result as string);
-        handleCapture();
+        const base64 = event.target?.result as string;
+        setCapturedImage(base64);
+        handleCapture(base64);
       };
       reader.readAsDataURL(file);
     }
@@ -277,13 +214,18 @@ export const CropHealthScanner: React.FC = () => {
                 </div>
               </button>
 
-              {/* Manual Disease Library link */}
+              {/* Past Scans History */}
               <button
-                onClick={() => navigate('/recommendations')}
-                className="w-12 h-12 rounded-2xl bg-white/15 hover:bg-white/25 flex flex-col items-center justify-center text-white transition-all active:scale-95"
-                title="Pest Library"
+                onClick={() => setShowHistory(true)}
+                className="w-12 h-12 rounded-2xl bg-white/15 hover:bg-white/25 flex flex-col items-center justify-center text-white transition-all active:scale-95 relative"
+                title="Past Scans History"
               >
-                <span className="material-symbols-outlined text-[24px]">menu_book</span>
+                <span className="material-symbols-outlined text-[24px]">history</span>
+                {pastScans.length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center">
+                    {pastScans.length}
+                  </span>
+                )}
               </button>
             </div>
           </div>
@@ -295,19 +237,26 @@ export const CropHealthScanner: React.FC = () => {
               <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E2DA] space-y-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="px-3 py-1 rounded-full bg-red-100 text-red-800 text-xs font-bold uppercase tracking-wider">
                         {diagnosis.severity} Severity
                       </span>
                       <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
-                        {diagnosis.confidence}% Confidence
+                        {diagnosis.confidenceLabel || `${diagnosis.confidence}% Confidence`}
                       </span>
+                      {diagnosis.isAiEstimate && (
+                        <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
+                          AI Estimate
+                        </span>
+                      )}
                     </div>
                     <h2 className="text-2xl md:text-3xl font-black text-[#163A2D] mt-2">
-                      {diagnosis.pestNameEn}
+                      {diagnosis.pestNameEn || diagnosis.diseaseName}
                     </h2>
-                    <p className="text-base font-bold text-emerald-700">{diagnosis.pestNameGu}</p>
-                    <p className="text-xs italic text-[#717974]">{diagnosis.scientificName}</p>
+                    <p className="text-base font-bold text-emerald-700">{diagnosis.pestNameGu || diagnosis.diseaseGu}</p>
+                    {diagnosis.scientificName && (
+                      <p className="text-xs italic text-[#717974]">{diagnosis.scientificName}</p>
+                    )}
                   </div>
 
                   <div className="w-14 h-14 rounded-2xl bg-red-100 text-red-700 flex items-center justify-center shrink-0">
@@ -315,7 +264,7 @@ export const CropHealthScanner: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Weather Warning */}
+                {/* Weather / Critical Warning */}
                 {diagnosis.warning && (
                   <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-300 flex items-start gap-2.5 text-xs md:text-sm text-amber-900">
                     <span className="material-symbols-outlined text-amber-700 text-[20px] shrink-0">warning</span>
@@ -325,50 +274,61 @@ export const CropHealthScanner: React.FC = () => {
               </div>
 
               {/* Symptoms Identified */}
-              <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E2DA]">
-                <h3 className="text-lg font-bold text-[#163A2D] mb-3 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-emerald-700">visibility</span>
-                  <span>Diagnostic Symptoms Observed (લક્ષણો)</span>
-                </h3>
-                <ul className="space-y-2">
-                  {diagnosis.symptoms.map((symp, sIdx) => (
-                    <li key={sIdx} className="flex items-start gap-2.5 text-sm text-[#414844]">
-                      <span className="material-symbols-outlined text-red-600 text-[18px] shrink-0 mt-0.5">
-                        radio_button_checked
-                      </span>
-                      <span>{symp}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              {diagnosis.symptoms && diagnosis.symptoms.length > 0 && (
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E2DA]">
+                  <h3 className="text-lg font-bold text-[#163A2D] mb-3 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-emerald-700">visibility</span>
+                    <span>Diagnostic Symptoms Observed (લક્ષણો)</span>
+                  </h3>
+                  <ul className="space-y-2">
+                    {diagnosis.symptoms.map((symp, sIdx) => (
+                      <li key={sIdx} className="flex items-start gap-2.5 text-sm text-[#414844]">
+                        <span className="material-symbols-outlined text-red-600 text-[18px] shrink-0 mt-0.5">
+                          radio_button_checked
+                        </span>
+                        <span>{symp}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {/* Prescribed Remedies */}
-              <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E2DA]">
-                <h3 className="text-lg font-bold text-[#163A2D] mb-4 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-emerald-700">medication</span>
-                  <span>Immediate Prescribed Actions (ઉપાયો અને દવાઓ)</span>
-                </h3>
+              {((diagnosis.remedies && diagnosis.remedies.length > 0) || (diagnosis.treatments && diagnosis.treatments.length > 0)) && (
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E2DA]">
+                  <h3 className="text-lg font-bold text-[#163A2D] mb-4 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-emerald-700">medication</span>
+                    <span>Immediate Prescribed Actions (ઉપાયો અને દવાઓ)</span>
+                  </h3>
 
-                <div className="space-y-3">
-                  {diagnosis.remedies.map((rem, rIdx) => (
-                    <div
-                      key={rIdx}
-                      className="p-4 rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA] flex flex-col md:flex-row md:items-center justify-between gap-3"
-                    >
-                      <div>
-                        <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
-                          {rem.type}
-                        </span>
-                        <h4 className="font-extrabold text-sm md:text-base text-[#163A2D] mt-1">
-                          {rem.action}
-                        </h4>
+                  <div className="space-y-3">
+                    {(diagnosis.remedies || diagnosis.treatments || []).map((rem, rIdx) => (
+                      <div
+                        key={rIdx}
+                        className="p-4 rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA] flex flex-col md:flex-row md:items-center justify-between gap-3"
+                      >
+                        <div>
+                          <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
+                            {rem.type}
+                          </span>
+                          <h4 className="font-extrabold text-sm md:text-base text-[#163A2D] mt-1">
+                            {rem.action}
+                          </h4>
+                        </div>
+                        <div className="bg-white px-3 py-1.5 rounded-xl border border-[#E5E2DA] text-xs md:text-sm font-bold text-emerald-900 shrink-0">
+                          {rem.dosage}
+                        </div>
                       </div>
-                      <div className="bg-white px-3 py-1.5 rounded-xl border border-[#E5E2DA] text-xs md:text-sm font-bold text-emerald-900 shrink-0">
-                        {rem.dosage}
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
+              )}
+
+              {/* Responsible AI Disclaimer */}
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 text-center">
+                <p className="text-xs text-slate-500 italic">
+                  🛡️ {diagnosis.disclaimer || 'AI diagnostic estimate only. Field-validate with certified KVK extension officer or agronomist before applying chemical pesticides.'}
+                </p>
               </div>
 
               {/* Action Buttons */}
@@ -387,6 +347,74 @@ export const CropHealthScanner: React.FC = () => {
                 >
                   <span className="material-symbols-outlined text-[20px]">support_agent</span>
                   <span>Consult KVK Agronomist</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Past Scans Modal / Slide-over */}
+        {showHistory && (
+          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white text-[#1C1C17] w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+              <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-[#163A2D] text-white">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-emerald-400">history</span>
+                  <h3 className="font-bold text-lg">Previous Leaf Diagnoses</h3>
+                </div>
+                <button
+                  onClick={() => setShowHistory(false)}
+                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white"
+                >
+                  <span className="material-symbols-outlined text-[20px]">close</span>
+                </button>
+              </div>
+
+              <div className="p-4 overflow-y-auto flex-1 space-y-3">
+                {pastScans.length === 0 ? (
+                  <div className="text-center py-10 text-slate-500">
+                    <span className="material-symbols-outlined text-4xl text-slate-300">image_not_supported</span>
+                    <p className="mt-2 text-sm">No previous scans recorded yet.</p>
+                  </div>
+                ) : (
+                  pastScans.map((scan) => (
+                    <div
+                      key={scan.id}
+                      onClick={() => {
+                        setDiagnosis(scan);
+                        setShowHistory(false);
+                      }}
+                      className="p-3.5 rounded-2xl border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/40 transition-all cursor-pointer flex items-center justify-between gap-3"
+                    >
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                            {scan.crop}
+                          </span>
+                          <span className="text-xs text-slate-500">{scan.timestamp}</span>
+                        </div>
+                        <h4 className="font-bold text-sm text-slate-900 mt-1">
+                          {scan.diseaseName || scan.pestNameEn}
+                        </h4>
+                        <p className="text-xs text-emerald-700">{scan.diseaseGu || scan.pestNameGu}</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <span className="text-xs font-bold text-emerald-700">{scan.confidence}% match</span>
+                        <span className="material-symbols-outlined text-slate-400 text-[18px] block ml-auto mt-1">
+                          chevron_right
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="p-4 border-t border-slate-100 bg-slate-50 text-right">
+                <button
+                  onClick={() => setShowHistory(false)}
+                  className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-xl text-xs"
+                >
+                  Close
                 </button>
               </div>
             </div>

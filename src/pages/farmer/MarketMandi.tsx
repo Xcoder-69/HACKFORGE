@@ -1,134 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
-
-interface MandiRecord {
-  id: string;
-  mandi: string;
-  district: string;
-  distance: string;
-  crop: string;
-  cropGu: string;
-  minPrice: number;
-  maxPrice: number;
-  modalPrice: number;
-  trend: 'up' | 'down' | 'stable';
-  change: string;
-  arrivals: string;
-  recommendation: 'SELL NOW' | 'HOLD' | 'FAIR';
-  recGu: string;
-}
-
-const MANDI_DATA: MandiRecord[] = [
-  {
-    id: 'm-1',
-    mandi: 'Surat APMC',
-    district: 'Surat',
-    distance: '14 km (Nearest)',
-    crop: 'Cotton (Shankar-6)',
-    cropGu: 'કપાસ (શંકર-૬)',
-    minPrice: 6900,
-    maxPrice: 7450,
-    modalPrice: 7250,
-    trend: 'up',
-    change: '+₹180',
-    arrivals: '2,400 Qtl',
-    recommendation: 'HOLD',
-    recGu: '૧૦ દિવસ રોકો (ભાવ વધવાની શક્યતા)',
-  },
-  {
-    id: 'm-2',
-    mandi: 'Surat APMC',
-    district: 'Surat',
-    distance: '14 km (Nearest)',
-    crop: 'Groundnut (GG-20)',
-    cropGu: 'મગફળી (જીજી-૨૦)',
-    minPrice: 6400,
-    maxPrice: 6980,
-    modalPrice: 6880,
-    trend: 'up',
-    change: '+₹110',
-    arrivals: '1,650 Qtl',
-    recommendation: 'SELL NOW',
-    recGu: 'વેચાણ કરો (ઊંચા ભાવ)',
-  },
-  {
-    id: 'm-3',
-    mandi: 'Rajkot APMC',
-    district: 'Rajkot',
-    distance: '320 km (Export Benchmark)',
-    crop: 'Cotton (Shankar-6)',
-    cropGu: 'કપાસ (શંકર-૬)',
-    minPrice: 7100,
-    maxPrice: 7600,
-    modalPrice: 7420,
-    trend: 'up',
-    change: '+₹220',
-    arrivals: '14,200 Qtl',
-    recommendation: 'HOLD',
-    recGu: 'ભાવ મજબૂત',
-  },
-  {
-    id: 'm-4',
-    mandi: 'Rajkot APMC',
-    district: 'Rajkot',
-    distance: '320 km',
-    crop: 'Groundnut (GG-20 Bold)',
-    cropGu: 'મગફળી (બોલ્ડ દાણા)',
-    minPrice: 6600,
-    maxPrice: 7250,
-    modalPrice: 7120,
-    trend: 'up',
-    change: '+₹160',
-    arrivals: '8,900 Qtl',
-    recommendation: 'SELL NOW',
-    recGu: 'મહત્તમ નફો',
-  },
-  {
-    id: 'm-5',
-    mandi: 'Navsari APMC',
-    district: 'Navsari',
-    distance: '38 km',
-    crop: 'Sugarcane (Factory Gate)',
-    cropGu: 'શેરડી (સુગર ફેક્ટરી)',
-    minPrice: 3300,
-    maxPrice: 3500,
-    modalPrice: 3420,
-    trend: 'stable',
-    change: '₹0',
-    arrivals: '6,200 Ton',
-    recommendation: 'SELL NOW',
-    recGu: 'નિયમિત ડિલિવરી',
-  },
-  {
-    id: 'm-6',
-    mandi: 'Unjha APMC',
-    district: 'Mehsana',
-    distance: '380 km (Spice Hub)',
-    crop: 'Cumin (Jeera)',
-    cropGu: 'જીરું (ઊંઝા યાર્ડ)',
-    minPrice: 24500,
-    maxPrice: 29800,
-    modalPrice: 28400,
-    trend: 'up',
-    change: '+₹650',
-    arrivals: '4,500 Qtl',
-    recommendation: 'SELL NOW',
-    recGu: 'રેકોર્ડ ભાવ',
-  },
-];
+import { marketService } from '../../services/marketService';
+import type { MandiRecord } from '../../types';
 
 export const MarketMandi: React.FC = () => {
   const navigate = useNavigate();
   const { language } = useLanguage();
 
+  const [mandiList, setMandiList] = useState<MandiRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedCropFilter, setSelectedCropFilter] = useState('All');
   const [showGatePassModal, setShowGatePassModal] = useState<MandiRecord | null>(null);
   const [passGenerated, setPassGenerated] = useState(false);
 
-  const filteredMandi = MANDI_DATA.filter((m) => {
-    if (selectedCropFilter !== 'All' && !m.crop.includes(selectedCropFilter)) return false;
+  useEffect(() => {
+    let isMounted = true;
+    marketService.getMarketPrices(selectedCropFilter).then((data) => {
+      if (isMounted) {
+        setMandiList(data);
+        setIsLoading(false);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedCropFilter]);
+
+  const filteredMandi = mandiList.filter((m) => {
     if (search) {
       const q = search.toLowerCase();
       return (
