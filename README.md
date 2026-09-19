@@ -33,23 +33,12 @@
 Indian agriculture supports over 150 million farming households, yet smallholder and marginal farmers face four systemic roadblocks every season:
 
 ```mermaid
-mindmap
-  root((Agricultural Crisis))
-    Information Fragmentation
-      Scientific graphs with no clear action
-      Rain forecasts without timing advice
-      Chemical lab soil metrics without dose guidance
-    Delayed Crop Disease Diagnosis
-      Fungal blights spread within 48 hours
-      KVK officers take days to reach rural villages
-      Chemical misapplication wastes money
-    Middlemen Price Exploitation
-      Unrecorded seasonal operational expenses
-      No visibility into daily APMC mandi modal rates
-      Distress selling at farm gates
-    Lack of Unified Orchestration
-      No single mobile hub for irrigation, disease, and finance
-      Poor internet connectivity in remote farm belts
+flowchart TD
+    Problem["🌾 Core Agricultural Challenges"]
+    Problem --> A["📊 Data Overload<br>Raw weather & soil numbers without clear actions"]
+    Problem --> B["🐛 Delayed Diagnosis<br>Crop diseases spread before experts arrive"]
+    Problem --> C["📉 Price Exploitation<br>Lack of real-time mandi prices and ledger"]
+    Problem --> D["📵 Connectivity Void<br>Standard web apps fail in rural fields"]
 ```
 
 1. **Information Overload without Actionable Clarity**: Farmers receive raw numbers (humidity 78%, barometric pressure 1012 hPa), but nobody tells them: *"Hold nitrogen fertilizer application for 36 hours to prevent nutrient runoff."*
@@ -65,29 +54,13 @@ mindmap
 
 ```mermaid
 flowchart LR
-    subgraph Inputs ["Multimodal Ingestion"]
-        W["Open-Meteo GPS Weather"]
-        S["Soil Telemetry and IoT Probes"]
-        C["Phone Camera Leaf Scans"]
-        M["APMC Mandi Market Prices"]
-    end
+    W["🌦️ Weather & Soil"] --> AI["🧠 AgroMind AI Engine<br>(Gemini Vision + Agri Rules)"]
+    C["📸 Leaf Camera Scans"] --> AI
+    M["📈 APMC Mandi Rates"] --> AI
 
-    subgraph Engine ["AgroMind Decision Engine"]
-        AR["Agronomic Safety Rules"]
-        AI["Google Gemini 1.5 Vision"]
-        OE["Offline SyncEngine"]
-        AR <--> AI
-        AI <--> OE
-    end
-
-    subgraph Outputs ["Actionable Interfaces"]
-        FA["Farmer Mobile Dashboard\n(Gujarati / Hindi / English)"]
-        AC["Prioritized Action Checklist"]
-        KC["KVK Extension Officer Portal"]
-    end
-
-    Inputs --> Engine
-    Engine --> Outputs
+    AI --> A["✅ Daily Action Checklist"]
+    AI --> D["💊 Instant Disease Remedy"]
+    AI --> K["🏛️ KVK Admin Dashboard"]
 ```
 
 ### Key Capabilities:
@@ -105,37 +78,24 @@ AgroMind AI is engineered as a high-performance, offline-first Progressive Web A
 
 ```mermaid
 flowchart TD
-    subgraph Client ["Client Layer (PWA / Responsive Mobile)"]
-        UI["React 18 + Vite + Tailwind CSS"]
-        I18N["Language Context (Gujarati / Hindi / English)"]
-        CAM["HTML5 Camera and Geolocation API"]
-        UI --- I18N
-        UI --- CAM
+    subgraph Client ["Client Layer (Offline-First PWA)"]
+        UI["📱 React 18 + Vite + Tailwind (Gujarati / Hindi / English)"]
+        CACHE["💾 Local Storage (L1 Reactive Cache)"]
+        SYNC["🔄 SyncEngine (Mutation Queue)"]
+        UI <--> CACHE <--> SYNC
     end
 
-    subgraph OfflineStorage ["2-Tier Persistence"]
-        L1["L1 Cache: Reactive LocalStorage"]
-        SYNC["SyncEngine: Mutation Queue"]
-        L1 <--> SYNC
+    subgraph Cloud ["Cloud & AI Services"]
+        GEMINI["🤖 Google Gemini 1.5 (Vision & Advisory)"]
+        METEO["🌦️ Open-Meteo API (GPS Telemetry)"]
+        AUTH["🔐 Firebase Phone Auth (SMS OTP)"]
+        DB[("🗄️ Supabase PostgreSQL (13 Cloud Tables)")]
     end
 
-    subgraph ExternalAPIs ["Intelligent External Services"]
-        GEMINI["Google Gemini 1.5 Flash and Vision API\n(Leaf Pathology and AI Agronomist)"]
-        METEO["Open-Meteo Meteorological API\n(Hyperlocal Hourly Telemetry)"]
-        FIREBASE["Google Firebase Telephony\n(Authentic SMS OTP + Demo Bypass)"]
-    end
-
-    subgraph CloudDB ["Cloud Persistence Layer"]
-        SUPABASE[("Supabase PostgreSQL (13 Relational Tables)")]
-        RLS["Row Level Security (RLS)"]
-        SUPABASE --- RLS
-    end
-
-    UI <--> L1
-    SYNC -->|Auto-Sync on Reconnect| SUPABASE
     UI <--> GEMINI
     UI <--> METEO
-    UI <--> FIREBASE
+    UI <--> AUTH
+    SYNC -->|Auto-Sync on Reconnect| DB
 ```
 
 ### Architectural Highlights:
@@ -150,41 +110,19 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Farmer as Farmer
-    participant App as AgroMind Web App
-    participant Phone as Firebase SMS / Auth
-    participant AI as Gemini AI and Open-Meteo
+    actor Farmer
+    participant App as AgroMind PWA
+    participant AI as Gemini & Weather API
     participant DB as Supabase Cloud DB
 
-    Farmer->>App: Opens App and selects language (Gujarati / Hindi / English)
-    Farmer->>App: Enters mobile number
-    App->>Phone: Dispatches 6-digit SMS OTP (or uses Demo PIN: 8249)
-    Phone-->>Farmer: Delivers OTP
-    Farmer->>App: Enters OTP and verifies session
-    
-    alt First-time User (Onboarding)
-        App->>Farmer: 4-Step Setup: KYC -> GPS Tagging -> Soil and Land -> Crop Selection
-        Farmer->>App: Completes Setup
-        App->>DB: Stores Profile, Farm Parcel and Initial Plots
-    end
-
-    App->>AI: Requests hourly weather and satellite NDVI for GPS coordinates
-    AI-->>App: Returns forecast and agricultural risk triggers
-    App-->>Farmer: Renders My Farm Dashboard with Live Parcel Map (Block A, B, C...)
-
-    opt Crop Pathology Scanner
-        Farmer->>App: Snaps photo of infected crop leaf (/ai-camera)
-        App->>AI: Analyzes leaf imagery via Gemini 1.5 Vision
-        AI-->>App: Returns Diagnosis, Severity %, Chemical and Organic Remedies
-        App->>DB: Saves scan record to crop_scans table
-        App-->>Farmer: Displays immediate actionable field treatment
-    end
-
-    opt Financial Management
-        Farmer->>App: Logs input expense (seeds, fertilizer, labor)
-        App->>DB: Updates seasonal ledger and calculates Break-Even Price
-        App-->>Farmer: Visualizes Net Profit vs. Mandi APMC Realization
-    end
+    Farmer->>App: Login with Phone / OTP (or Demo PIN 8249)
+    App->>AI: Fetch GPS weather & crop telemetry
+    AI-->>App: Deliver prioritized daily action checklist
+    Farmer->>App: Snap infected leaf photo (/ai-camera)
+    App->>AI: Analyze pathology with Gemini 1.5 Vision
+    AI-->>App: Return disease diagnosis, severity & remedy
+    Farmer->>App: Track expenses & tasks (works 100% offline)
+    App->>DB: Background auto-sync when connection restores
 ```
 
 ### Complete Screen-by-Screen Breakdown:
