@@ -58,12 +58,16 @@ export const farmService = {
 
     // Asynchronous cloud sync in background if online
     if (isSupabaseConfigured() && supabase && syncEngine.isOnline()) {
-      supabase
+      const currentUser = storageService.get<{ id: string } | null>(STORAGE_KEYS.USER, null);
+      let query = supabase
         .from('farms')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
+        .limit(1);
+      if (currentUser?.id) {
+        query = query.eq('farmer_id', currentUser.id);
+      }
+      query.maybeSingle()
         .then(({ data, error }) => {
           if (!error && data) {
             const remoteFarm: FarmParcel = {
@@ -143,10 +147,12 @@ export const farmService = {
     }
 
     if (isSupabaseConfigured() && supabase && syncEngine.isOnline()) {
-      supabase
-        .from('plots')
-        .select('*')
-        .then(({ data, error }) => {
+      const currentUser = storageService.get<{ id: string } | null>(STORAGE_KEYS.USER, null);
+      let query = supabase.from('plots').select('*');
+      if (currentUser?.id) {
+        query = query.eq('farmer_id', currentUser.id);
+      }
+      query.then(({ data, error }) => {
           if (!error && data && data.length > 0) {
             const remotePlots: Record<string, PlotInfo> = {};
             data.forEach((row: any) => {
@@ -187,10 +193,12 @@ export const farmService = {
     plots[plot.key] = plot;
     storageService.set(STORAGE_KEYS.PLOTS, plots);
 
+    const currentUser = storageService.get<{ id: string } | null>(STORAGE_KEYS.USER, null);
     syncEngine.enqueue({
       tableName: 'plots',
       operation: 'UPDATE',
       recordId: plot.id,
+      userId: currentUser?.id,
       payload: {
         title: plot.title,
         crop: plot.crop,
@@ -248,12 +256,17 @@ export const farmService = {
     plots[nextKey] = plot;
     storageService.set(STORAGE_KEYS.PLOTS, plots);
 
+    const currentUser = storageService.get<{ id: string } | null>(STORAGE_KEYS.USER, null);
+    const farm = storageService.get<{ id: string } | null>(STORAGE_KEYS.FARM, null);
     syncEngine.enqueue({
       tableName: 'plots',
       operation: 'INSERT',
       recordId: plot.id,
+      userId: currentUser?.id,
       payload: {
         id: plot.id,
+        farmer_id: currentUser?.id || 'usr_demo',
+        farm_id: farm?.id || 'farm_01',
         plot_key: plot.key,
         title: plot.title,
         crop: plot.crop,

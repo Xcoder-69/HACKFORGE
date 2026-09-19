@@ -221,4 +221,32 @@ export const weatherService = {
       };
     }
   },
+
+  /**
+   * Returns cached weather summary for context injection (e.g. AI chat).
+   * Non-async, returns null if no cache exists.
+   */
+  getStoredWeather(): { condition: string; spraySuitability: string } | null {
+    // Search any location-keyed weather cache
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(STORAGE_KEYS.WEATHER_CACHE + '_')) {
+        try {
+          const raw = localStorage.getItem(key);
+          if (raw) {
+            const cached = JSON.parse(raw) as { data: any; timestamp: number };
+            if (cached?.data?.current) {
+              const c = cached.data.current;
+              const todayForecast = cached.data.daily?.[0];
+              return {
+                condition: `${c.condition}, ${c.temp}°C, ${c.humidity}% humidity`,
+                spraySuitability: todayForecast?.sprayScore || 'Unknown',
+              };
+            }
+          }
+        } catch { /* ignore parse errors */ }
+      }
+    }
+    return null;
+  },
 };

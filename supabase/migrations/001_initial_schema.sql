@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS public.plots (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   farm_id UUID NOT NULL REFERENCES public.farms(id) ON DELETE CASCADE,
   farmer_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  plot_key VARCHAR(10) NOT NULL CHECK (plot_key IN ('A', 'B', 'C', 'D')),
+  plot_key VARCHAR(10) NOT NULL CHECK (plot_key IN ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J')),
   title VARCHAR(200) NOT NULL,
   crop VARCHAR(100) NOT NULL,
   sub_crop VARCHAR(100) NOT NULL,

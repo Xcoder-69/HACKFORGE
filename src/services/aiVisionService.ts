@@ -270,11 +270,15 @@ export const aiVisionService: IAiVisionService = {
     storageService.set(STORAGE_KEYS.SCANS, updated);
 
     // Queue sync for backend database persistence
+    const currentUser = storageService.get<{ id: string } | null>(STORAGE_KEYS.USER, null);
     syncEngine.enqueue({
       tableName: 'crop_scans',
       operation: 'INSERT',
       recordId: scan.id,
+      userId: currentUser?.id,
       payload: {
+        id: scan.id,
+        farmer_id: currentUser?.id || 'usr_demo',
         crop: scan.crop,
         stage: scan.stage,
         disease_name: scan.diseaseName,

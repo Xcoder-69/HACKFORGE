@@ -70,11 +70,15 @@ export const aiAssistantService: IAiAssistantService = {
     storageService.set(STORAGE_KEYS.CHAT, updatedWithUser);
 
     // Queue user message sync
+    const currentUser = storageService.get<{ id: string } | null>(STORAGE_KEYS.USER, null);
     syncEngine.enqueue({
       tableName: 'chat_messages',
       operation: 'INSERT',
       recordId: userMsg.id,
+      userId: currentUser?.id,
       payload: {
+        id: userMsg.id,
+        farmer_id: currentUser?.id || 'usr_demo',
         sender: 'user',
         text_en: userMsg.textEn,
         text_gu: userMsg.textGu,
@@ -122,7 +126,10 @@ export const aiAssistantService: IAiAssistantService = {
             tableName: 'chat_messages',
             operation: 'INSERT',
             recordId: liveResponse.id,
+            userId: currentUser?.id,
             payload: {
+              id: liveResponse.id,
+              farmer_id: currentUser?.id || 'usr_demo',
               sender: 'assistant',
               text_en: liveResponse.textEn,
               text_gu: liveResponse.textGu,
@@ -154,7 +161,10 @@ export const aiAssistantService: IAiAssistantService = {
       tableName: 'chat_messages',
       operation: 'INSERT',
       recordId: offlineResponse.id,
+      userId: currentUser?.id,
       payload: {
+        id: offlineResponse.id,
+        farmer_id: currentUser?.id || 'usr_demo',
         sender: 'assistant',
         text_en: offlineResponse.textEn,
         text_gu: offlineResponse.textGu,
