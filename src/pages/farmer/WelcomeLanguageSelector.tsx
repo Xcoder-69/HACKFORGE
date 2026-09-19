@@ -6,8 +6,11 @@ import { LanguageCard } from '../../components/ui/LanguageCard';
 import { LanguageModal } from '../../components/ui/LanguageModal';
 import { BenefitCard } from '../../components/ui/BenefitCard';
 
+import { useAuth } from '../../contexts/AuthContext';
+
 export const WelcomeLanguageSelector: React.FC = () => {
   const { language, setLanguage, t } = useLanguage();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -38,12 +41,19 @@ export const WelcomeLanguageSelector: React.FC = () => {
   ];
 
   const handleStart = () => {
-    navigate('/onboarding');
+    // If farmer is already logged in, enter directly into farmer dashboard
+    if (user) {
+      navigate('/home');
+    } else {
+      // New farmer onboarding journey: start with quick registration tab
+      navigate('/login?tab=register');
+    }
   };
 
   const handleLogin = () => {
-    navigate('/login');
+    navigate('/login?tab=login');
   };
+
 
   return (
     <div className="min-h-screen flex flex-col bg-surface-container-low font-sans antialiased text-on-surface">

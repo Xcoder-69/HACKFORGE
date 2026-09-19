@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { authService } from '../../services/authService';
 import { ForgotPinModal } from '../../components/ui/ForgotPinModal';
 
@@ -27,13 +28,33 @@ const GUJARAT_DISTRICTS = [
 
 export const Login: React.FC = () => {
   const { language, setLanguage, t } = useLanguage();
+  const { login: doLogin, register: doRegister } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  // Active Screen States
-  const [activeTab, setActiveTab] = useState<AuthTab>('login');
+  // Active Screen States derived from query param ?tab=register or ?tab=login
+  const tabParam = searchParams.get('tab') as AuthTab | null;
+  const [activeTab, setActiveTab] = useState<AuthTab>(
+    tabParam === 'register' ? 'register' : 'login'
+  );
+
+  useEffect(() => {
+    const currentTab = searchParams.get('tab') as AuthTab | null;
+    if (currentTab === 'register' || currentTab === 'login') {
+      setActiveTab(currentTab);
+    }
+  }, [searchParams]);
+
+  const switchTab = (tab: AuthTab) => {
+    setActiveTab(tab);
+    setSearchParams({ tab });
+    setError(null);
+  };
+
   const [loginMethod, setLoginMethod] = useState<LoginMethod>('otp');
   const [isLoading, setIsLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
 
   // Login Form States
   const [phone, setPhone] = useState('9876543210');
@@ -131,7 +152,7 @@ export const Login: React.FC = () => {
     }
 
     setIsLoading(true);
-    const res = await authService.login(cleanPhone, verificationCode);
+    const res = await doLogin(cleanPhone, verificationCode);
     setIsLoading(false);
 
     if (res.success) {
@@ -164,7 +185,7 @@ export const Login: React.FC = () => {
     }
 
     setIsLoading(true);
-    const res = await authService.register({
+    const res = await doRegister({
       name: regName,
       phone: cleanPhone,
       district: regDistrict,
@@ -265,10 +286,7 @@ export const Login: React.FC = () => {
           <div className="grid grid-cols-2 p-1.5 bg-surface-container-high rounded-2xl gap-1 border border-outline-variant/40 shadow-inner">
             <button
               type="button"
-              onClick={() => {
-                setActiveTab('login');
-                setError(null);
-              }}
+              onClick={() => switchTab('login')}
               className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
                 activeTab === 'login'
                   ? 'bg-primary text-white shadow-md'
@@ -281,10 +299,7 @@ export const Login: React.FC = () => {
 
             <button
               type="button"
-              onClick={() => {
-                setActiveTab('register');
-                setError(null);
-              }}
+              onClick={() => switchTab('register')}
               className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
                 activeTab === 'register'
                   ? 'bg-primary text-white shadow-md'
@@ -548,10 +563,7 @@ export const Login: React.FC = () => {
 
                 <button
                   type="button"
-                  onClick={() => {
-                    setActiveTab('register');
-                    setError(null);
-                  }}
+                  onClick={() => switchTab('register')}
                   className="w-full py-3 bg-secondary hover:bg-primary text-white text-xs font-bold rounded-xl shadow-sm flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]"
                 >
                   <span>{t('auth.btnGoReg')}</span>
@@ -667,10 +679,7 @@ export const Login: React.FC = () => {
                 </span>
                 <button
                   type="button"
-                  onClick={() => {
-                    setActiveTab('login');
-                    setError(null);
-                  }}
+                  onClick={() => switchTab('login')}
                   className="text-xs text-secondary font-bold hover:underline"
                 >
                   {t('auth.btnGoLogin')}

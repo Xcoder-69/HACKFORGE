@@ -49,8 +49,8 @@ export const FarmerLayout: React.FC = () => {
             to="/ai-camera"
             className="flex flex-col items-center justify-center -mt-5 flex-1 group"
           >
-            <div className="w-13 h-13 p-3 rounded-full bg-secondary text-white shadow-lg group-hover:bg-primary transition-transform group-active:scale-95 flex items-center justify-center border-4 border-surface-container-lowest">
-              <span className="material-symbols-outlined text-[26px]">photo_camera</span>
+            <div className="w-14 h-14 p-3 rounded-full bg-secondary text-white shadow-[0_6px_16px_rgba(27,108,59,0.35)] group-hover:bg-primary transition-all group-active:scale-95 flex items-center justify-center border-4 border-surface-container-lowest">
+              <span className="material-symbols-outlined text-[28px]">photo_camera</span>
             </div>
             <span className="text-[11px] font-bold text-secondary mt-0.5 tracking-tight">
               {t('nav.camera')}
