@@ -1,12 +1,12 @@
-# 🤝 Team Collaboration Guidelines
+# Team Collaboration Guidelines
 
 This document outlines the branch rules and Git workflow for **HACKFORGE**.
 
 ---
 
-## 🌳 Branch Hierarchy
+## Branch Hierarchy
 
-- **`main`**: Protected branch. Contains stable, working, production-ready code. No direct pushes allowed.
+- **`main`**: Protected branch. Contains stable, working, production-ready code.
 - **`pranav`**: Active development branch for Pranav.
 - **`darshil`**: Active development branch for Darshil.
 - **`mahendra`**: Active development branch for Mahendra.
@@ -14,7 +14,7 @@ This document outlines the branch rules and Git workflow for **HACKFORGE**.
 
 ---
 
-## 🛠️ Step-by-Step Developer Guide
+## Step-by-Step Developer Guide
 
 ### 1. Initial Setup (Clone the repo)
 ```bash
@@ -41,7 +41,7 @@ git checkout <your-branch>
 git merge main
 ```
 
-### 4. Saving & Pushing Your Changes
+### 4. Saving and Pushing Your Changes
 Stage your changes, commit them with a meaningful message, and push to **your branch only**:
 ```bash
 git add .
@@ -55,7 +55,7 @@ git push origin <your-branch>
 
 ---
 
-## 🚀 How to Merge Into `main`
+## How to Merge Into `main`
 
 When a feature or task is ready to be included in the main project:
 
@@ -68,6 +68,6 @@ When a feature or task is ready to be included in the main project:
    - Click **New Pull Request**.
    - Base branch: `main`
    - Compare branch: `<your-branch>`
-4. **Review & Merge**:
+4. **Review and Merge**:
    - Review changes with team members.
-   - Click **Merge Pull Request** once approved!
+   - Click **Merge Pull Request** once approved.
