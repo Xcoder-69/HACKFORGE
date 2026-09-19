@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_stack" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "on-primary-fixed": "#002116", "tertiary-container": "#472f00", "secondary": "#1b6c3b", "surface-bright": "#fcf9f0", "on-tertiary-fixed-variant": "#604100", "on-background": "#1c1c17", "secondary-container": "#a4f5b6", "primary-fixed": "#c4ebd8", "secondary-fixed-dim": "#89d89c", "on-secondary-fixed": "#00210c", "on-primary-fixed-variant": "#2a4d40", "surface-container-lowest": "#ffffff", "surface-variant": "#e5e2da", "on-secondary-fixed-variant": "#005228", "on-primary": "#ffffff", "surface-dim": "#dddad1", "on-error-container": "#93000a", "primary-fixed-dim": "#a8cfbd", "outline-variant": "#c1c8c3", "on-secondary-container": "#237240", "inverse-surface": "#31312b", "tertiary-fixed-dim": "#fcbb4c", "on-tertiary-container": "#cb9123", "primary-container": "#163a2d", "tertiary": "#2c1b00", "outline": "#717974", "on-tertiary": "#ffffff", "surface": "#fcf9f0", "on-tertiary-fixed": "#281900", "inverse-on-surface": "#f4f1e8", "secondary-fixed": "#a4f5b6", "error-container": "#ffdad6", "on-secondary": "#ffffff", "on-surface": "#1c1c17", "tertiary-fixed": "#ffdeae", "surface-container": "#f1eee5", "on-error": "#ffffff", "surface-tint": "#426657", "inverse-primary": "#a8cfbd", "surface-container-highest": "#e5e2da", "surface-container-high": "#ebe8df", "primary": "#002419", "error": "#ba1a1a", "on-surface-variant": "#414844", "surface-container-low": "#f6f3ea", "background": "#fcf9f0", "on-primary-container": "#7fa493" }, borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, spacing: { "space-lg": "1.5rem", "space-xl": "2rem", "space-xs": "0.5rem", "space-2xs": "0.25rem", "space-sm": "0.75rem", "gutter": "1rem", "margin-tablet": "2rem", "space-2xl": "3rem", "gutter-desktop": "2rem", "gutter-tablet": "1.5rem", "margin-desktop": "3rem", "space-md": "1rem", "margin": "1rem" }, fontFamily: { "display-lg-mobile": ["Plus Jakarta Sans"], "headline-sm": ["Plus Jakarta Sans"], "display-lg": ["Plus Jakarta Sans"], "headline-lg-mobile": ["Plus Jakarta Sans"], "body-lg": ["Plus Jakarta Sans"], "currency-stat": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "label-md": ["Plus Jakarta Sans"], "body-md": ["Plus Jakarta Sans"], "body-sm": ["Plus Jakarta Sans"], "headline-md": ["Plus Jakarta Sans"], "label-lg": ["Plus Jakarta Sans"], "label-sm": ["Plus Jakarta Sans"], "title-md": ["Plus Jakarta Sans"] }, fontSize: { "display-lg-mobile": ["2rem", { lineHeight: "2.5rem", letterSpacing: "-0.02em", fontWeight: "800" }], "headline-sm": ["1.25rem", { lineHeight: "1.75rem", letterSpacing: "-0.01em", fontWeight: "600" }], "display-lg": ["2.75rem", { lineHeight: "3.25rem", letterSpacing: "-0.025em", fontWeight: "800" }], "headline-lg-mobile": ["1.625rem", { lineHeight: "2rem", letterSpacing: "-0.015em", fontWeight: "700" }], "body-lg": ["1.125rem", { lineHeight: "1.75rem", letterSpacing: "0em", fontWeight: "400" }], "currency-stat": ["1.75rem", { lineHeight: "2.25rem", letterSpacing: "-0.02em", fontWeight: "700" }], "headline-lg": ["2rem", { lineHeight: "2.5rem", letterSpacing: "-0.02em", fontWeight: "700" }], "label-md": ["0.875rem", { lineHeight: "1.25rem", letterSpacing: "0.015em", fontWeight: "600" }], "body-md": ["1rem", { lineHeight: "1.5rem", letterSpacing: "0em", fontWeight: "400" }], "body-sm": ["0.875rem", { lineHeight: "1.25rem", letterSpacing: "0.005em", fontWeight: "400" }], "headline-md": ["1.5rem", { lineHeight: "2rem", letterSpacing: "-0.015em", fontWeight: "700" }], "label-lg": ["1rem", { lineHeight: "1.5rem", letterSpacing: "0.01em", fontWeight: "600" }], "label-sm": ["0.75rem", { lineHeight: "1rem", letterSpacing: "0.04em", fontWeight: "700" }], "title-md": ["1.125rem", { lineHeight: "1.5rem", letterSpacing: "0em", fontWeight: "600" }] } } } }</script><style>@layer base { html, body { width: 100%; margin: 0; padding: 0; min-height: 100%; } .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); } .pt-safe { padding-top: env(safe-area-inset-top, 0px); } } ::-webkit-scrollbar { display: none; }</style></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased flex flex-col min-h-screen">
+<!-- Top Clean Navigation Bar -->
+<header class="fixed top-0 inset-x-0 z-50 bg-surface/90 backdrop-blur-md pt-safe border-b border-surface-variant/60 shadow-sm">
+<div class="h-16 px-gutter flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<button aria-label="Go back" class="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-low text-on-surface hover:bg-surface-container transition-colors" onclick="history.back()" type="button">
+<span class="material-symbols-outlined text-[22px]">arrow_back</span>
+</button>
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[20px]">psychology</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-primary font-bold leading-tight">AgroMind AI</span>
+<span class="font-label-sm text-label-sm text-secondary font-medium leading-none mt-0.5" data-i18n="tagline">Kisan Portal</span>
+</div>
+</div>
+</div>
+<!-- Language Switcher -->
+<div class="flex items-center bg-surface-container-high rounded-full p-1 border border-outline-variant/40">
+<button class="px-2.5 py-1 text-label-sm font-label-sm rounded-full text-on-surface-variant hover:text-primary transition-all" id="lang-gu" onclick="setLanguage('gu')" type="button">ગુજ</button>
+<button class="px-2.5 py-1 text-label-sm font-label-sm rounded-full text-on-surface-variant hover:text-primary transition-all" id="lang-hi" onclick="setLanguage('hi')" type="button">हिन्दी</button>
+<button class="px-2.5 py-1 text-label-sm font-label-sm rounded-full bg-primary-container text-on-primary font-bold shadow-sm transition-all" id="lang-en" onclick="setLanguage('en')" type="button">EN</button>
+</div>
+</div>
+</header>
+<main class="flex-1 flex flex-col relative w-full pt-20 pb-safe bg-surface">
+<div class="flex flex-col w-full pb-10">
+<!-- Segmented Tab at Top -->
+<div class="px-margin pt-1 pb-3">
+<div class="grid grid-cols-2 p-1.5 bg-surface-container-high rounded-xl gap-1 border border-outline-variant/40">
+<button class="flex items-center justify-center gap-1.5 py-2.5 rounded-lg font-label-md text-label-md font-bold transition-all duration-200 bg-primary-container text-on-primary shadow-sm" id="tab-login" onclick="switchAuthTab('login')" type="button">
+<span class="material-symbols-outlined text-[18px]">lock_open</span>
+<span data-i18n="tab_login">Login / લૉગિન</span>
+</button>
+<button class="flex items-center justify-center gap-1.5 py-2.5 rounded-lg font-label-md text-label-md font-semibold transition-all duration-200 text-on-surface-variant hover:text-primary" id="tab-register" onclick="switchAuthTab('register')" type="button">
+<span class="material-symbols-outlined text-[18px]">person_add</span>
+<span data-i18n="tab_register">New Registration / નવું રજીસ્ટ્રેશન</span>
+</button>
+</div>
+</div>
+<!-- Hero Welcome Card with Verified Kisan Shield -->
+<div class="px-margin pb-3">
+<div class="relative overflow-hidden rounded-xl bg-primary-container text-on-primary p-space-md shadow-md">
+<div class="relative z-10 flex flex-col gap-1.5">
+<div class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-secondary text-on-secondary w-fit shadow-sm">
+<span class="material-symbols-outlined text-[15px]">verified</span>
+<span class="font-label-sm text-label-sm font-bold tracking-wide" data-i18n="badge_kisan">Verified Kisan Shield</span>
+</div>
+<h1 class="font-headline-sm text-headline-sm font-extrabold tracking-tight text-on-primary pt-0.5" id="dyn-title">Farmer Login / ખેડૂત લૉગિન</h1>
+<p class="font-body-sm text-body-sm text-on-primary-container max-w-sm leading-snug" id="dyn-subtitle">Enter your registered mobile number to receive an instant OTP login verification.</p>
+</div>
+<svg class="absolute -right-5 -bottom-5 w-28 h-28 opacity-15 pointer-events-none" fill="none" stroke="currentColor" viewbox="0 0 100 100">
+<path d="M10 90 Q 50 10 90 90" stroke-width="6"></path>
+<path d="M25 85 Q 50 25 75 85" stroke-width="4"></path>
+<circle cx="50" cy="30" fill="currentColor" r="12"></circle>
+</svg>
+</div>
+</div>
+<!-- ============================================== -->
+<!-- 2-STEP OTP LOGIN CARD                          -->
+<!-- ============================================== -->
+<section class="px-margin flex flex-col gap-4" id="view-login">
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm border border-outline-variant/30 flex flex-col gap-4">
+<!-- Step 1: Mobile Number Input -->
+<div class="flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<label class="font-label-md text-label-md text-primary font-bold flex items-center gap-1.5" for="login-phone">
+<span class="w-5 h-5 rounded-full bg-secondary-container text-on-secondary-container text-label-sm font-bold flex items-center justify-center">1</span>
+<span data-i18n="lbl_phone">Registered Mobile / મોબાઇલ નંબર</span>
+</label>
+<button class="font-label-sm text-label-sm text-secondary font-bold hover:underline py-0.5" onclick="focusPhoneInput()" type="button">
+            Change / બદલો
+          </button>
+</div>
+<div class="relative flex items-center bg-surface-container-low rounded-lg border border-outline-variant/50 focus-within:border-secondary focus-within:bg-surface-container-lowest focus-within:shadow-sm transition-all">
+<div class="flex items-center pl-3 pr-2 py-3 text-primary font-bold font-label-lg text-label-lg select-none">
+<span>🇮🇳 +91</span>
+</div>
+<div class="h-6 w-[1.5px] bg-outline-variant"></div>
+<input class="w-full bg-transparent px-3 py-3 font-headline-sm text-headline-sm font-bold text-on-surface placeholder:text-outline focus:outline-none tracking-wider" id="login-phone" inputmode="numeric" maxlength="10" placeholder="9876543210" type="tel" value="9876543210"/>
+<div class="pr-3 flex items-center gap-1 text-secondary">
+<span class="material-symbols-outlined text-[20px] font-bold">check_circle</span>
+</div>
+</div>
+</div>
+<!-- Step 2: 4-Digit OTP Code -->
+<div class="flex flex-col gap-2 pt-1 border-t border-surface-variant/70">
+<div class="flex items-center justify-between pt-2">
+<label class="font-label-md text-label-md text-primary font-bold flex items-center gap-1.5">
+<span class="w-5 h-5 rounded-full bg-secondary-container text-on-secondary-container text-label-sm font-bold flex items-center justify-center">2</span>
+<span data-i18n="lbl_otp">Enter 4-Digit OTP / ઓટીપી દાખલ કરો</span>
+</label>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary-container/70 text-on-secondary-container font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">lock_clock</span>
+<span data-i18n="txt_auto_read">Auto-detect SMS / એસએમએસથી મેળવો</span>
+</span>
+</div>
+<!-- 4 Square OTP Input Boxes -->
+<div class="grid grid-cols-4 gap-2.5 my-1">
+<input class="otp-cell h-14 text-center font-headline-md text-headline-md font-extrabold bg-surface-container-low border-2 border-secondary text-primary rounded-xl focus:border-secondary focus:bg-surface-container-lowest focus:outline-none shadow-sm transition-all" id="otp-1" inputmode="numeric" maxlength="1" type="text" value="8"/>
+<input class="otp-cell h-14 text-center font-headline-md text-headline-md font-extrabold bg-surface-container-low border-2 border-secondary text-primary rounded-xl focus:border-secondary focus:bg-surface-container-lowest focus:outline-none shadow-sm transition-all" id="otp-2" inputmode="numeric" maxlength="1" type="text" value="2"/>
+<input class="otp-cell h-14 text-center font-headline-md text-headline-md font-extrabold bg-surface-container-low border border-outline-variant text-primary rounded-xl focus:border-secondary focus:bg-surface-container-lowest focus:outline-none shadow-sm transition-all" id="otp-3" inputmode="numeric" maxlength="1" placeholder="•" type="text"/>
+<input class="otp-cell h-14 text-center font-headline-md text-headline-md font-extrabold bg-surface-container-low border border-outline-variant text-primary rounded-xl focus:border-secondary focus:bg-surface-container-lowest focus:outline-none shadow-sm transition-all" id="otp-4" inputmode="numeric" maxlength="1" placeholder="•" type="text"/>
+</div>
+<!-- Didn't receive OTP? Resend timer -->
+<div class="flex items-center justify-between text-body-sm text-on-surface-variant pt-0.5 px-0.5">
+<span data-i18n="txt_didnt_receive">Didn't receive OTP? / ઓટીપી નથી મળ્યો?</span>
+<button class="font-label-sm text-label-sm text-secondary font-bold hover:underline transition-colors flex items-center gap-1" id="btn-resend" onclick="resendOtp()" type="button">
+<span class="material-symbols-outlined text-[15px]">refresh</span>
+<span data-i18n="txt_resend" id="resend-text">Resend OTP in 00:45 / ફરી મોકલો (00:45)</span>
+</button>
+</div>
+</div>
+<!-- Primary Action CTA -->
+<button class="w-full min-h-[52px] bg-primary-container hover:bg-primary text-on-primary font-label-lg text-label-lg font-bold rounded-xl shadow-md flex items-center justify-center gap-2 active:scale-[0.99] transition-all mt-1" onclick="handleLoginSubmit()" type="button">
+<span class="material-symbols-outlined text-[20px]">verified_user</span>
+<span data-i18n="btn_login_cta">Verify OTP &amp; Login to Dashboard / ઓટીપી ચકાસો અને પ્રવેશ કરો →</span>
+</button>
+<!-- Instant 1-tap OTP SMS alternative -->
+<button class="w-full py-2.5 bg-surface-container-low hover:bg-surface-container text-secondary font-label-sm text-label-sm font-bold rounded-lg flex items-center justify-center gap-1.5 transition-colors border border-outline-variant/30" onclick="handleQuickOtpResend()" type="button">
+<span class="material-symbols-outlined text-[18px]">sms</span>
+<span data-i18n="btn_instant_sms">Request Instant WhatsApp / SMS Code</span>
+</button>
+</div>
+<!-- Registration Callout Card -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm border border-secondary/30 flex flex-col gap-2.5">
+<div class="flex items-start gap-3">
+<div class="w-10 h-10 rounded-xl bg-secondary-container text-on-secondary-container flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[22px]">app_registration</span>
+</div>
+<div class="flex flex-col">
+<h3 class="font-label-lg text-label-lg font-bold text-primary" data-i18n="card_reg_title">New to AgroMind? / નવા ખેડૂત?</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-snug mt-0.5" data-i18n="card_reg_desc">
+            4-Step Quick Setup (KYC, GPS Map, Soil &amp; Land, Crops) → Instant verification to dashboard
+          </p>
+</div>
+</div>
+<button class="w-full py-3 bg-secondary hover:bg-primary-container text-on-secondary font-label-md text-label-md font-bold rounded-lg shadow-sm flex items-center justify-center gap-1.5 transition-all mt-1" onclick="switchAuthTab('register')" type="button">
+<span data-i18n="btn_go_reg">Go to 4-Step Registration / રજીસ્ટ્રેશન કરો →</span>
+</button>
+</div>
+</section>
+<!-- ============================================== -->
+<!-- BENEFIT FEATURE BADGES (NDVI, AI Doctor, Mandi)-->
+<!-- ============================================== -->
+<div class="px-margin pt-4">
+<div class="grid grid-cols-3 gap-2">
+<div class="flex flex-col items-center text-center p-3 bg-surface-container-low rounded-xl border border-outline-variant/30">
+<div class="w-9 h-9 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center mb-1.5 shadow-sm">
+<span class="material-symbols-outlined text-[19px]">satellite_alt</span>
+</div>
+<span class="font-label-sm text-label-sm text-primary font-bold leading-tight" data-i18n="feat_ndvi">NDVI Health</span>
+<span class="font-label-sm text-label-sm text-outline text-[11px] mt-0.5" data-i18n="feat_ndvi_sub">Free Satellite</span>
+</div>
+<div class="flex flex-col items-center text-center p-3 bg-surface-container-low rounded-xl border border-outline-variant/30">
+<div class="w-9 h-9 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center mb-1.5 shadow-sm">
+<span class="material-symbols-outlined text-[19px]">psychology</span>
+</div>
+<span class="font-label-sm text-label-sm text-primary font-bold leading-tight" data-i18n="feat_ai">AI Doctor</span>
+<span class="font-label-sm text-label-sm text-outline text-[11px] mt-0.5" data-i18n="feat_ai_sub">Instant Leaf Scan</span>
+</div>
+<div class="flex flex-col items-center text-center p-3 bg-surface-container-low rounded-xl border border-outline-variant/30">
+<div class="w-9 h-9 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center mb-1.5 shadow-sm">
+<span class="material-symbols-outlined text-[19px]">payments</span>
+</div>
+<span class="font-label-sm text-label-sm text-primary font-bold leading-tight" data-i18n="feat_mandi">Live Mandi</span>
+<span class="font-label-sm text-label-sm text-outline text-[11px] mt-0.5" data-i18n="feat_mandi_sub">APMC Rates</span>
+</div>
+</div>
+</div>
+<!-- ============================================== -->
+<!-- KISAN HELPLINE & GOVERNMENT AGRISTACK FOOTER   -->
+<!-- ============================================== -->
+<footer class="px-margin pt-4 flex flex-col gap-3">
+<!-- Kisan Helpline Card -->
+<div class="bg-surface-container-low rounded-xl p-space-sm flex items-center gap-3 border border-outline-variant/40">
+<div class="w-11 h-11 rounded-xl bg-secondary text-on-secondary flex items-center justify-center flex-shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[24px]">support_agent</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="font-label-sm text-label-sm text-primary font-bold" data-i18n="ft_helpline">Toll-Free Kisan Support</span>
+<span class="px-1.5 py-0.2 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-bold text-[11px]">24/7 Free</span>
+</div>
+<a class="font-headline-sm text-headline-sm text-primary font-extrabold hover:underline flex items-center gap-1.5 leading-tight" href="tel:18001232476">
+<span>1800-123-AGRO</span>
+<span class="text-secondary font-body-sm text-body-sm font-semibold">(1800-123-2476)</span>
+</a>
+</div>
+</div>
+<!-- Security & AgriStack Guarantee -->
+<div class="flex items-start gap-2.5 px-2 py-1">
+<span class="material-symbols-outlined text-secondary text-[20px] flex-shrink-0 mt-0.5">verified_user</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed" data-i18n="ft_trust_note">
+        100% Encrypted &amp; Government Agristack Aligned. We respect your farm data privacy. Your field coordinates are never shared with commercial brokers.
+      </p>
+</div>
+</footer>
+</div>
+<!-- Toast Notification element -->
+<div class="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-inverse-surface text-inverse-on-surface px-4 py-2.5 rounded-full shadow-lg font-label-md text-label-md items-center gap-2 hidden transition-all duration-200" id="auth-toast">
+<span class="material-symbols-outlined text-secondary-fixed text-[18px]">info</span>
+<span id="auth-toast-text">OTP sent to your mobile number</span>
+</div>
+</main>
+<script>
+  const i18n = {
+    en: {
+      tagline: "Kisan Portal",
+      badge_kisan: "Verified Kisan Shield",
+      title_login: "Farmer Login / ખેડૂત લૉગિન",
+      sub_login: "Enter your registered mobile number to receive an instant OTP login verification.",
+      tab_login: "Login / લૉગિન",
+      tab_register: "New Registration / નવું રજીસ્ટ્રેશન",
+      lbl_phone: "Registered Mobile / મોબાઇલ નંબર",
+      lbl_otp: "Enter 4-Digit OTP / ઓટીપી દાખલ કરો",
+      txt_auto_read: "Auto-detect SMS / એસએમએસથી મેળવો",
+      txt_didnt_receive: "Didn't receive OTP? / ઓટીપી નથી મળ્યો?",
+      txt_resend: "Resend OTP in 00:45 / ફરી મોકલો (00:45)",
+      btn_login_cta: "Verify OTP & Login to Dashboard / ઓટીપી ચકાસો અને પ્રવેશ કરો →",
+      btn_instant_sms: "Request Instant WhatsApp / SMS Code",
+      card_reg_title: "New to AgroMind? / નવા ખેડૂત?",
+      card_reg_desc: "4-Step Quick Setup (KYC, GPS Map, Soil & Land, Crops) → Instant verification to dashboard",
+      btn_go_reg: "Go to 4-Step Registration / રજીસ્ટ્રેશન કરો →",
+      feat_ndvi: "NDVI Health",
+      feat_ndvi_sub: "Free Satellite",
+      feat_ai: "AI Doctor",
+      feat_ai_sub: "Instant Leaf Scan",
+      feat_mandi: "Live Mandi",
+      feat_mandi_sub: "APMC Rates",
+      ft_helpline: "Toll-Free Kisan Support",
+      ft_trust_note: "100% Encrypted & Government Agristack Aligned. We respect your farm data privacy. Your field coordinates are never shared with commercial brokers."
+    },
+    gu: {
+      tagline: "કિસાન પોર્ટલ",
+      badge_kisan: "પ્રમાણિત કિસાન સુરક્ષા",
+      title_login: "ખેડૂત લૉગિન / Farmer Login",
+      sub_login: "ત્વરિત ઓટીપી દ્વારા લૉગિન કરવા માટે તમારો નોંધાયેલ મોબાઇલ નંબર દાખલ કરો.",
+      tab_login: "લૉગિન / Login",
+      tab_register: "નવું રજીસ્ટ્રેશન / Register",
+      lbl_phone: "નોંધાયેલ મોબાઇલ નંબર",
+      lbl_otp: "૪-અંકનો OTP દાખલ કરો",
+      txt_auto_read: "એસએમએસથી આપમેળે મેળવો",
+      txt_didnt_receive: "ઓટીપી નથી મળ્યો?",
+      txt_resend: "ફરી મોકલો (00:45)",
+      btn_login_cta: "ઓટીપી ચકાસો અને પ્રવેશ કરો →",
+      btn_instant_sms: "WhatsApp / SMS કોડ મેળવો",
+      card_reg_title: "નવા ખેડૂત છો? / New to AgroMind?",
+      card_reg_desc: "૪-પગલામાં ઝડપી સેટઅપ (કેવાયસી, ખેતર મેપ, જમીન અને પાક) → સીધો ડેશબોર્ડ પ્રવેશ",
+      btn_go_reg: "૪-પગલાંનું રજીસ્ટ્રેશન કરો →",
+      feat_ndvi: "પાક તંદુરસ્તી",
+      feat_ndvi_sub: "સેટેલાઇટ ઇમેજ",
+      feat_ai: "AI પાક ડૉક્ટર",
+      feat_ai_sub: "પાન ફોટો સ્કેન",
+      feat_mandi: "લાઇવ બજારભાવ",
+      feat_mandi_sub: "ગુજરાત માર્કેટ યાર્ડ",
+      ft_helpline: "ટોલ-ફ્રી કિસાન સહાય",
+      ft_trust_note: "૧૦૦% સુરક્ષિત અને સરકારી એગ્રીસ્ટેક સાથે જોડાયેલ. તમારી ખેતરની વિગતો સંપૂર્ણ ખાનગી રહે છે."
+    },
+    hi: {
+      tagline: "किसान पोर्टल",
+      badge_kisan: "प्रमाणित किसान सुरक्षा",
+      title_login: "किसान लॉगिन / Farmer Login",
+      sub_login: "तुरंत OTP सत्यापन द्वारा लॉगिन करने के लिए अपना पंजीकृत मोबाइल नंबर दर्ज करें।",
+      tab_login: "लॉगिन / Login",
+      tab_register: "नया पंजीकरण / Register",
+      lbl_phone: "पंजीकृत मोबाइल नंबर",
+      lbl_otp: "४-अंकों का OTP दर्ज करें",
+      txt_auto_read: "SMS से स्वतः प्राप्त करें",
+      txt_didnt_receive: "OTP नहीं मिला?",
+      txt_resend: "पुनः भेजें (00:45)",
+      btn_login_cta: "OTP सत्यापित करें और लॉगिन करें →",
+      btn_instant_sms: "WhatsApp / SMS कोड मंगाएं",
+      card_reg_title: "नए किसान हैं? / New to AgroMind?",
+      card_reg_desc: "४-चरणों में त्वरित सेटअप (KYC, GPS नक्शा, मिट्टी व भूमि, फसलें) → तुरंत डैशबोर्ड",
+      btn_go_reg: "४-चरण पंजीकरण प्रारंभ करें →",
+      feat_ndvi: "उपग्रह स्वास्थ्य",
+      feat_ndvi_sub: "निःशुल्क सैटेलाइट",
+      feat_ai: "AI फसल डॉक्टर",
+      feat_ai_sub: "पत्ती स्कैन",
+      feat_mandi: "दैनिक मंडी",
+      feat_mandi_sub: "ताज़ा बाज़ार भाव",
+      ft_helpline: "टोल-फ्री किसान सहायता",
+      ft_trust_note: "१००% सुरक्षित और सरकारी एग्रीस्टैक से संबद्ध। आपके खेत का डेटा पूरी तरह गोपनीय है।"
+    }
+  };
+
+  let currentLang = 'en';
+  let otpTimerInterval = null;
+
+  function setLanguage(lang) {
+    currentLang = lang;
+    ['en', 'hi', 'gu'].forEach(l => {
+      const btn = document.getElementById('lang-' + l);
+      if (btn) {
+        if (l === lang) {
+          btn.className = 'px-2.5 py-1 text-label-sm font-label-sm rounded-full bg-primary-container text-on-primary font-bold shadow-sm transition-all';
+        } else {
+          btn.className = 'px-2.5 py-1 text-label-sm font-label-sm rounded-full text-on-surface-variant hover:text-primary transition-all';
+        }
+      }
+    });
+
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (i18n[lang] && i18n[lang][key]) {
+        el.textContent = i18n[lang][key];
+      }
+    });
+
+    const titleEl = document.getElementById('dyn-title');
+    const subEl = document.getElementById('dyn-subtitle');
+    if (titleEl && i18n[lang].title_login) titleEl.textContent = i18n[lang].title_login;
+    if (subEl && i18n[lang].sub_login) subEl.textContent = i18n[lang].sub_login;
+
+    showToast(lang === 'gu' ? 'ભાષા બદલાઈ: ગુજરાતી' : (lang === 'hi' ? 'भाषा बदली: हिन्दी' : 'Language set to English'));
+  }
+
+  function switchAuthTab(tab) {
+    const tabLogin = document.getElementById('tab-login');
+    const tabRegister = document.getElementById('tab-register');
+    
+    if (tab === 'login') {
+      tabLogin.className = 'flex items-center justify-center gap-1.5 py-2.5 rounded-lg font-label-md text-label-md font-bold transition-all duration-200 bg-primary-container text-on-primary shadow-sm';
+      tabRegister.className = 'flex items-center justify-center gap-1.5 py-2.5 rounded-lg font-label-md text-label-md font-semibold transition-all duration-200 text-on-surface-variant hover:text-primary';
+    } else {
+      showToast(currentLang === 'gu' ? '૪-પગલાંની રજીસ્ટ્રેશન પ્રક્રિયા શરૂ થઈ રહી છે...' : 'Opening 4-Step Farmer Registration...');
+      tabRegister.className = 'flex items-center justify-center gap-1.5 py-2.5 rounded-lg font-label-md text-label-md font-bold transition-all duration-200 bg-primary-container text-on-primary shadow-sm';
+      tabLogin.className = 'flex items-center justify-center gap-1.5 py-2.5 rounded-lg font-label-md text-label-md font-semibold transition-all duration-200 text-on-surface-variant hover:text-primary';
+    }
+  }
+
+  function focusPhoneInput() {
+    const input = document.getElementById('login-phone');
+    input.focus();
+    input.select();
+  }
+
+  function resendOtp() {
+    let timeLeft = 45;
+    const resendText = document.getElementById('resend-text');
+    const btn = document.getElementById('btn-resend');
+    
+    showToast(currentLang === 'gu' ? 'નવો OTP SMS દ્વારા મોકલાયો: 8249' : 'New OTP dispatched to +91 9876543210: 8249');
+    
+    if (otpTimerInterval) clearInterval(otpTimerInterval);
+    btn.classList.add('opacity-50', 'pointer-events-none');
+
+    otpTimerInterval = setInterval(() => {
+      timeLeft--;
+      const formatted = '00:' + (timeLeft < 10 ? '0' + timeLeft : timeLeft);
+      resendText.textContent = currentLang === 'gu' ? `ફરી મોકલો (${formatted})` : `Resend OTP in ${formatted}`;
+      
+      if (timeLeft <= 0) {
+        clearInterval(otpTimerInterval);
+        btn.classList.remove('opacity-50', 'pointer-events-none');
+        resendText.textContent = currentLang === 'gu' ? 'ફરી OTP મોકલો' : 'Resend OTP Now';
+      }
+    }, 1000);
+  }
+
+  function handleQuickOtpResend() {
+    showToast('Instant WhatsApp & SMS OTP sent!');
+  }
+
+  function handleLoginSubmit() {
+    const otp1 = document.getElementById('otp-1').value || '8';
+    const otp2 = document.getElementById('otp-2').value || '2';
+    const otp3 = document.getElementById('otp-3').value || '4';
+    const otp4 = document.getElementById('otp-4').value || '9';
+    
+    showToast(currentLang === 'gu' ? 'OTP ચકાસાયો! ડેશબોર્ડ ખોલી રહ્યું છે...' : 'OTP Verified! Loading Farm Dashboard...');
+  }
+
+  function showToast(message) {
+    const toast = document.getElementById('auth-toast');
+    const text = document.getElementById('auth-toast-text');
+    text.textContent = message;
+    toast.classList.remove('hidden');
+    toast.classList.add('flex');
+    setTimeout(() => {
+      toast.classList.add('hidden');
+      toast.classList.remove('flex');
+    }, 2600);
+  }
+
+  // Auto-jump for 4 OTP input fields
+  document.querySelectorAll('.otp-cell').forEach((input, index, list) => {
+    input.addEventListener('input', (e) => {
+      if (e.target.value.length === 1 && index < list.length - 1) {
+        list[index + 1].focus();
+      }
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !e.target.value && index > 0) {
+        list[index - 1].focus();
+      }
+    });
+  });
+</script>
+</body></html>

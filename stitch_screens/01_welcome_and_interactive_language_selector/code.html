@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="gu"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_stack" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-error-container": "#93000a", "surface-tint": "#426657", "surface-bright": "#fcf9f0", "tertiary-fixed": "#ffdeae", "on-tertiary-fixed-variant": "#604100", "secondary-fixed-dim": "#89d89c", "on-error": "#ffffff", "surface-container": "#f1eee5", "on-primary": "#ffffff", "secondary-fixed": "#a4f5b6", "surface-container-lowest": "#ffffff", "tertiary-fixed-dim": "#fcbb4c", "on-primary-fixed-variant": "#2a4d40", "surface-container-high": "#ebe8df", "inverse-on-surface": "#f4f1e8", "primary-container": "#163a2d", "inverse-primary": "#a8cfbd", "background": "#fcf9f0", "on-surface-variant": "#414844", "secondary": "#1b6c3b", "on-primary-container": "#7fa493", "outline-variant": "#c1c8c3", "primary": "#002419", "on-tertiary-container": "#cb9123", "secondary-container": "#a4f5b6", "error-container": "#ffdad6", "surface-dim": "#dddad1", "on-secondary": "#ffffff", "on-tertiary": "#ffffff", "error": "#ba1a1a", "on-secondary-container": "#237240", "tertiary": "#2c1b00", "surface-variant": "#e5e2da", "surface": "#fcf9f0", "inverse-surface": "#31312b", "on-background": "#1c1c17", "primary-fixed": "#c4ebd8", "on-secondary-fixed-variant": "#005228", "on-primary-fixed": "#002116", "surface-container-highest": "#e5e2da", "primary-fixed-dim": "#a8cfbd", "surface-container-low": "#f6f3ea", "on-tertiary-fixed": "#281900", "tertiary-container": "#472f00", "on-secondary-fixed": "#00210c", "on-surface": "#1c1c17", "outline": "#717974" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-xl": "2rem", "margin": "1rem", "gutter-desktop": "2rem", "space-sm": "0.75rem", "space-xs": "0.5rem", "space-md": "1rem", "space-2xl": "3rem", "margin-tablet": "2rem", "margin-desktop": "3rem", "gutter-tablet": "1.5rem", "space-lg": "1.5rem", "gutter": "1rem", "space-2xs": "0.25rem" }, "fontFamily": { "body-sm": ["Plus Jakarta Sans"], "display-lg-mobile": ["Plus Jakarta Sans"], "label-lg": ["Plus Jakarta Sans"], "headline-md": ["Plus Jakarta Sans"], "headline-lg-mobile": ["Plus Jakarta Sans"], "label-sm": ["Plus Jakarta Sans"], "display-lg": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "body-md": ["Plus Jakarta Sans"], "currency-stat": ["Plus Jakarta Sans"], "label-md": ["Plus Jakarta Sans"], "title-md": ["Plus Jakarta Sans"], "body-lg": ["Plus Jakarta Sans"], "headline-sm": ["Plus Jakarta Sans"] }, "fontSize": { "body-sm": ["0.875rem", { "lineHeight": "1.25rem", "letterSpacing": "0.005em", "fontWeight": "400" }], "display-lg-mobile": ["2rem", { "lineHeight": "2.5rem", "letterSpacing": "-0.02em", "fontWeight": "800" }], "label-lg": ["1rem", { "lineHeight": "1.5rem", "letterSpacing": "0.01em", "fontWeight": "600" }], "headline-md": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.015em", "fontWeight": "700" }], "headline-lg-mobile": ["1.625rem", { "lineHeight": "2rem", "letterSpacing": "-0.015em", "fontWeight": "700" }], "label-sm": ["0.75rem", { "lineHeight": "1rem", "letterSpacing": "0.04em", "fontWeight": "700" }], "display-lg": ["2.75rem", { "lineHeight": "3.25rem", "letterSpacing": "-0.025em", "fontWeight": "800" }], "headline-lg": ["2rem", { "lineHeight": "2.5rem", "letterSpacing": "-0.02em", "fontWeight": "700" }], "body-md": ["1rem", { "lineHeight": "1.5rem", "letterSpacing": "0em", "fontWeight": "400" }], "currency-stat": ["1.75rem", { "lineHeight": "2.25rem", "letterSpacing": "-0.02em", "fontWeight": "700" }], "label-md": ["0.875rem", { "lineHeight": "1.25rem", "letterSpacing": "0.015em", "fontWeight": "600" }], "title-md": ["1.125rem", { "lineHeight": "1.5rem", "letterSpacing": "0em", "fontWeight": "600" }], "body-lg": ["1.125rem", { "lineHeight": "1.75rem", "letterSpacing": "0em", "fontWeight": "400" }], "headline-sm": ["1.25rem", { "lineHeight": "1.75rem", "letterSpacing": "-0.01em", "fontWeight": "600" }] } } } };</script><style>@layer base{html,body{width:100%;margin:0;padding:0;}body{overscroll-behavior:none;background-color:#f6f3ea;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head><body class="bg-surface-container-low font-body-md text-body-md text-on-surface min-h-full flex flex-col antialiased selection:bg-secondary-container"><header class="fixed top-0 inset-x-0 z-50 bg-surface-container-low/90 backdrop-blur-xl pt-safe shadow-[0_1px_8px_rgba(22,58,45,0.05)]"><div class="h-16 px-margin flex items-center justify-between gap-space-xs"><div class="flex items-center gap-space-xs min-w-0 flex-1"><button aria-label="Go Back" class="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full text-on-surface hover:bg-surface-container transition-colors active:scale-95 -ml-1" onclick="history.back()" type="button"><span class="material-symbols-outlined text-[24px]">arrow_back</span></button><img alt="AgroMind AI Logo" class="h-7 w-auto object-contain flex-shrink-0 hidden sm:block" src="https://lh3.googleusercontent.com/aida/AEtjO1UNIJF74n1eT7ZaWAx1BF-XPLNj-n6Unr9haeZsjGid5ujFOzu-0RgDaqgt_N80n8Ek10QiVghkzFmO8TrCOCeu-xX2qllyPjzorTMS4eaM2bg32FUEBXmXVWAWk0IxdkMIifxGU9SYsxQsGgD_eRCMCT3JKTtqEpUoKuMk_QIrHF7Y6zR9yIhZF8VNqocObRggNjiCz7hj7psILYnn3gUxro8FzDtdW4eKEYrQWmiJ_zRAKn78soZDnuk"/><h1 class="font-title-md text-title-md text-primary font-bold truncate flex-1" id="nav-title">આપનું સ્વાગત છે</h1></div><div class="flex items-center gap-space-xs flex-shrink-0"><button class="min-h-[44px] px-3 py-1 rounded-full bg-surface-container-lowest text-on-surface-variant font-label-sm text-label-sm shadow-[0_1px_4px_rgba(22,58,45,0.08)] flex items-center gap-1.5 hover:bg-surface-container transition-colors active:scale-95 border border-outline-variant/30" id="top-lang-btn" title="Change Language / ભાષા બદલો" type="button"><span class="material-symbols-outlined text-[16px] text-secondary">language</span><span class="tracking-wide font-bold" id="top-lang-label">ગુજરાતી</span></button></div></div></header><main class="flex-1 flex flex-col relative w-full pt-16 bg-surface-container-low pb-safe"><div class="flex flex-col w-full px-margin pb-space-xl space-y-space-lg">
+<!-- Brand & Mascot Intro Card -->
+<div class="relative overflow-hidden rounded-xl bg-surface-container-lowest shadow-[0_2px_8px_-1px_rgba(22,58,45,0.06)] p-space-md flex flex-col items-center text-center">
+<div class="absolute -right-12 -top-12 w-36 h-36 rounded-full bg-secondary-container/30 blur-2xl pointer-events-none"></div>
+<div class="absolute -left-12 -bottom-12 w-36 h-36 rounded-full bg-primary-fixed/40 blur-2xl pointer-events-none"></div>
+<!-- Small Agricultural Trust Pill -->
+<div class="inline-flex items-center gap-space-2xs px-3 py-1 rounded-full bg-secondary-container/40 text-on-secondary-container mb-space-sm">
+<span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings: 'FILL' 1;">eco</span>
+<span class="font-label-sm text-label-sm tracking-wide uppercase font-bold" id="brand-pill">AGROMIND AI • સ્માર્ટ કૃષિ સાથી</span>
+</div>
+<!-- Friendly Gujarati/Indian Farming Illustration Banner -->
+<div class="relative w-full h-44 rounded-lg overflow-hidden mb-space-md shadow-sm">
+<img class="w-full h-full object-cover" data-alt="A warm, cheerful Indian farmer standing happily in a sunlit lush green wheat and cotton field in Gujarat during morning golden hour. Soft sun rays, rich agricultural landscape, calm reassuring agricultural atmosphere, warm sand and deep forest green color accents, high quality photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2S7yClrJq8biGX8muZdyYJFudXVhyUTT5Ee09QDz82OvcVpoConLSAooeGnSVO-WIBqU5XBjPZoLpEzJGEjqPb9zlAJt4aUXJe1hpHLpNB_Wy-84yhE2YdTTCKXQNqzfL5zA7ODUVdCcofD-0z2XpV8upEQDHEREnXphDI3VHrYQtsBHf_427x9P_sN36dpG2U8BjeEV18xXI5Lbay_adbGQdghjF9h67mBgxHlyS65wQIs_rZ3mx"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary-container/85 via-primary-container/30 to-transparent flex flex-col justify-end p-space-sm text-left">
+<span class="font-label-sm text-label-sm text-primary-fixed uppercase tracking-wider font-semibold" id="banner-tag">નવીનતમ આર્ટિફિશિયલ ઇન્ટેલિજન્સ</span>
+<p class="font-title-md text-title-md text-on-primary font-bold leading-tight" id="banner-headline">યોગ્ય નિર્ણયો. તંદુરસ્ત ખેતર.</p>
+</div>
+</div>
+<!-- Welcoming Header -->
+<div class="space-y-space-2xs max-w-xs">
+<h2 class="font-headline-sm text-headline-sm text-primary font-extrabold tracking-tight" id="welcome-title">
+        આપનું સ્વાગત છે
+</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed" id="welcome-subtitle">
+        તમારા પાક અને જમીનની સાચી દેખરેખ માટે સરળ ડિજિટલ કૃષિ બુદ્ધિશાળી સલાહકાર.
+      </p>
+</div>
+</div>
+<!-- Language Selection Module -->
+<div class="flex flex-col space-y-space-xs">
+<div class="flex items-center justify-between px-space-2xs">
+<label class="font-label-md text-label-md text-primary font-bold flex items-center gap-1.5" id="selector-label">
+<span class="material-symbols-outlined text-[18px] text-secondary">translate</span>
+        ભાષા પસંદ કરો / Select Language
+      </label>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-medium" id="lang-available-count">૩ ભાષાઓ ઉપલબ્ધ</span>
+</div>
+<!-- Interactive Language Stack -->
+<div aria-label="Language options" class="space-y-space-xs" id="language-selector" role="radiogroup">
+<!-- Gujarati (Default Selected) -->
+<div aria-checked="true" class="lang-card group cursor-pointer relative flex items-center justify-between p-space-sm px-space-md rounded-xl bg-surface-container-lowest shadow-[0_2px_8px_-1px_rgba(22,58,45,0.08)] transition-all active:scale-[0.99] border-2 border-secondary bg-secondary-container/20" data-lang="gu" role="radio" tabindex="0">
+<div class="flex items-center gap-space-sm">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container font-headline-sm text-headline-sm font-bold shadow-sm">
+            ગુ
+          </div>
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-title-md text-title-md font-bold text-primary">ગુજરાતી</span>
+<span class="lang-badge inline-flex items-center px-2 py-0.5 rounded-full bg-secondary text-on-secondary font-label-sm text-label-sm font-semibold text-[11px]">
+                પસંદ કરેલ
+              </span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant" data-card-sub="gu">Gujarati • મુખ્ય પસંદગી</span>
+</div>
+</div>
+<div class="lang-radio flex items-center justify-center w-7 h-7 rounded-full bg-secondary text-on-secondary shadow-sm">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+</div>
+<!-- Hindi -->
+<div aria-checked="false" class="lang-card group cursor-pointer relative flex items-center justify-between p-space-sm px-space-md rounded-xl bg-surface-container-lowest shadow-[0_1px_4px_rgba(22,58,45,0.05)] transition-all active:scale-[0.99]" data-lang="hi" role="radio" tabindex="0">
+<div class="flex items-center gap-space-sm">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant font-headline-sm text-headline-sm font-bold">
+            हि
+          </div>
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-title-md text-title-md font-bold text-on-surface">हिन्दी</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant" data-card-sub="hi">Hindi • आसान और सरल</span>
+</div>
+</div>
+<div class="lang-radio flex items-center justify-center w-7 h-7 rounded-full bg-surface-container text-transparent">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+</div>
+<!-- English -->
+<div aria-checked="false" class="lang-card group cursor-pointer relative flex items-center justify-between p-space-sm px-space-md rounded-xl bg-surface-container-lowest shadow-[0_1px_4px_rgba(22,58,45,0.05)] transition-all active:scale-[0.99]" data-lang="en" role="radio" tabindex="0">
+<div class="flex items-center gap-space-sm">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant font-headline-sm text-headline-sm font-bold">
+            EN
+          </div>
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-title-md text-title-md font-bold text-on-surface">English</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant" data-card-sub="en">English • Global standard</span>
+</div>
+</div>
+<div class="lang-radio flex items-center justify-center w-7 h-7 rounded-full bg-surface-container text-transparent">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+</div>
+</div>
+<!-- Tactile Micro-Note with Icon -->
+<div class="flex items-center gap-2 pt-space-2xs px-space-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px] text-outline flex-shrink-0">tune</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant" id="lang-note">
+        તમે સેટિંગ્સમાંથી કોઈપણ સમયે ભાષા બદલી શકો છો.
+      </p>
+</div>
+</div>
+<!-- Key Benefits Pill Preview -->
+<div class="grid grid-cols-2 gap-space-xs">
+<div class="p-space-sm rounded-xl bg-surface-container-lowest shadow-[0_1px_4px_rgba(22,58,45,0.05)] flex items-center gap-space-xs">
+<div class="w-9 h-9 rounded-lg bg-primary-fixed flex items-center justify-center text-primary flex-shrink-0">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">sensors</span>
+</div>
+<div class="min-w-0">
+<p class="font-label-sm text-label-sm font-bold text-primary truncate" id="benefit-1-title">જમીન ભેજ &amp; રોગ</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant truncate" id="benefit-1-sub">ત્વરિત એલર્ટ્સ</p>
+</div>
+</div>
+<div class="p-space-sm rounded-xl bg-surface-container-lowest shadow-[0_1px_4px_rgba(22,58,45,0.05)] flex items-center gap-space-xs">
+<div class="w-9 h-9 rounded-lg bg-secondary-container flex items-center justify-center text-secondary flex-shrink-0">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">currency_rupee</span>
+</div>
+<div class="min-w-0">
+<p class="font-label-sm text-label-sm font-bold text-primary truncate" id="benefit-2-title">લાઈવ માર્કેટ ભાવ</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant truncate" id="benefit-2-sub">મંડી ઇન્ટેલિજન્સ</p>
+</div>
+</div>
+</div>
+<!-- Actions Area -->
+<div class="flex flex-col space-y-space-sm pt-space-2xs">
+<!-- Primary CTA -->
+<button class="w-full min-h-[52px] px-space-md py-space-sm rounded-xl bg-secondary hover:bg-primary text-on-secondary shadow-md hover:shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-space-xs font-label-lg text-label-lg font-bold" id="cta-button" type="button">
+<span id="cta-text">શરૂ કરો</span>
+<span class="material-symbols-outlined text-[22px]">arrow_forward</span>
+</button>
+<!-- Secondary Account Action -->
+<button class="w-full min-h-[48px] px-space-md py-space-sm rounded-xl bg-surface-container-lowest hover:bg-surface-container text-primary font-label-md text-label-md font-semibold transition-all active:scale-[0.98] flex items-center justify-center gap-space-2xs shadow-sm" type="button">
+<span id="login-prompt">પહેલેથી ખાતું છે?</span>
+<span class="text-secondary font-bold underline decoration-secondary underline-offset-4" id="login-action">લૉગિન કરો</span>
+</button>
+</div>
+<!-- Reassurance & Farmer Privacy Footer -->
+<div class="flex flex-col items-center text-center space-y-space-2xs pt-space-xs">
+<div class="inline-flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px] text-secondary">verified_user</span>
+<span class="font-label-sm text-label-sm font-semibold text-primary" id="footer-trust">૧૦૦% ડેટા ગોપનીયતા અને ખેડૂત વિશ્વાસ</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline max-w-xs leading-tight" id="footer-offline">
+      AgroMind AI મુખ્ય માહિતી માટે ઑફલાઇન કાર્ય કરે છે અને સલામત ડિજિટલ ફાર્મ પ્રોટોકોલનું પાલન કરે છે.
+    </p>
+</div>
+</div>
+<!-- Modal Quick Language Switcher -->
+<div class="fixed inset-0 z-50 bg-primary/40 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4" id="lang-modal">
+<div class="bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl w-full max-w-md p-space-md shadow-2xl border border-outline-variant/20 transition-all">
+<div class="flex items-center justify-between pb-space-sm border-b border-surface-container">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[22px]">language</span>
+<h3 class="font-title-md text-title-md font-bold text-primary" id="modal-title">ભાષા બદલો / Select Language</h3>
+</div>
+<button class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:bg-surface-container active:scale-95" id="modal-close-btn" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<div class="space-y-2 py-space-sm">
+<button class="modal-lang-opt w-full flex items-center justify-between p-3 rounded-xl hover:bg-surface-container active:scale-[0.99] text-left transition-colors" data-lang="gu" type="button">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full bg-secondary-container flex items-center justify-center font-bold text-on-secondary-container">ગુ</div>
+<div>
+<p class="font-label-md font-bold text-primary">ગુજરાતી</p>
+<p class="font-body-sm text-on-surface-variant text-[12px]">Gujarati</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary modal-check hidden">check_circle</span>
+</button>
+<button class="modal-lang-opt w-full flex items-center justify-between p-3 rounded-xl hover:bg-surface-container active:scale-[0.99] text-left transition-colors" data-lang="hi" type="button">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center font-bold text-on-surface">हि</div>
+<div>
+<p class="font-label-md font-bold text-primary">हिन्दी</p>
+<p class="font-body-sm text-on-surface-variant text-[12px]">Hindi</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary modal-check hidden">check_circle</span>
+</button>
+<button class="modal-lang-opt w-full flex items-center justify-between p-3 rounded-xl hover:bg-surface-container active:scale-[0.99] text-left transition-colors" data-lang="en" type="button">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center font-bold text-on-surface">EN</div>
+<div>
+<p class="font-label-md font-bold text-primary">English</p>
+<p class="font-body-sm text-on-surface-variant text-[12px]">Global</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary modal-check hidden">check_circle</span>
+</button>
+</div>
+</div>
+</div>
+<script>
+  (function() {
+    const translations = {
+      gu: {
+        navTitle: 'આપનું સ્વાગત છે',
+        topPill: 'ગુજરાતી',
+        brandPill: 'AGROMIND AI • સ્માર્ટ કૃષિ સાથી',
+        bannerTag: 'નવીનતમ આર્ટિફિશિયલ ઇન્ટેલિજન્સ',
+        bannerHeadline: 'યોગ્ય નિર્ણયો. તંદુરસ્ત ખેતર.',
+        welcomeTitle: 'આપનું સ્વાગત છે',
+        welcomeSubtitle: 'તમારા પાક અને જમીનની સાચી દેખરેખ માટે સરળ ડિજિટલ કૃષિ બુદ્ધિશાળી સલાહકાર.',
+        selectorLabel: 'ભાષા પસંદ કરો / Select Language',
+        langCount: '૩ ભાષાઓ ઉપલબ્ધ',
+        langNote: 'તમે સેટિંગ્સમાંથી કોઈપણ સમયે ભાષા બદલી શકો છો.',
+        badgeSelected: 'પસંદ કરેલ',
+        benefit1Title: 'જમીન ભેજ & રોગ',
+        benefit1Sub: 'ત્વરિત એલર્ટ્સ',
+        benefit2Title: 'લાઈવ માર્કેટ ભાવ',
+        benefit2Sub: 'મંડી ઇન્ટેલિજન્સ',
+        cta: 'શરૂ કરો',
+        loginPrompt: 'પહેલેથી ખાતું છે?',
+        loginAction: 'લૉગિન કરો',
+        footerTrust: '૧૦૦% ડેટા ગોપનીયતા અને ખેડૂત વિશ્વાસ',
+        footerOffline: 'AgroMind AI મુખ્ય માહિતી માટે ઑફલાઇન કાર્ય કરે છે અને સલામત ડિજિટલ ફાર્મ પ્રોટોકોલનું પાલન કરે છે.',
+        modalTitle: 'ભાષા બદલો / Select Language'
+      },
+      hi: {
+        navTitle: 'स्वागत है',
+        topPill: 'हिन्दी',
+        brandPill: 'AGROMIND AI • स्मार्ट कृषि साथी',
+        bannerTag: 'नवीनतम आर्टिफिशियल इंटेलिजेंस',
+        bannerHeadline: 'सटीक निर्णय. स्वस्थ फसल.',
+        welcomeTitle: 'स्वागत है / Welcome',
+        welcomeSubtitle: 'आपकी फसल और मिट्टी की सटीक देखभाल के लिए सरल डिजिटल कृषि बुद्धिमत्ता।',
+        selectorLabel: 'अपनी भाषा चुनें / Select Language',
+        langCount: '3 भाषाएं उपलब्ध',
+        langNote: 'आप सेटिंग्स से कभी भी अपनी भाषा बदल सकते हैं।',
+        badgeSelected: 'चयनित',
+        benefit1Title: 'मृदा नमी और रोग',
+        benefit1Sub: 'तुरंत अलर्ट',
+        benefit2Title: 'लाइव मंडी भाव',
+        benefit2Sub: 'मंडी इंटेलिजेंस',
+        cta: 'शुरू करें',
+        loginPrompt: 'पहले से खाता है?',
+        loginAction: 'लॉगिन करें',
+        footerTrust: '100% डेटा गोपनीयता और भारतीय किसान विश्वास',
+        footerOffline: 'AgroMind AI मुख्य टेलीमेट्री के लिए ऑफ़लाइन काम करता है और सुरक्षित डिजिटल प्रोटोकॉल का पालन करता है।',
+        modalTitle: 'भाषा चुनें / Select Language'
+      },
+      en: {
+        navTitle: 'Welcome',
+        topPill: 'English',
+        brandPill: 'AGROMIND AI • Smart Farming Companion',
+        bannerTag: 'ADVANCED ARTIFICIAL INTELLIGENCE',
+        bannerHeadline: 'Smarter Decisions. Healthier Farms.',
+        welcomeTitle: 'Welcome to AgroMind',
+        welcomeSubtitle: 'Simple digital farming intelligence for your daily crop decisions and soil health.',
+        selectorLabel: 'Select Your Language',
+        langCount: '3 Languages Available',
+        langNote: 'You can easily change your preferred language anytime from Settings.',
+        badgeSelected: 'Active',
+        benefit1Title: 'Soil Moisture & Disease',
+        benefit1Sub: 'Instant Alerts',
+        benefit2Title: 'Live Mandi Rates',
+        benefit2Sub: 'Market Intelligence',
+        cta: 'Get Started',
+        loginPrompt: 'Already registered?',
+        loginAction: 'Log In',
+        footerTrust: '100% Data Privacy & Indian Farmer Trust',
+        footerOffline: 'AgroMind AI works offline for core telemetry and adheres to secure digital farm protocols.',
+        modalTitle: 'Select Your Language'
+      }
+    };
+
+    const cards = document.querySelectorAll('.lang-card');
+    const modal = document.getElementById('lang-modal');
+    const topLangBtn = document.getElementById('top-lang-btn');
+    const modalCloseBtn = document.getElementById('modal-close-btn');
+    const modalOpts = document.querySelectorAll('.modal-lang-opt');
+
+    function applyLanguage(lang) {
+      if (!translations[lang]) return;
+      const t = translations[lang];
+
+      document.documentElement.lang = lang;
+      try {
+        localStorage.setItem('agromind_lang', lang);
+      } catch(e) {}
+
+      // Dispatch event for other modules
+      window.dispatchEvent(new CustomEvent('agromind:language-changed', { detail: { lang } }));
+
+      // DOM updates
+      document.getElementById('nav-title').textContent = t.navTitle;
+      document.getElementById('top-lang-label').textContent = t.topPill;
+      document.getElementById('brand-pill').textContent = t.brandPill;
+      document.getElementById('banner-tag').textContent = t.bannerTag;
+      document.getElementById('banner-headline').textContent = t.bannerHeadline;
+      document.getElementById('welcome-title').textContent = t.welcomeTitle;
+      document.getElementById('welcome-subtitle').textContent = t.welcomeSubtitle;
+      document.getElementById('selector-label').innerHTML = `<span class="material-symbols-outlined text-[18px] text-secondary">translate</span> ${t.selectorLabel}`;
+      document.getElementById('lang-available-count').textContent = t.langCount;
+      document.getElementById('lang-note').textContent = t.langNote;
+      document.getElementById('benefit-1-title').textContent = t.benefit1Title;
+      document.getElementById('benefit-1-sub').textContent = t.benefit1Sub;
+      document.getElementById('benefit-2-title').textContent = t.benefit2Title;
+      document.getElementById('benefit-2-sub').textContent = t.benefit2Sub;
+      document.getElementById('cta-text').textContent = t.cta;
+      document.getElementById('login-prompt').textContent = t.loginPrompt;
+      document.getElementById('login-action').textContent = t.loginAction;
+      document.getElementById('footer-trust').textContent = t.footerTrust;
+      document.getElementById('footer-offline').textContent = t.footerOffline;
+      document.getElementById('modal-title').textContent = t.modalTitle;
+
+      // Update card styles
+      cards.forEach(c => {
+        const cLang = c.getAttribute('data-lang');
+        const isSelected = cLang === lang;
+        c.setAttribute('aria-checked', isSelected ? 'true' : 'false');
+
+        const radio = c.querySelector('.lang-radio');
+        const circle = c.querySelector('.w-12');
+        const titleSpan = c.querySelector('.font-title-md');
+        const existingBadge = c.querySelector('.lang-badge');
+        if (existingBadge) existingBadge.remove();
+
+        if (isSelected) {
+          c.classList.add('border-2', 'border-secondary', 'bg-secondary-container/20');
+          c.classList.remove('bg-surface-container-lowest', 'border-0');
+          radio.classList.remove('bg-surface-container', 'text-transparent');
+          radio.classList.add('bg-secondary', 'text-on-secondary');
+          circle.classList.remove('bg-surface-container', 'text-on-surface-variant');
+          circle.classList.add('bg-secondary-container', 'text-on-secondary-container');
+          titleSpan.classList.add('text-primary');
+          titleSpan.classList.remove('text-on-surface');
+
+          const titleWrap = c.querySelector('.flex.flex-col > div');
+          if (titleWrap) {
+            const badge = document.createElement('span');
+            badge.className = 'lang-badge inline-flex items-center px-2 py-0.5 rounded-full bg-secondary text-on-secondary font-label-sm text-label-sm font-semibold text-[11px]';
+            badge.textContent = t.badgeSelected;
+            titleWrap.appendChild(badge);
+          }
+        } else {
+          c.classList.remove('border-2', 'border-secondary', 'bg-secondary-container/20');
+          c.classList.add('bg-surface-container-lowest');
+          radio.classList.add('bg-surface-container', 'text-transparent');
+          radio.classList.remove('bg-secondary', 'text-on-secondary');
+          circle.classList.add('bg-surface-container', 'text-on-surface-variant');
+          circle.classList.remove('bg-secondary-container', 'text-on-secondary-container');
+          titleSpan.classList.remove('text-primary');
+          titleSpan.classList.add('text-on-surface');
+        }
+      });
+
+      // Update modal check icons
+      modalOpts.forEach(opt => {
+        const check = opt.querySelector('.modal-check');
+        if (opt.getAttribute('data-lang') === lang) {
+          check.classList.remove('hidden');
+          opt.classList.add('bg-secondary-container/30', 'font-bold');
+        } else {
+          check.classList.add('hidden');
+          opt.classList.remove('bg-secondary-container/30', 'font-bold');
+        }
+      });
+    }
+
+    // Card click events
+    cards.forEach(card => {
+      card.addEventListener('click', () => {
+        const lang = card.getAttribute('data-lang');
+        applyLanguage(lang);
+      });
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          card.click();
+        }
+      });
+    });
+
+    // Top Language modal handling
+    if (topLangBtn && modal) {
+      topLangBtn.addEventListener('click', () => {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      });
+    }
+
+    if (modalCloseBtn && modal) {
+      modalCloseBtn.addEventListener('click', () => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      });
+    }
+
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.add('hidden');
+          modal.classList.remove('flex');
+        }
+      });
+    }
+
+    modalOpts.forEach(opt => {
+      opt.addEventListener('click', () => {
+        const lang = opt.getAttribute('data-lang');
+        applyLanguage(lang);
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      });
+    });
+
+    // Load initial stored language or default to Gujarati
+    let initialLang = 'gu';
+    try {
+      const stored = localStorage.getItem('agromind_lang');
+      if (stored && translations[stored]) {
+        initialLang = stored;
+      }
+    } catch(e) {}
+
+    applyLanguage(initialLang);
+  })();
+</script></main>
+</body></html>
