@@ -1,223 +1,301 @@
-# 🌾 AgroMind AI
-> **"From Soil Insights to Smarter Harvests."**  
-> An autonomous, location-aware farm advisory and action orchestration web platform built for **Bit N Build'26 Gujarat**.
+# 🌾 AgroMind AI — ખેતીનું સ્માર્ટ મગજ
+> **Autonomous Farm-to-Field Advisory & Action Orchestration Platform**  
+> *Translating Complex Environmental Data into Prioritized, Everyday Farming Actions.*
 
-[![Event](https://img.shields.io/badge/Hackathon-Bit_N_Build'26_Gujarat-blueviolet?style=for-the-badge)](#-team--hackathon)
-[![Problem Statement](https://img.shields.io/badge/Problem_Statement-PS--6-green?style=for-the-badge)](#1--the-problem)
-[![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
-[![AI Engine](https://img.shields.io/badge/AI-Google_Gemini_Vision-8E75B2?style=for-the-badge&logo=google)](https://ai.google.dev/)
+[![Hackathon](https://img.shields.io/badge/Hackathon-Bit_N_Build'26_Gujarat-blueviolet?style=for-the-badge)](https://github.com/Xcoder-69/HACKFORGE)
+[![Problem Statement](https://img.shields.io/badge/Problem_Statement-PS--6-green?style=for-the-badge)](#-1-problem-statement)
+[![Frontend](https://img.shields.io/badge/Frontend-React_18_+_Vite_+_TypeScript-61DAFB?style=for-the-badge&logo=react)](https://react.dev/)
+[![Styling](https://img.shields.io/badge/Styling-Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
+[![AI Engine](https://img.shields.io/badge/AI-Google_Gemini_Vision_1.5-8E75B2?style=for-the-badge&logo=google)](https://ai.google.dev/)
+[![Cloud DB](https://img.shields.io/badge/Cloud_Database-Supabase_PostgreSQL-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com/)
 [![Weather API](https://img.shields.io/badge/Weather-Open--Meteo-orange?style=for-the-badge)](https://open-meteo.com/)
-[![Database](https://img.shields.io/badge/Database-Supabase-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com/)
+[![Auth](https://img.shields.io/badge/Auth-Firebase_SMS_OTP-FFCA28?style=for-the-badge&logo=firebase)](https://firebase.google.com/)
 
 ---
 
-## 📌 Executive Summary (For Judges & Evaluators)
+## 🏆 Quick Pitch for Judges (At a Glance)
 
-| Question | Evaluation Answer |
+| Criteria | Hackathon Evaluation Summary |
 |---|---|
-| **Hackathon Event** | **Bit N Build'26 Gujarat** |
-| **Problem Statement** | **PS-6: Autonomous Farm-to-Field Advisory & Action Orchestration Agents** |
-| **The Core Problem** | Agricultural information is fragmented; farmers get confusing weather charts and soil reports without knowing what specific actions to take today. |
-| **What We Built** | A responsive, mobile-first web application that converts live weather, soil telemetry, AI crop disease scans, and market prices into an **automated, prioritized daily farming checklist**. |
-| **Key Innovation** | **Hybrid Decision Engine**: Combines deterministic agronomic safety rules with **Google Gemini 1.5 Vision**, translating environmental data into executable tasks rather than passive graphs. |
+| **Event & Track** | **Bit N Build '26 Gujarat** — **Problem Statement PS-6** |
+| **Core Problem** | Farmers are bombarded with raw weather metrics, soil lab reports, and complex APMC charts without knowing: **"What exact action should I take in my field today?"** |
+| **Our Solution** | An autonomous, location-aware digital agronomist that converts GPS weather, soil telemetry, AI crop camera scans, and mandi prices into a **clear, prioritized daily checklist** with a dedicated **KVK Agronomist Command Center**. |
+| **Key Innovation** | **Hybrid Decision Engine**: Integrates deterministic agronomic rules with **Google Gemini 1.5 Vision** for instant crop leaf pathology diagnosis and real-time Gujarati/Hindi conversational advisory. |
+| **Offline Resilience** | **Zero-Disruption Offline Engine**: Full functionality in rural fields without connectivity; auto-syncs to **Supabase PostgreSQL** when connection returns. |
+| **Regionalization** | Native support for **Gujarati (ગુજરાતી)**, **Hindi (हिन्दी)**, and **English**, complete with an all-India 28-state cascading administrative selector. |
 
 ---
 
-## 1. 🛑 The Problem
+## 🛑 1. Problem Statement
 
-Small- and mid-scale farmers encounter four critical challenges every season:
+Indian agriculture supports over 150 million farming households, yet smallholder and marginal farmers face four systemic roadblocks every season:
 
-1. **Information Fragmentation & Confusion**: Weather apps show barometric pressure and humidity curves; soil labs give chemical ratios in kg/ha. Farmers struggle to translate raw scientific numbers into everyday farming decisions.
-2. **Delayed Crop Disease Diagnosis**: When crop leaves show spots or yellowing, consulting an agronomist or visiting a local Krishi Vigyan Kendra (KVK) takes days. By then, fungal blights and pest infestations spread irreversibly across the field.
-3. **Hidden Cultivation Expenses & Middlemen Exploitation**: Farmers rarely calculate exact operational expenses (seeds, diesel, labor, machinery lease). Lacking real-time visibility into benchmark Mandi (APMC) prices, they often sell at a loss to local middlemen.
-4. **Lack of Action Orchestration**: Knowing that rain is coming is incomplete. Farmers need prioritized, timed actions: *"Delay foliar pesticide spray by 48 hours; clear drainage trench #2 today."*
+```mermaid
+mindmap
+  root((Agricultural Crisis))
+    Information Fragmentation
+      Scientific graphs with no clear action
+      Rain forecasts without timing advice
+      Chemical lab soil metrics without dose guidance
+    Delayed Crop Disease Diagnosis
+      Fungal blights spread within 48 hours
+      KVK officers take days to reach rural villages
+      Chemical misapplication wastes money
+    Middlemen Price Exploitation
+      Unrecorded seasonal operational expenses
+      No visibility into daily APMC mandi modal rates
+      Distress selling at farm gates
+    Lack of Unified Orchestration
+      No single mobile hub for irrigation, disease, & finance
+      Poor internet connectivity in remote farm belts
+```
+
+1. **Information Overload without Actionable Clarity**: Farmers receive raw numbers (humidity 78%, barometric pressure 1012 hPa), but nobody tells them: *"Hold nitrogen fertilizer application for 36 hours to prevent nutrient runoff."*
+2. **Devastating Crop Pathogen Delays**: When yellow spots or necrotic lesions appear on cotton or groundnut leaves, getting physical agricultural officer consultation takes days. By then, yield loss exceeds 30–50%.
+3. **Financial OpEx Opacity & Middlemen Exploitation**: Farmers rarely track input costs (seeds, diesel, labor, tractor rental) in a structured ledger. Lacking daily APMC benchmark prices, they sell to middlemen at steep discounts.
+4. **The Connectivity Void**: Traditional agricultural web tools fail completely when cellular networks drop in remote rural fields.
 
 ---
 
-## 2. 💡 The Solution
+## 💡 2. The Solution: AgroMind AI
 
-**AgroMind AI** functions as an autonomous digital agronomist on the farmer's smartphone. It ingests environmental data, evaluates crop risks, and produces a simple, prioritized daily action plan:
+**AgroMind AI** acts as an **autonomous digital agronomist** directly in the farmer's pocket. It aggregates hyperlocal atmospheric intelligence, parcel-level soil metrics, visual pathology, and market data, converting them into an **automated daily farming action plan**.
+
+```mermaid
+flowchart LR
+    subgraph Inputs ["📡 Multimodal Ingestion"]
+        W["🌧️ Open-Meteo GPS Weather"]
+        S["🌱 Soil Telemetry & IoT Probes"]
+        C["📸 Phone Camera Leaf Scans"]
+        M["📊 APMC Mandi Market Prices"]
+    end
+
+    subgraph Engine ["🧠 AgroMind Decision Engine"]
+        AR["⚙️ Agronomic Safety Rules"]
+        AI["🤖 Google Gemini 1.5 Vision"]
+        OE["📱 Offline SyncEngine"]
+        AR <--> AI
+        AI <--> OE
+    end
+
+    subgraph Outputs ["📋 Actionable Interfaces"]
+        FA["🌾 Farmer Mobile Dashboard\n(Gujarati / Hindi / English)"]
+        AC["✅ Prioritized Action Checklist"]
+        KC["🏛️ KVK Extension Officer Portal"]
+    end
+
+    Inputs --> Engine
+    Engine --> Outputs
+```
+
+### Key Capabilities:
+- **Dual-Portal Architecture**:
+  - **🌾 Farmer Application**: Mobile-first dashboard with interactive parcel management, AI leaf disease diagnostics, APMC price trends, financial accounting, and voice/chat AI advisory.
+  - **🏛️ KVK Admin Command Center**: Regional cluster overview, pest outbreak heatmaps, and mass emergency broadcast alerts for extension officers.
+- **Dynamic Parcel Management**: Custom block mapping (`Block A`, `Block B`, `Block C`, etc.) with individual crop lifecycles and soil moisture tracking.
+- **Verified KYC Integration**: PM-KISAN linking, Aadhaar/phone verification, and survey/khata number mapping.
+
+---
+
+## 🏗️ 3. System Architecture
+
+AgroMind AI is engineered as a high-performance, offline-first Progressive Web Application backed by modern cloud services:
 
 ```mermaid
 flowchart TD
-    FarmField["🌾 Farm / Field"] --> DataCollection["📡 Data Collection"]
+    subgraph Client ["💻 Client Layer (PWA / Responsive Mobile)"]
+        UI["React 18 + Vite + Tailwind CSS"]
+        I18N["Language Context (Gujarati / Hindi / English)"]
+        CAM["HTML5 Camera & Geolocation API"]
+        UI --- I18N
+        UI --- CAM
+    end
 
-    DataCollection --> WeatherData["🌧️ Weather Data"]
-    DataCollection --> SoilData["🌱 Soil Data"]
-    DataCollection --> CropData["🌾 Crop Data"]
-    DataCollection --> SatelliteData["🛰️ Satellite Data"]
-    DataCollection --> CropImage["📷 Optional Crop Image"]
-    DataCollection --> MarketData["📊 Market Data"]
+    subgraph OfflineStorage ["💾 2-Tier Persistence"]
+        L1["L1 Cache: Reactive LocalStorage"]
+        SYNC["SyncEngine: Mutation Queue"]
+        L1 <--> SYNC
+    end
 
-    WeatherData --> SpecialistAgents["🧠 Specialist Agents"]
-    SoilData --> SpecialistAgents
-    CropData --> SpecialistAgents
-    SatelliteData --> SpecialistAgents
-    CropImage --> SpecialistAgents
-    MarketData --> SpecialistAgents
+    subgraph ExternalAPIs ["🌐 Intelligent External Services"]
+        GEMINI["Google Gemini 1.5 Flash & Vision API\n(Leaf Pathology & AI Agronomist)"]
+        METEO["Open-Meteo Meteorological API\n(Hyperlocal Hourly Telemetry)"]
+        FIREBASE["Google Firebase Telephony\n(Authentic SMS OTP + Demo Bypass)"]
+    end
 
-    SpecialistAgents --> RiskDetectionAgent["⚠️ Risk Detection Agent"]
-    RiskDetectionAgent --> DecisionAgent["🤖 Decision Agent"]
-    DecisionAgent --> ActionPlan["📋 Action Plan"]
+    subgraph CloudDB ["☁️ Cloud Persistence Layer"]
+        SUPABASE[("Supabase PostgreSQL (13 Relational Tables)")]
+        RLS["Row Level Security (RLS)"]
+        SUPABASE --- RLS
+    end
 
-    DecisionAgent --> AlertApproval["🔔 Alert / Approval"]
-    AlertApproval --> SimulatedFieldAction["⚙️ Simulated Field Action"]
-    SimulatedFieldAction --> FeedbackCollection["📈 Feedback Collection"]
-    FeedbackCollection --> SpecialistAgents
+    UI <--> L1
+    SYNC -->|Auto-Sync on Reconnect| SUPABASE
+    UI <--> GEMINI
+    UI <--> METEO
+    UI <--> FIREBASE
 ```
 
----
-
-## 3. 📱 The Product: What It Does (Screen-by-Screen)
-
-The AgroMind AI website consists of six core modules:
-
-### 1. 📍 Farm Onboarding & Location Setup (`/`)
-- One-click **Browser Geolocation**: Automatically captures the farm's latitude and longitude without manual typing.
-- Captures field size (acres), primary soil type (Loamy, Clayey, Black Cotton, Sandy), and irrigation source.
-- Sets current crop and growth stage (Sowing, Vegetative, Flowering, Fruiting, Harvest).
-
-### 2. 🌤️ Smart Dashboard & Weather Intelligence (`/dashboard`)
-- Fetches real-time temperature, humidity, rain probability, and wind metrics using **Open-Meteo**.
-- **Action Translation**: Converts forecasts into immediate instructions (e.g., *"75% rain probability tomorrow — hold urea fertilizer application to prevent nutrient runoff"*).
-- Displays top-priority warning banners for heat stress, frost, or waterlogging risks.
-
-### 3. 🧪 Soil Insights & Interactive Sensor Simulator (`/soil`)
-- **Dual Ingestion**: Farmers can enter physical Soil Health Card values manually or test via the **interactive demo sensor slider**.
-- Tracks Moisture %, pH, and N-P-K nutrient levels with instant color-coded status badges.
-- Moving the demo slider from 40% to 15% immediately triggers an automated *"Water Deficit Stress"* alert.
-
-### 4. 📸 Smart Crop Camera / Leaf Pathology Scanner (`/camera`)
-- Farmers take a picture or upload a photo of a damaged crop leaf directly from their phone camera.
-- **Google Gemini 1.5 Vision** analyzes visual symptoms (chlorosis, necrotic spots, powdery mildew).
-- Delivers:
-  - Probable observation and confidence score (e.g., *Early Leaf Spot — 84% confidence*).
-  - Safe cultural and mechanical remedies (spacing, leaf sanitation, drip management).
-  - Safety alert: *"Advisory only — consult an agricultural extension officer before chemical use."*
-
-### 5. 💰 Cultivation Cost Calculator & Market Margins (`/calculator`)
-- Breaks down exact seasonal Operational Expenditure (OpEx): Seeds, land prep, fertilizer, irrigation power, hired labor, and machinery.
-- Calculates **Total Cost**, **Cost per Acre**, and **Break-Even Unit Price**.
-- Pulls benchmark **Mandi (APMC) market rates** to project expected harvest revenue and net profit margins.
-
-### 6. 📋 Action Center & Task Orchestrator (`/tasks`)
-- Automatically compiles weather alerts and crop camera diagnoses into a daily to-do checklist.
-- Tasks are categorized by priority (High, Medium, Low) with due dates and estimated intervention costs.
-- Farmers mark tasks as completed, generating an auditable seasonal field history.
+### Architectural Highlights:
+1. **L1 + L2 Persistence**: All farmer state is instantly written to reactive local storage (L1) for zero-latency UI rendering, then queued in `SyncEngine` and flushed to Supabase PostgreSQL (L2) with optimistic background sync.
+2. **13 Relational Cloud Tables**: Fully structured PostgreSQL backend covering `profiles`, `farms`, `plots`, `crops`, `expenses`, `revenues`, `diagnoses`, `crop_scans`, `alerts`, `mandi_prices`, `chat_messages`, `user_preferences`, and `sync_queue`.
+3. **Edge Multilingual Engine**: Dynamic translation architecture rendering native Gujarati, Hindi, and English without layout reflows.
 
 ---
 
-## 4. 🛠️ Technology Stack: Where Each Technology is Used
+## 📱 4. Web Application Workflow & User Journey
 
-Here is exactly how and where each technology is utilized across the AgroMind AI website:
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Farmer as 👨‍🌾 Farmer
+    participant App as 📱 AgroMind Web App
+    participant Phone as 📲 Firebase SMS / Auth
+    participant AI as 🤖 Gemini AI & Open-Meteo
+    participant DB as ☁️ Supabase Cloud DB
+
+    Farmer->>App: Opens App & selects language (Gujarati / Hindi / English)
+    Farmer->>App: Enters mobile number
+    App->>Phone: Dispatches 6-digit SMS OTP (or uses Demo PIN: 8249)
+    Phone-->>Farmer: Delivers OTP
+    Farmer->>App: Enters OTP & verifies session
+    
+    alt First-time User (Onboarding)
+        App->>Farmer: 4-Step Setup: KYC -> GPS Tagging -> Soil & Land -> Crop Selection
+        Farmer->>App: Completes Setup
+        App->>DB: Stores Profile, Farm Parcel & Initial Plots
+    end
+
+    App->>AI: Requests hourly weather & satellite NDVI for GPS coordinates
+    AI-->>App: Returns forecast & agricultural risk triggers
+    App-->>Farmer: Renders My Farm Dashboard with Live Parcel Map (Block A, B, C...)
+
+    opt Crop Pathology Scanner
+        Farmer->>App: Snaps photo of infected crop leaf (/ai-camera)
+        App->>AI: Analyzes leaf imagery via Gemini 1.5 Vision
+        AI-->>App: Returns Diagnosis, Severity %, Chemical & Organic Remedies
+        App->>DB: Saves scan record to crop_scans table
+        App-->>Farmer: Displays immediate actionable field treatment
+    end
+
+    opt Financial Management
+        Farmer->>App: Logs input expense (seeds, fertilizer, labor)
+        App->>DB: Updates seasonal ledger & calculates Break-Even Price
+        App-->>Farmer: Visualizes Net Profit vs. Mandi APMC Realization
+    end
+```
+
+### Complete Screen-by-Screen Breakdown:
+
+| # | Route | Screen Name | Key Features |
+|---|---|---|---|
+| 1 | `/` | **Language Selection & Welcome** | Select Gujarati (`ગુજરાતી`), Hindi (`हिन्दी`), or English with high-contrast, accessible cards. |
+| 2 | `/login` | **Authentication Hub** | Tab 1: Fast Login via Phone + Firebase 6-digit SMS OTP (or Demo PIN `8249`).<br>Tab 2: New Farmer Registration with All-India 3-Tier Cascading District $\rightarrow$ City $\rightarrow$ Village selector. |
+| 3 | `/onboarding` | **4-Step Farm Setup Wizard** | Guided setup: (1) KYC & PM-KISAN, (2) One-tap GPS Geolocation, (3) Land acreage, soil classification & irrigation, (4) Kharif/Rabi crop planting. |
+| 4 | `/home` | **My Farm Dashboard** | Farmer profile card with 4 telemetry chips (Land, Soil, Drip Irrigation, Satellite NDVI), **interactive Parcel Map** supporting dynamic plots (`Block A`, `Block B`, `Block C`, etc.), active crop tickers, and quick shortcuts. |
+| 5 | `/recommendations` | **Crop Intelligence** | Soil-matched crop recommendation matrix, duration, water requirements, estimated profit per acre, and stage-by-stage growth plans. |
+| 6 | `/weather-soil` | **Weather & Soil Telemetry** | Hyperlocal Open-Meteo GPS forecasts, 7-day hourly rain graphs, temperature, humidity, and agro-advisories. |
+| 7 | `/ai-camera` | **AI Leaf Disease Scanner** | Live phone camera capture or photo upload. Google Gemini Vision identifies diseases (e.g., *Early Leaf Spot, Powdery Mildew, Leaf Curl*), confidence %, and remedies. |
+| 8 | `/market` | **APMC Mandi Market Prices** | Real-time commodity prices across Gujarat & India markets, modal rates, daily trends, and "Sell vs. Store" decision support. |
+| 9 | `/expenses` & `/profit` | **Farm Input Ledger & Profit** | Track seasonal OpEx (fertilizer, seeds, diesel, labor). Computes cost per acre, break-even unit cost, and net harvest profit margin. |
+| 10 | `/alerts` | **Action Center & To-Do Checklist** | Automated prioritized tasks generated from weather threats and disease scans. Mark tasks completed to build a field history. |
+| 11 | `/ai-assistant` | **Conversational AI Agronomist** | Interactive multilingual AI chat offering contextual advice tailored to the farmer's active crops and soil. |
+| 12 | `/admin` | **KVK Officer Command Center** | Multi-farmer surveillance dashboard, regional disease outbreak heatmaps, and mass emergency SMS broadcast transmitter. |
+
+---
+
+## 🛠️ 5. Technology Stack
+
+| Domain | Technology | Implementation Details |
+|---|---|---|
+| **Core Frontend** | **React 18** + **TypeScript** | Strict type contracts (`farm.contract.ts`, `sync.contract.ts`, `api.contract.ts`) ensuring 0 runtime type errors. |
+| **Build Tool** | **Vite 6** | Ultra-fast Hot Module Replacement (HMR) and optimized single-page production bundling. |
+| **Styling** | **Tailwind CSS 3** | Mobile-first, outdoor-optimized design system featuring high-contrast palettes, smooth micro-interactions, and glassmorphism. |
+| **Artificial Intelligence** | **Google Gemini 1.5 Vision & Flash** | Multimodal disease recognition from mobile camera images + contextual agronomic advisory synthesis. |
+| **Cloud Database** | **Supabase PostgreSQL** | 13 production tables with foreign key constraints, indexes, and Row Level Security (RLS). |
+| **Authentication** | **Firebase Phone Telephony** | Real Indian (+91) SMS OTP delivery + instant demo passkey bypass (`8249`) for judge evaluations. |
+| **Meteorological Data** | **Open-Meteo Weather API** | GPS-driven atmospheric telemetry with zero API key restrictions and 30-minute intelligent caching. |
+| **State & Offline Sync** | **Dual-Layer SyncEngine** | Custom event-driven storage service managing reactive local storage with background reconciliation on reconnect. |
+| **Geography Dataset** | **Custom India Geo Engine** | Hierarchical cascading database covering all 28 States & 8 Union Territories down to talukas and villages. |
+
+---
+
+## 💡 6. Key Innovations & Differentiators
 
 ```text
-                                WEBSITE ARCHITECTURE (BROWSER)
-  ┌────────────────────────────────────────────────────────────────────────────────────────┐
-  │  Next.js 14 + React + Tailwind CSS (Responsive Mobile UI, High-Contrast Cards, Icons)  │
-  └───────────────────────────────────────────┬────────────────────────────────────────────┘
-                                              │
-                   ┌──────────────────────────┴──────────────────────────┐
-                   ▼                                                     ▼
-     ┌───────────────────────────┐                         ┌───────────────────────────┐
-     │      CLIENT FEATURES      │                         │     SERVER API ROUTES     │
-     │  - Browser Geolocation    │                         │   (Next.js Route Handlers)│
-     │  - Recharts (Visual Data) │                         │   - Zod Input Validation  │
-     │  - HTML5 Camera Capture   │                         │   - Secret Key Protection │
-     └─────────────┬─────────────┘                         └─────────────┬─────────────┘
-                   │                                                     │
-                   │                                ┌────────────────────┼────────────────────┐
-                   ▼                                ▼                    ▼                    ▼
-        ┌─────────────────────┐          ┌────────────────────┐ ┌─────────────────┐ ┌─────────────────┐
-        │   Open-Meteo API    │          │  Google Gemini AI  │ │  Supabase DB    │ │ Supabase Storage│
-        │  Live Weather Data  │          │  Leaf Diagnosis &  │ │  (PostgreSQL)   │ │ (Private Photos)│
-        │  (Rain, Temp, Wind) │          │  Advisory Actions  │ │  Farmer Records │ │ Leaf Images     │
-        └─────────────────────┘          └────────────────────┘ └─────────────────┘ └─────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                             WHAT SETS AGROMIND AI APART                          │
+├────────────────────────────────┬─────────────────────────────────────────────────┤
+│ Traditional Agri Apps          │ AgroMind AI (Bit N Build '26)                   │
+├────────────────────────────────┼─────────────────────────────────────────────────┤
+│ Complex scientific charts      │ Direct, prioritized action checklist            │
+│ English / Hindi only           │ Native Gujarati (ગુજરાતી) + Hindi + English     │
+│ Crashes when internet drops    │ 100% operational offline with automatic sync     │
+│ Generic weather notifications  │ Action translation: "Hold spray for 36 hours"   │
+│ Days to consult an expert      │ Instant Gemini Vision diagnosis in 3 seconds    │
+│ Uncalculated farming expenses  │ Full seasonal OpEx ledger & break-even pricing  │
+│ Farmer-only perspective        │ Dual-role: Farmer App + KVK Command Center      │
+└────────────────────────────────┴─────────────────────────────────────────────────┘
 ```
 
-| Technology | Category | Where It Is Used in the Website |
-|---|---|---|
-| **Next.js 14 (App Router)** | Web Framework | Powers the entire web application, frontend page routes (`/`, `/dashboard`, `/camera`, `/calculator`, `/tasks`), and server-side API handlers. |
-| **React 18 + TypeScript** | UI & Logic | Provides interactive client state (sensor sliders, task toggles, camera stream) with strict end-to-end type safety. |
-| **Tailwind CSS** | Styling System | Styles every component with a clean, high-contrast, mobile-first design optimized for outdoor smartphone visibility. |
-| **Lucide React** | UI Icons | Delivers clear visual symbols (sun, leaf, camera, rupee) allowing farmers with lower literacy to navigate effortlessly. |
-| **Recharts** | Data Visualization | Renders intuitive charts on `/dashboard` and `/calculator` (7-day weather trend lines, OpEx expense pie charts). |
-| **Google Gemini 1.5 Vision** | AI Engine | Powers `/camera` — analyzes uploaded leaf photos, recognizes pest/disease symptoms, and returns structured diagnosis observations. |
-| **Google Gemini 1.5 Flash** | AI Engine | Powers `/advisory` — generates plain-language, contextual action summaries based on farm conditions. |
-| **Open-Meteo Weather API** | Meteorological Data | Powers `/dashboard` and `/api/weather` — fetches live temperature, humidity, and rainfall probability via coordinates without API keys. |
-| **Supabase (PostgreSQL)** | Database | Persists farmer profiles, farm boundaries, soil readings, and daily tasks with **Row Level Security (RLS)**. |
-| **Supabase Storage** | Object Storage | Encrypted cloud bucket that stores uploaded leaf photos securely with short-lived access tokens. |
-| **Browser Geolocation API** | Native Web API | Powers the *"Detect My Location"* button on `/` to retrieve GPS coordinates instantly via `navigator.geolocation`. |
-| **Zod** | Schema Validation | Runs on server-side Next.js routes to strictly validate form payloads and ensure AI outputs match our required JSON format. |
-| **Vercel** | Cloud Deployment | Hosts the production web application with global edge distribution and automated SSL. |
+1. **Autonomous Action Translation Engine**: Rather than displaying *"Humidity 85%, Rain 18mm"*, AgroMind AI translates it into: *"High risk of fungal spores. Postpone foliar urea spray by 48 hours; clear drainage channel #2."*
+2. **True Offline-First Architecture**: Built specifically for rural India where network dropouts are common. Farmers can log expenses, check cached weather, review plots, and queue scans offline.
+3. **Dynamic Multi-Plot Parcel Map**: Seamlessly add, monitor, and configure multiple farm blocks (`Block A: Cotton`, `Block B: Groundnut`, `Block C: Wheat`) with independent telemetry and acreage tracking.
 
 ---
 
-## 5. 🌐 APIs & Integrations Breakdown
+## 🚀 7. Quick Start (Run Locally)
 
-| Integration | Endpoint / Interface | Purpose & Data Flow |
-|---|---|---|
-| **Open-Meteo Weather** | `GET https://api.open-meteo.com/v1/forecast` | Client provides latitude & longitude ➔ Open-Meteo returns 7-day hourly temperature, humidity, precipitation probability, and wind speed. Cached for 30 minutes. |
-| **Google Gemini API** | `POST /api/ai/crop-analysis` | Client uploads leaf photo ➔ Server forwards base64 image + prompt to Gemini Vision ➔ Returns structured JSON containing health status, observed symptoms, and cultural remedies. |
-| **Supabase Auth & DB** | `@supabase/supabase-js` | Handles user authentication and executes CRUD operations on PostgreSQL tables (`farms`, `soil_readings`, `tasks`) secured by RLS policies. |
-| **Supabase Storage** | S3-compatible REST API | Stores raw uploaded leaf photos into a private `crop-images` bucket. |
-| **Mandi Price Feed** | `/data/mandi_prices.json` (Demo API) | Provides benchmark Minimum, Maximum, and Modal prices per quintal for major crops across regional APMC markets. |
+### 1. Prerequisites
+- **Node.js**: v18.0 or higher
+- **npm**: v9.0 or higher
 
----
-
-## 6. 🚀 Quick Start (Run Locally)
-
-### 1. Clone the Repository
+### 2. Clone and Install
 ```bash
 git clone https://github.com/Xcoder-69/HACKFORGE.git
 cd HACKFORGE
-```
-
-### 2. Switch to Your Personal Branch
-```bash
-# Work on your dedicated team branch:
-git checkout mahendra   # or: pranav, darshil, chetan
-```
-
-### 3. Install Dependencies
-```bash
 npm install
 ```
 
-### 4. Configure Environment Variables
-Create a `.env.local` file in the project root:
+### 3. Environment Configuration
+Create a `.env` file in the project root (a `.env.example` is provided):
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-GEMINI_API_KEY=your_google_gemini_api_key
+# Supabase Cloud Database (Pre-configured)
+VITE_SUPABASE_URL=https://ncrwfvzppewwrmjfxszf.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+# Google Gemini AI API
+VITE_GEMINI_API_KEY=your_gemini_api_key_here
+
+# Firebase Phone Auth (Optional: Demo PIN 8249 works out of the box)
+VITE_FIREBASE_API_KEY=your_firebase_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
 ```
 
-### 5. Start the Development Server
+### 4. Run the Application
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) in your browser!
+Open your browser at **`http://localhost:5173`**!
+
+### 5. Instant Demo Credentials for Judges:
+- **Phone Number**: Any 10-digit Indian phone (e.g. `9876543210`)
+- **Quick Demo Passkey / PIN**: `8249` *(Bypasses SMS wait time for instant judge evaluation)*
+- **KVK Admin Portal**: Directly access `/admin` or click *"KVK Admin Portal"* on the login page.
 
 ---
 
-## 7. 👥 Team & Hackathon Information
+## 👥 8. Team HACKFORGE
 
-- **Hackathon**: **Bit N Build'26 Gujarat**  
-- **Problem Statement**: **PS-6 (Autonomous Farm-to-Field Advisory & Action Orchestration Agents)**  
-- **Team**: **HACKFORGE**
-
-| Team Member | Role | Key Responsibilities |
-|---|---|---|
-| **Mahendra Suryavanshi** | Team Lead & Full-Stack Integration | System architecture, Next.js API routes, team coordination |
-| **Pranav** | AI Advisory & Vision Integration | Gemini prompt engineering, vision schema validation, AI safety |
-| **Darshil** | Backend & Database Architect | Supabase PostgreSQL schema, RLS policies, seed datasets |
-| **Chetan** | Frontend & UI/UX Developer | Responsive dashboard, camera scanner UI, mobile aesthetics |
+Built with dedication for **Bit N Build '26 Gujarat**:
+- **Mahendra Suryavanshi** — Full-Stack Architecture, Offline SyncEngine & State Management
+- **Pranav** — Frontend Engineering, UI/UX & Responsive Components
+- **Darshil** — AI Integration, Gemini Vision Pathology & API Orchestration
+- **Chetan** — Database Design, Supabase Schemas & Geographic Datasets
 
 ---
 
-## 8. 🛡️ Responsible AI & Safety Note
-
-> **Disclaimer**: AgroMind AI is an educational, decision-support advisory tool.
-> - Observations from the AI camera are probabilistic visual hypotheses, not certified laboratory diagnoses.
-> - The platform **never prescribes restricted chemical pesticides or hazardous dosages**; it prioritizes non-chemical cultural sanitation and safe field practices.
-> - In cases of severe crop damage or high diagnostic uncertainty, the platform explicitly directs farmers to consult certified agricultural extension officers (KVKs).
+<div align="center">
+  <sub>🌾 AgroMind AI — Empowering Indian Kisan with Autonomous Intelligence. Bit N Build '26 Gujarat.</sub>
+</div>
