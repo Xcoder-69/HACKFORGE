@@ -2,6 +2,8 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { WelcomeLanguageSelector } from '../pages/farmer/WelcomeLanguageSelector';
 import { Login } from '../pages/auth/Login';
+import { Onboarding } from '../pages/farmer/Onboarding';
+import { MyFarm } from '../pages/farmer/MyFarm';
 import { FarmerLayout } from '../layouts/FarmerLayout';
 import { AdminLayout } from '../layouts/AdminLayout';
 import { RoutePlaceholder } from '../pages/shared/RoutePlaceholder';
@@ -9,52 +11,20 @@ import { RoutePlaceholder } from '../pages/shared/RoutePlaceholder';
 export const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      {/* Screen 1: Welcome & Interactive Language Selector (Selected / Implemented) */}
+      {/* Screen 1: Welcome & Interactive Language Selector (Implemented) */}
       <Route path="/" element={<WelcomeLanguageSelector />} />
 
       {/* Screen 2: Unified Login & Registration (Implemented) */}
       <Route path="/login" element={<Login />} />
 
-      {/* Screen 4: Consolidated Farmer Onboarding */}
-      <Route
-        path="/onboarding"
-        element={
-          <RoutePlaceholder
-            title="Consolidated Farmer Onboarding"
-            subtitle="Step-by-step setup for your farm parcel, soil type, and primary crops"
-            icon="how_to_reg"
-            screenId="b51a6976367e47809c5bbc82d7800a74"
-          />
-        }
-      />
+      {/* Screen 4: Consolidated Farmer Onboarding (Implemented) */}
+      <Route path="/onboarding" element={<Onboarding />} />
 
-      {/* Farmer Core Application Routes (wrapped in FarmerLayout with 5-item Bottom Navigation) */}
+      {/* Farmer Core Application Routes (wrapped in FarmerLayout) */}
       <Route element={<FarmerLayout />}>
-        {/* Home */}
-        <Route
-          path="/home"
-          element={
-            <RoutePlaceholder
-              title="Farmer Home Dashboard"
-              subtitle="Daily agronomy summary, urgent alerts, and field action plan"
-              icon="home"
-              screenId="118f45f5ee6741db854be784a38ded99"
-            />
-          }
-        />
-
-        {/* Screen 3: My Farm */}
-        <Route
-          path="/my-farm"
-          element={
-            <RoutePlaceholder
-              title="Unified My Farm & Plot Management"
-              subtitle="Parcel boundaries, crop stages, and irrigation line controls"
-              icon="agriculture"
-              screenId="c5b718bb60514b068711834427d30204"
-            />
-          }
-        />
+        {/* Home & Screen 3: My Farm & Plot Management (Implemented) */}
+        <Route path="/home" element={<MyFarm />} />
+        <Route path="/my-farm" element={<MyFarm />} />
 
         {/* Screen 6: Weather & Soil */}
         <Route
