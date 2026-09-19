@@ -1,6 +1,6 @@
 // AgroMind AI Offline Synchronization Engine
 // Queues offline database mutations and automatically reconciles when network is restored
-import { storageService } from '../services/storageService';
+import { storageService, STORAGE_KEYS } from '../services/storageService';
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 import type { ISyncEngine, SyncQueueItem, SyncOperation } from '../contracts/sync.contract';
 

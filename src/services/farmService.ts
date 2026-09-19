@@ -8,6 +8,47 @@ import { syncEngine } from '../lib/syncEngine';
 import type { FarmParcel, PlotInfo, PlotKey, CropRec } from '../types';
 import type { CreatePlotPayload } from '../contracts/farm.contract';
 
+const DEFAULT_PLOTS: Record<string, PlotInfo> = {
+  A: {
+    id: 'plot_A',
+    key: 'A',
+    title: 'Plot Details: Block A (બ્લોક એ - કપાસ)',
+    crop: 'Shankar-6 Cotton',
+    subCrop: 'કપાસ (Day 54)',
+    variety: 'Gujarat Cotton Hybrid-16',
+    area: '2.5 Acres',
+    stageBadge: 'Flowering (Day 54/150)',
+    stageName: 'Flowering Stage',
+    dayCount: 'Day 54',
+    progressBar: '36%',
+    health: 'Good (તંદુરસ્ત)',
+    moisture: '68% (Optimal / ઉત્તમ)',
+    soilType: 'Black Cotton Soil (કાળી કાંપવાળી)',
+    irrigation: 'Drip (Next: Tomorrow 7:00 AM)',
+    syncTime: 'Today, 09:30 AM',
+    provenance: 'Measured • IoT Probes',
+  },
+  B: {
+    id: 'plot_B',
+    key: 'B',
+    title: 'Plot Details: Block B (બ્લોક બી - મગફળી)',
+    crop: 'GG-20 Groundnut',
+    subCrop: 'મગફળી (Day 32)',
+    variety: 'Gujarat Groundnut-20',
+    area: '2.0 Acres',
+    stageBadge: 'Vegetative (Day 32/110)',
+    stageName: 'Vegetative Stage',
+    dayCount: 'Day 32',
+    progressBar: '29%',
+    health: 'Excellent (ઉત્કૃષ્ટ)',
+    moisture: '72% (Adequate / યોગ્ય)',
+    soilType: 'Sandy Loamy Soil (ગોરાડુ જમીન)',
+    irrigation: 'Sprinkler (Next: Thursday)',
+    syncTime: 'Today, 08:15 AM',
+    provenance: 'Estimated • Sentinel-2 + Weather',
+  },
+};
+
 export const farmService = {
   /**
    * Returns current farm parcel synchronously from L1 cache and syncs with Supabase if online
@@ -93,7 +134,13 @@ export const farmService = {
    * Returns plots from L1 cache and syncs with Supabase if online
    */
   getPlots(): Record<string, PlotInfo> {
-    const cached = storageService.get<Record<string, PlotInfo>>(STORAGE_KEYS.PLOTS, {});
+    let cached = storageService.get<Record<string, PlotInfo>>(STORAGE_KEYS.PLOTS, {});
+
+    // Always ensure at least default plots exist
+    if (!cached || Object.keys(cached).length === 0) {
+      cached = { ...DEFAULT_PLOTS };
+      storageService.set(STORAGE_KEYS.PLOTS, cached);
+    }
 
     if (isSupabaseConfigured() && supabase && syncEngine.isOnline()) {
       supabase
@@ -169,22 +216,21 @@ export const farmService = {
   addPlot(newPlot: CreatePlotPayload): PlotInfo {
     const plots = this.getPlots();
     const existingKeys = Object.keys(plots);
-    const nextKey = (
-      existingKeys.includes('A')
-        ? existingKeys.includes('B')
-          ? existingKeys.includes('C')
-            ? 'D'
-            : 'C'
-          : 'B'
-        : 'A'
-    ) as PlotKey;
+    const candidateKeys = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+    let nextKey = 'C';
+    for (const k of candidateKeys) {
+      if (!existingKeys.includes(k)) {
+        nextKey = k;
+        break;
+      }
+    }
 
     const plot: PlotInfo = {
       id: `plot_${nextKey}_${Date.now()}`,
-      key: nextKey,
-      title: newPlot.title,
+      key: nextKey as PlotKey,
+      title: newPlot.title || `Plot Details: Block ${nextKey}`,
       crop: newPlot.crop,
-      subCrop: `${newPlot.crop} (Day 1)`,
+      subCrop: `${newPlot.crop.split('(')[0].trim()} (Day 1)`,
       variety: newPlot.variety || 'Certified Hybrid Seed',
       area: newPlot.area.includes('Acre') ? newPlot.area : `${newPlot.area} Acres`,
       stageBadge: 'Sowing (Day 1/120)',
@@ -193,8 +239,8 @@ export const farmService = {
       progressBar: '5%',
       health: 'Optimal (તંદુરસ્ત)',
       moisture: '70% (Optimal)',
-      soilType: newPlot.soilType || 'Black Cotton Soil',
-      irrigation: newPlot.irrigation || 'Drip Irrigation',
+      soilType: newPlot.soilType || 'Black Cotton Soil (કાળી કાંપવાળી)',
+      irrigation: newPlot.irrigation || 'Drip Irrigation (ટપક પદ્ધતિ)',
       syncTime: 'Just now',
       provenance: 'Registered Farm Parcel',
     };
@@ -227,6 +273,15 @@ export const farmService = {
     });
 
     return plot;
+  },
+
+  /**
+   * Deletes a plot by its key
+   */
+  deletePlot(key: string): void {
+    const plots = this.getPlots();
+    delete plots[key];
+    storageService.set(STORAGE_KEYS.PLOTS, plots);
   },
 
   /**

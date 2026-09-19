@@ -88,18 +88,48 @@ export const MyFarm: React.FC = () => {
 
   const openEditModal = () => {
     setModalMode('edit');
-    setFormPlotName(activePlot === 'A' ? 'Block A (કપાસ)' : 'Block B (મગફળી)');
-    setFormArea(activePlot === 'A' ? '2.5' : '2.0');
-    setFormCrop(activePlot === 'A' ? 'Cotton (કપાસ)' : 'Groundnut (મગફળી)');
+    const p = plots[activePlot] || Object.values(plots)[0];
+    if (p) {
+      setFormPlotName(p.title.replace(/^Plot Details:\s*/, ''));
+      setFormArea(p.area.replace(/[^0-9.]/g, '') || '2.0');
+      setFormCrop(p.crop);
+      setFormSoil(p.soilType || 'Black Cotton Soil (કાળી કાંપવાળી)');
+      setFormIrrigation(p.irrigation || 'Drip Irrigation (ટપક પદ્ધતિ)');
+    }
     setIsModalOpen(true);
   };
 
   const openAddModal = () => {
     setModalMode('add');
-    setFormPlotName('Block C (નવો પ્લોટ)');
+    const existingKeys = Object.keys(plots);
+    const candidateKeys = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+    let nextLetter = 'C';
+    for (const k of candidateKeys) {
+      if (!existingKeys.includes(k)) {
+        nextLetter = k;
+        break;
+      }
+    }
+    setFormPlotName(`Block ${nextLetter} (નવો પ્લોટ)`);
     setFormArea('1.5');
-    setFormCrop('Wheat (ઘઉં)');
+    setFormCrop('Cotton (કપાસ - Shankar 6)');
+    setFormSoil('Black Cotton Soil (કાળી કાંપવાળી)');
+    setFormIrrigation('Drip Irrigation (ટપક પદ્ધતિ)');
     setIsModalOpen(true);
+  };
+
+  const handleDeletePlot = (key: string) => {
+    if (Object.keys(plots).length <= 1) {
+      showToast('Cannot delete the only remaining plot.');
+      return;
+    }
+    farmService.deletePlot(key);
+    const remaining = { ...plots };
+    delete remaining[key];
+    setPlots(remaining);
+    setActivePlot(Object.keys(remaining)[0] as PlotKey);
+    setIsModalOpen(false);
+    showToast(`Plot ${key} deleted successfully.`);
   };
 
   const handleFormSubmit = (e: React.FormEvent) => {
@@ -116,6 +146,7 @@ export const MyFarm: React.FC = () => {
           irrigation: formIrrigation,
         };
         farmService.savePlot(updated);
+        setPlots((prev) => ({ ...prev, [activePlot]: updated }));
       }
       showToast(`Plot ${activePlot} details saved successfully!`);
     } else {
@@ -126,13 +157,25 @@ export const MyFarm: React.FC = () => {
         soilType: formSoil,
         irrigation: formIrrigation,
       });
+      setPlots((prev) => ({ ...prev, [created.key]: created }));
       setActivePlot(created.key);
       showToast(`New plot "${formPlotName}" registered with Sentinel-2 link!`);
     }
     setIsModalOpen(false);
   };
 
-  const currentPlot = plots[activePlot];
+  const currentPlot: PlotInfo =
+    plots[activePlot] ||
+    Object.values(plots)[0] ||
+    INITIAL_PLOT_DATA.A;
+
+  const totalCalculatedAcres = Object.values(plots).reduce((acc, p) => {
+    const match = p.area.match(/([0-9.]+)/);
+    return acc + (match ? parseFloat(match[1]) : 0);
+  }, 0);
+  const totalLandStr = totalCalculatedAcres > 0 ? `${totalCalculatedAcres.toFixed(1)} Acres` : `${farmParcel?.totalArea || 4.5} Acres`;
+  const uniqueCrops = Array.from(new Set(Object.values(plots).map((p) => p.crop.split('(')[0].trim()))).join(' + ') || 'Cotton';
+  const uniqueCropsGu = Array.from(new Set(Object.values(plots).map((p) => p.subCrop.split('(')[0].trim()))).join(' + ') || 'કપાસ';
 
   return (
     <div className="w-full min-h-screen bg-surface font-sans text-on-surface antialiased pt-4 pb-12 px-4 sm:px-6 lg:px-10">
@@ -311,17 +354,31 @@ export const MyFarm: React.FC = () => {
 
           {/* Active Field Status Ticker Bar */}
           <div className="bg-surface-container p-3 rounded-2xl border border-outline-variant/30 flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <span className="font-extrabold text-primary flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-[16px] text-secondary">potted_plant</span>
                 Active Crops:
               </span>
-              <span className="px-2.5 py-1 rounded-xl bg-surface-container-lowest font-bold text-primary shadow-xs border border-outline-variant/20">
-                Plot A: <span className="text-secondary">{plots.A?.crop || 'Cotton'}</span> ({plots.A?.stageBadge || 'Flowering'})
-              </span>
-              <span className="px-2.5 py-1 rounded-xl bg-surface-container-lowest font-bold text-primary shadow-xs border border-outline-variant/20">
-                Plot B: <span className="text-secondary">{plots.B?.crop || 'Groundnut'}</span> ({plots.B?.stageBadge || 'Vegetative'})
-              </span>
+              {Object.entries(plots).map(([key, p]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setActivePlot(key as PlotKey)}
+                  className={`px-2.5 py-1 rounded-xl font-bold text-xs shadow-xs border transition-all cursor-pointer flex items-center gap-1 ${
+                    activePlot === key
+                      ? 'bg-secondary text-white border-secondary'
+                      : 'bg-surface-container-lowest text-primary border-outline-variant/20 hover:border-secondary'
+                  }`}
+                >
+                  <span>Plot {key}:</span>
+                  <span className={activePlot === key ? 'text-white underline' : 'text-secondary'}>
+                    {p.crop ? p.crop.split('(')[0].trim() : 'Crop'}
+                  </span>
+                  <span className="text-[10px] opacity-80">
+                    ({p.stageBadge ? p.stageBadge.split('(')[0].trim() : 'Active'})
+                  </span>
+                </button>
+              ))}
             </div>
 
             <div className="flex items-center gap-3 text-on-surface-variant text-[11px] font-medium">
@@ -384,51 +441,63 @@ export const MyFarm: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                {/* Metric 1 */}
+                {/* Metric 1: Total Land */}
                 <div className="bg-surface-container-low p-3 rounded-xl flex flex-col justify-between border border-outline-variant/20">
                   <div className="flex items-center gap-1 text-on-surface-variant mb-1">
                     <span className="material-symbols-outlined text-[17px] text-secondary">crop_free</span>
                     <span className="text-[11px] font-semibold">Total Land</span>
                   </div>
                   <div>
-                    <span className="text-base font-extrabold text-primary block leading-tight">4.5 Acres</span>
+                    <span className="text-base font-extrabold text-primary block leading-tight">{totalLandStr}</span>
                     <span className="text-[10px] text-on-surface-variant">કુલ જમીન</span>
                   </div>
                 </div>
 
-                {/* Metric 2 */}
+                {/* Metric 2: Active Plots */}
                 <div className="bg-surface-container-low p-3 rounded-xl flex flex-col justify-between border border-outline-variant/20">
                   <div className="flex items-center gap-1 text-on-surface-variant mb-1">
                     <span className="material-symbols-outlined text-[17px] text-secondary">grid_view</span>
                     <span className="text-[11px] font-semibold">Active Plots</span>
                   </div>
                   <div>
-                    <span className="text-base font-extrabold text-primary block leading-tight">2 Plots</span>
-                    <span className="text-[10px] text-on-surface-variant">Block A & B (સક્રિય)</span>
+                    <span className="text-base font-extrabold text-primary block leading-tight">
+                      {Object.keys(plots).length} {Object.keys(plots).length === 1 ? 'Plot' : 'Plots'}
+                    </span>
+                    <span className="text-[10px] text-on-surface-variant truncate block">
+                      {Object.keys(plots).map((k) => `Block ${k}`).join(', ')}
+                    </span>
                   </div>
                 </div>
 
-                {/* Metric 3 */}
+                {/* Metric 3: Crops Planted */}
                 <div className="bg-surface-container-low p-3 rounded-xl flex flex-col justify-between border border-outline-variant/20">
                   <div className="flex items-center gap-1 text-on-surface-variant mb-1">
                     <span className="material-symbols-outlined text-[17px] text-secondary">psychiatry</span>
                     <span className="text-[11px] font-semibold">Crops Planted</span>
                   </div>
                   <div>
-                    <span className="text-xs font-extrabold text-primary block truncate leading-tight">Cotton + Nut</span>
-                    <span className="text-[10px] text-on-surface-variant truncate block">કપાસ + મગફળી</span>
+                    <span className="text-xs font-extrabold text-primary block truncate leading-tight" title={uniqueCrops}>
+                      {uniqueCrops}
+                    </span>
+                    <span className="text-[10px] text-on-surface-variant truncate block" title={uniqueCropsGu}>
+                      {uniqueCropsGu}
+                    </span>
                   </div>
                 </div>
 
-                {/* Metric 4 */}
+                {/* Metric 4: Irrigation */}
                 <div className="bg-surface-container-low p-3 rounded-xl flex flex-col justify-between border border-outline-variant/20">
                   <div className="flex items-center gap-1 text-on-surface-variant mb-1">
                     <span className="material-symbols-outlined text-[17px] text-secondary">water_drop</span>
                     <span className="text-[11px] font-semibold">Irrigation</span>
                   </div>
                   <div>
-                    <span className="text-base font-extrabold text-primary block leading-tight">Drip (68%)</span>
-                    <span className="text-[10px] text-on-surface-variant">ટપક પદ્ધતિ</span>
+                    <span className="text-xs sm:text-sm font-extrabold text-primary block leading-tight truncate">
+                      {currentPlot.irrigation ? currentPlot.irrigation.split('(')[0].trim() : 'Drip'}
+                    </span>
+                    <span className="text-[10px] text-on-surface-variant truncate block">
+                      {currentPlot.irrigation ? (currentPlot.irrigation.includes('(') ? currentPlot.irrigation.split('(')[1].replace(')', '') : 'ટપક પદ્ધતિ') : 'ટપક પદ્ધતિ'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -458,70 +527,53 @@ export const MyFarm: React.FC = () => {
                   <span className="w-1 h-3 bg-secondary rounded-full" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 relative z-10">
-                  {/* BLOCK A BUTTON */}
-                  <button
-                    type="button"
-                    onClick={() => setActivePlot('A')}
-                    className={`flex flex-col text-left p-4 rounded-xl transition-all duration-200 border-2 ${
-                      activePlot === 'A'
-                        ? 'bg-secondary-container/50 border-secondary shadow-md'
-                        : 'bg-surface-container-lowest/90 hover:bg-surface-container-lowest border-transparent shadow-sm'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between w-full mb-2">
-                      <span className={`px-2 py-0.5 rounded text-[11px] font-extrabold ${
-                        activePlot === 'A' ? 'bg-secondary text-white' : 'bg-surface-container-high text-on-surface-variant'
-                      }`}>
-                        BLOCK A
-                      </span>
-                      {activePlot === 'A' && (
-                        <span className="flex h-2.5 w-2.5 relative">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75" />
-                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-secondary" />
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-base font-extrabold text-primary leading-tight">2.5 Acres</p>
-                    <p className="text-xs text-secondary font-bold mt-0.5">{plots.A.crop}</p>
-                    <p className="text-[11px] text-on-surface-variant">{plots.A.subCrop}</p>
-                    <div className="mt-3 flex items-center gap-1 text-secondary text-xs font-semibold">
-                      <span className="material-symbols-outlined text-[16px]">eco</span>
-                      <span>{plots.A.stageName}</span>
-                    </div>
-                  </button>
-
-                  {/* BLOCK B BUTTON */}
-                  <button
-                    type="button"
-                    onClick={() => setActivePlot('B')}
-                    className={`flex flex-col text-left p-4 rounded-xl transition-all duration-200 border-2 ${
-                      activePlot === 'B'
-                        ? 'bg-secondary-container/50 border-secondary shadow-md'
-                        : 'bg-surface-container-lowest/90 hover:bg-surface-container-lowest border-transparent shadow-sm'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between w-full mb-2">
-                      <span className={`px-2 py-0.5 rounded text-[11px] font-extrabold ${
-                        activePlot === 'B' ? 'bg-secondary text-white' : 'bg-surface-container-high text-on-surface-variant'
-                      }`}>
-                        BLOCK B
-                      </span>
-                      {activePlot === 'B' && (
-                        <span className="flex h-2.5 w-2.5 relative">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75" />
-                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-secondary" />
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-base font-extrabold text-primary leading-tight">2.0 Acres</p>
-                    <p className="text-xs text-secondary font-bold mt-0.5">{plots.B.crop}</p>
-                    <p className="text-[11px] text-on-surface-variant">{plots.B.subCrop}</p>
-                    <div className="mt-3 flex items-center gap-1 text-on-surface-variant text-xs font-semibold">
-                      <span className="material-symbols-outlined text-[16px]">grass</span>
-                      <span>{plots.B.stageName}</span>
-                    </div>
-                  </button>
+                <div className={`grid ${
+                  Object.keys(plots).length === 1 
+                    ? 'grid-cols-1' 
+                    : Object.keys(plots).length === 2 
+                      ? 'grid-cols-2' 
+                      : 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3'
+                } gap-3 relative z-10`}>
+                  {Object.entries(plots).map(([key, p]) => {
+                    const isSelected = activePlot === key;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setActivePlot(key as PlotKey)}
+                        className={`flex flex-col text-left p-4 rounded-xl transition-all duration-200 border-2 cursor-pointer ${
+                          isSelected
+                            ? 'bg-secondary-container/50 border-secondary shadow-md'
+                            : 'bg-surface-container-lowest/90 hover:bg-surface-container-lowest border-transparent shadow-sm'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between w-full mb-2">
+                          <span
+                            className={`px-2 py-0.5 rounded text-[11px] font-extrabold ${
+                              isSelected
+                                ? 'bg-secondary text-white'
+                                : 'bg-surface-container-high text-on-surface-variant'
+                            }`}
+                          >
+                            BLOCK {key}
+                          </span>
+                          {isSelected && (
+                            <span className="flex h-2.5 w-2.5 relative">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75" />
+                              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-secondary" />
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-base font-extrabold text-primary leading-tight">{p.area}</p>
+                        <p className="text-xs text-secondary font-bold mt-0.5 truncate">{p.crop}</p>
+                        <p className="text-[11px] text-on-surface-variant truncate">{p.subCrop}</p>
+                        <div className="mt-3 flex items-center gap-1 text-secondary text-xs font-semibold">
+                          <span className="material-symbols-outlined text-[16px]">eco</span>
+                          <span className="truncate">{p.stageName}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
 
                 <div className="mt-2.5 pt-2 flex items-center justify-between text-on-surface-variant text-[11px] px-1 font-medium">
@@ -839,7 +891,7 @@ export const MyFarm: React.FC = () => {
                 </select>
               </div>
 
-              {/* Submit / Cancel Buttons */}
+              {/* Submit / Cancel / Delete Buttons */}
               <div className="pt-3 space-y-2">
                 <button
                   type="submit"
@@ -848,6 +900,16 @@ export const MyFarm: React.FC = () => {
                   <span className="material-symbols-outlined text-[18px]">save</span>
                   <span>Save Farm Details / પ્લોટ સાચવો</span>
                 </button>
+                {modalMode === 'edit' && Object.keys(plots).length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => handleDeletePlot(activePlot)}
+                    className="w-full h-10 text-red-600 hover:bg-red-50 text-xs font-bold rounded-xl transition-colors flex items-center justify-center gap-1.5 border border-red-200"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">delete</span>
+                    <span>Delete Plot ({activePlot}) / પ્લોટ કાઢી નાખો</span>
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}

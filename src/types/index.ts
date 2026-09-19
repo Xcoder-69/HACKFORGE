@@ -47,7 +47,7 @@ export interface FarmParcel {
   selectedCrops: string[];
 }
 
-export type PlotKey = 'A' | 'B' | 'C' | 'D';
+export type PlotKey = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | (string & {});
 
 export interface PlotInfo {
   id: string;
