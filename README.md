@@ -8,7 +8,6 @@
 [![AI Engine](https://img.shields.io/badge/AI-Google_Gemini_Vision-8E75B2?style=for-the-badge&logo=google)](https://ai.google.dev/)
 [![Weather API](https://img.shields.io/badge/Weather-Open--Meteo-orange?style=for-the-badge)](https://open-meteo.com/)
 [![Database](https://img.shields.io/badge/Database-Supabase-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com/)
-[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 
 ---
 
@@ -218,8 +217,3 @@ Open [http://localhost:3000](http://localhost:3000) in your browser!
 > - Observations from the AI camera are probabilistic visual hypotheses, not certified laboratory diagnoses.
 > - The platform **never prescribes restricted chemical pesticides or hazardous dosages**; it prioritizes non-chemical cultural sanitation and safe field practices.
 > - In cases of severe crop damage or high diagnostic uncertainty, the platform explicitly directs farmers to consult certified agricultural extension officers (KVKs).
-
----
-
-## 📄 License
-This project is open-source software licensed under the [MIT License](LICENSE).
