@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { WelcomeLanguageSelector } from '../pages/farmer/WelcomeLanguageSelector';
+import { Login } from '../pages/auth/Login';
 import { FarmerLayout } from '../layouts/FarmerLayout';
 import { AdminLayout } from '../layouts/AdminLayout';
 import { RoutePlaceholder } from '../pages/shared/RoutePlaceholder';
@@ -11,18 +12,8 @@ export const AppRoutes: React.FC = () => {
       {/* Screen 1: Welcome & Interactive Language Selector (Selected / Implemented) */}
       <Route path="/" element={<WelcomeLanguageSelector />} />
 
-      {/* Screen 2: Login & Registration */}
-      <Route
-        path="/login"
-        element={
-          <RoutePlaceholder
-            title="Unified Login & Registration"
-            subtitle="Farmer mobile number authentication & PIN login"
-            icon="login"
-            screenId="dfabadb31c1641bf8aa28c665eae628d"
-          />
-        }
-      />
+      {/* Screen 2: Unified Login & Registration (Implemented) */}
+      <Route path="/login" element={<Login />} />
 
       {/* Screen 4: Consolidated Farmer Onboarding */}
       <Route
