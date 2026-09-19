@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "sync": "git push origin darshil && git push origin darshil:main"
   },
   "dependencies": {
     "clsx": "^2.1.1",
