@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { farmService } from '../../services/farmService';
-import type { PlotKey, PlotInfo } from '../../types';
+import type { PlotKey, PlotInfo, FarmParcel } from '../../types';
 
 const INITIAL_PLOT_DATA: Record<string, PlotInfo> = {
   A: {
@@ -51,6 +51,12 @@ export const MyFarm: React.FC = () => {
     return Object.keys(loaded).length > 0 ? loaded : INITIAL_PLOT_DATA;
   });
   const [activePlot, setActivePlot] = useState<PlotKey>('A');
+  const [farmParcel, setFarmParcel] = useState<FarmParcel | null>(() => farmService.getFarmParcel());
+
+  useEffect(() => {
+    const parcel = farmService.getFarmParcel();
+    if (parcel) setFarmParcel(parcel);
+  }, []);
 
   useEffect(() => {
     const unsubscribe = farmService.subscribePlots((updatedPlots) => {
@@ -142,48 +148,193 @@ export const MyFarm: React.FC = () => {
       <div className="max-w-6xl mx-auto space-y-5">
 
         {/* ========================================================================= */}
-        {/* TOP BAR & FARMER IDENTITY BADGE                                          */}
+        {/* COMPREHENSIVE FARM IDENTITY & VITAL TELEMETRY BANNER CARD                 */}
         {/* ========================================================================= */}
-        <div className="w-full bg-surface-container-lowest p-4 sm:p-5 rounded-2xl shadow-sm border border-outline-variant/30 flex items-center justify-between">
-          <div className="flex items-center gap-3.5 min-w-0">
-            {/* Farmer Avatar */}
-            <div className="relative">
-              <img
-                src="/farmer-hero.jpg"
-                alt="Farmer avatar"
-                className="w-13 h-13 rounded-full object-cover shadow-sm border-2 border-secondary"
-              />
-              <span className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-secondary text-white flex items-center justify-center text-[10px] font-bold border-2 border-white">
-                ✓
-              </span>
-            </div>
-
-            {/* Profile Info */}
-            <div className="flex flex-col min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-base font-extrabold text-primary truncate">
-                  {user?.name || 'Ramesh Patel'}
-                </span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary-container text-secondary text-[11px] font-bold">
-                  <span className="material-symbols-outlined text-[14px]">verified</span>
-                  KYC Verified
+        <div className="w-full bg-surface-container-lowest p-5 sm:p-6 rounded-3xl shadow-sm border border-outline-variant/30 space-y-5">
+          {/* Top Row: Farmer Profile, Status Badges & Quick Action Buttons */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start sm:items-center gap-4 min-w-0">
+              {/* Farmer Avatar / Photo (Properly constrained & styled) */}
+              <div className="relative shrink-0">
+                <img
+                  src="/farmer-hero.jpg"
+                  alt="Farmer avatar"
+                  className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl object-cover shadow-sm border-2 border-secondary/40"
+                />
+                <span
+                  className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-secondary text-white flex items-center justify-center text-[10px] font-bold border-2 border-white shadow-xs"
+                  title="Verified Kisan"
+                >
+                  ✓
                 </span>
               </div>
-              <span className="text-xs text-on-surface-variant truncate mt-0.5">
-                {user?.village || 'Kamrej'}, {user?.district || 'Surat'}, Gujarat • 4.5 Acres Total
-              </span>
+
+              {/* Profile Name, Status Badges & Detailed Geolocation */}
+              <div className="flex flex-col min-w-0 space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-lg sm:text-xl font-black text-primary truncate">
+                    {user?.name || 'Rameshbhai Patel'}
+                  </h2>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-secondary-container text-secondary text-[11px] font-extrabold shadow-xs">
+                    <span className="material-symbols-outlined text-[13px]">verified</span>
+                    100% KYC Verified
+                  </span>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container-high text-primary text-[11px] font-bold border border-outline-variant/30">
+                    <span className="material-symbols-outlined text-[13px] text-tertiary">badge</span>
+                    PM-KISAN: {user?.pmKisanId || 'GJ-SUR-88412'}
+                  </span>
+                  <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200">
+                    Kharif 2026
+                  </span>
+                </div>
+
+                {/* Location Breadcrumb & Survey Identification */}
+                <div className="flex items-center gap-1.5 text-xs text-on-surface-variant font-medium flex-wrap">
+                  <span className="flex items-center gap-0.5 text-secondary font-semibold">
+                    <span className="material-symbols-outlined text-[15px]">location_on</span>
+                    {user?.village || 'Kamrej Gam'}, {user?.city || user?.taluka || 'Kamrej'}, {user?.district || 'Surat'}, Gujarat
+                  </span>
+                  <span className="opacity-40">•</span>
+                  <span className="bg-surface-container px-2 py-0.5 rounded-md text-[11px] font-semibold text-primary">
+                    Khata / Survey: {farmParcel?.surveyNo || 'Block 142/A'}
+                  </span>
+                  {farmParcel?.landmark && (
+                    <span className="text-[11px] text-on-surface-variant/80 hidden md:inline">
+                      ({farmParcel.landmark})
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Action Navigation Buttons */}
+            <div className="flex items-center gap-2.5 shrink-0 self-end md:self-center">
+              <button
+                type="button"
+                onClick={openEditModal}
+                className="px-3.5 py-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-primary text-xs font-bold transition-all active:scale-95 shadow-xs flex items-center gap-1.5 border border-outline-variant/30"
+                title="Configure plots and crop details"
+              >
+                <span className="material-symbols-outlined text-[17px] text-secondary">tune</span>
+                <span>Edit Farm / સુધારો</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => navigate('/profile')}
+                className="px-3.5 py-2 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs font-bold transition-all active:scale-95 shadow-xs flex items-center gap-1.5"
+                title="View full account and KYC profile"
+              >
+                <span className="material-symbols-outlined text-[17px]">account_circle</span>
+                <span>KYC Profile</span>
+              </button>
             </div>
           </div>
 
-          {/* Farm Settings / Quick Action Button */}
-          <button
-            type="button"
-            aria-label="Farm settings"
-            onClick={openEditModal}
-            className="w-11 h-11 flex items-center justify-center rounded-full bg-surface-container hover:bg-surface-container-high text-primary transition-all active:scale-95 flex-shrink-0 shadow-sm"
-          >
-            <span className="material-symbols-outlined text-[22px]">tune</span>
-          </button>
+          {/* Divider */}
+          <div className="border-t border-outline-variant/20" />
+
+          {/* Bottom Row: 4 Critical Agricultural Telemetry Chips */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+            {/* Metric 1: Total & Cultivable Land */}
+            <div className="bg-surface-container-low/70 rounded-2xl p-3.5 border border-outline-variant/20 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 shadow-xs">
+                <span className="material-symbols-outlined text-[20px]">landscape</span>
+              </div>
+              <div className="min-w-0">
+                <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block truncate">
+                  Total Land / જમીન
+                </span>
+                <span className="text-sm sm:text-base font-black text-primary block truncate">
+                  {farmParcel?.totalArea || 4.5} {farmParcel?.unit?.includes('Vigha') ? 'Vigha' : 'Acres'}
+                </span>
+                <span className="text-[10px] text-secondary font-bold truncate block">
+                  {farmParcel?.cultivableArea || 4.0} Ac Cultivable
+                </span>
+              </div>
+            </div>
+
+            {/* Metric 2: Soil Classification */}
+            <div className="bg-surface-container-low/70 rounded-2xl p-3.5 border border-outline-variant/20 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center shrink-0 shadow-xs">
+                <span className="material-symbols-outlined text-[20px]">terrain</span>
+              </div>
+              <div className="min-w-0">
+                <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block truncate">
+                  Soil Type / માટી
+                </span>
+                <span className="text-sm sm:text-base font-black text-primary block truncate">
+                  {farmParcel?.soilType ? farmParcel.soilType.split('(')[0].trim() : 'Black Cotton Soil'}
+                </span>
+                <span className="text-[10px] text-amber-800 font-bold truncate block">
+                  કાળી કાંપવાળી • pH 7.2
+                </span>
+              </div>
+            </div>
+
+            {/* Metric 3: Water & Irrigation Source */}
+            <div className="bg-surface-container-low/70 rounded-2xl p-3.5 border border-outline-variant/20 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-800 flex items-center justify-center shrink-0 shadow-xs">
+                <span className="material-symbols-outlined text-[20px]">water_drop</span>
+              </div>
+              <div className="min-w-0">
+                <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block truncate">
+                  Irrigation / પિયત
+                </span>
+                <span className="text-sm sm:text-base font-black text-primary block truncate">
+                  {farmParcel?.irrigationTechnique ? farmParcel.irrigationTechnique.split('(')[0].trim() : 'Micro-Drip (90%)'}
+                </span>
+                <span className="text-[10px] text-sky-700 font-bold truncate block">
+                  {farmParcel?.waterSources?.length ? farmParcel.waterSources.join(' & ') : 'Canal & Tube Well'}
+                </span>
+              </div>
+            </div>
+
+            {/* Metric 4: Satellite Vigour & NDVI */}
+            <div className="bg-surface-container-low/70 rounded-2xl p-3.5 border border-outline-variant/20 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 shadow-xs">
+                <span className="material-symbols-outlined text-[20px]">satellite_alt</span>
+              </div>
+              <div className="min-w-0">
+                <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block truncate">
+                  Satellite NDVI / ઉપગ્રહ
+                </span>
+                <span className="text-sm sm:text-base font-black text-emerald-800 block truncate">
+                  NDVI 0.76 (Healthy)
+                </span>
+                <span className="text-[10px] text-on-surface-variant font-bold truncate block">
+                  Sentinel-2 Live Optical
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Active Field Status Ticker Bar */}
+          <div className="bg-surface-container p-3 rounded-2xl border border-outline-variant/30 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="font-extrabold text-primary flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[16px] text-secondary">potted_plant</span>
+                Active Crops:
+              </span>
+              <span className="px-2.5 py-1 rounded-xl bg-surface-container-lowest font-bold text-primary shadow-xs border border-outline-variant/20">
+                Plot A: <span className="text-secondary">{plots.A?.crop || 'Cotton'}</span> ({plots.A?.stageBadge || 'Flowering'})
+              </span>
+              <span className="px-2.5 py-1 rounded-xl bg-surface-container-lowest font-bold text-primary shadow-xs border border-outline-variant/20">
+                Plot B: <span className="text-secondary">{plots.B?.crop || 'Groundnut'}</span> ({plots.B?.stageBadge || 'Vegetative'})
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3 text-on-surface-variant text-[11px] font-medium">
+              <span className="flex items-center gap-1">
+                <span className="material-symbols-outlined text-[14px] text-sky-600">schedule</span>
+                Next Irrigation: <strong className="text-primary">Tomorrow 07:00 AM</strong>
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="material-symbols-outlined text-[14px] text-emerald-600">sensors</span>
+                IoT Moisture: <strong className="text-secondary">68% Optimal</strong>
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* ========================================================================= */}
