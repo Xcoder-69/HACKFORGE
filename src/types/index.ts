@@ -7,6 +7,7 @@ export interface UserProfile {
   name: string;
   phone: string;
   district: string;
+  city?: string;
   village: string;
   taluka?: string;
   pincode?: string;

@@ -8,23 +8,11 @@ import { ForgotPinModal } from '../../components/ui/ForgotPinModal';
 type AuthTab = 'login' | 'register';
 type LoginMethod = 'otp' | 'pin';
 
-const GUJARAT_DISTRICTS = [
-  'Surat',
-  'Rajkot',
-  'Ahmedabad',
-  'Vadodara',
-  'Junagadh',
-  'Bhavnagar',
-  'Anand',
-  'Mehsana',
-  'Kutch',
-  'Jamnagar',
-  'Amreli',
-  'Banaskantha',
-  'Gandhinagar',
-  'Bharuch',
-  'Navsari',
-];
+import {
+  INDIA_STATES_AND_DISTRICTS,
+  getCitiesForDistrict,
+  getAreasForCity,
+} from '../../data/indiaGeoData';
 
 export const Login: React.FC = () => {
   const { language, setLanguage, t } = useLanguage();
@@ -70,7 +58,27 @@ export const Login: React.FC = () => {
   const [regName, setRegName] = useState('');
   const [regPhone, setRegPhone] = useState('');
   const [regDistrict, setRegDistrict] = useState('Surat');
-  const [regVillage, setRegVillage] = useState('');
+  const [regCity, setRegCity] = useState('Kamrej');
+  const [regVillage, setRegVillage] = useState('Kamrej Gam (કામરેજ ગામ)');
+  const [isCustomVillage, setIsCustomVillage] = useState(false);
+
+  // Dynamic Location Cascade Handlers
+  const handleDistrictChange = (newDistrict: string) => {
+    setRegDistrict(newDistrict);
+    const cities = getCitiesForDistrict(newDistrict);
+    const firstCity = cities[0] || `${newDistrict} City`;
+    setRegCity(firstCity);
+    const areas = getAreasForCity(firstCity, newDistrict);
+    setRegVillage(areas[0] || `${firstCity} Main Village`);
+    setIsCustomVillage(false);
+  };
+
+  const handleCityChange = (newCity: string) => {
+    setRegCity(newCity);
+    const areas = getAreasForCity(newCity, regDistrict);
+    setRegVillage(areas[0] || `${newCity} Main Village`);
+    setIsCustomVillage(false);
+  };
 
   // Inline Errors
   const [error, setError] = useState<string | null>(null);
@@ -229,6 +237,8 @@ export const Login: React.FC = () => {
       name: regName,
       phone: cleanPhone,
       district: regDistrict,
+      city: regCity,
+      taluka: regCity,
       village: regVillage || 'Unspecified Village',
     });
     setIsLoading(false);
@@ -696,40 +706,106 @@ export const Login: React.FC = () => {
                   </div>
                 </div>
 
-                {/* District & Village Grid */}
-                <div className="grid grid-cols-2 gap-3">
-                  {/* District Dropdown */}
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-primary flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[16px] text-secondary">location_city</span>
-                      <span>{t('auth.lblDistrict')}</span>
-                    </label>
-                    <select
-                      value={regDistrict}
-                      onChange={(e) => setRegDistrict(e.target.value)}
-                      className="w-full bg-surface-container-low px-3 py-3 rounded-xl border border-outline-variant/50 text-xs font-bold text-primary focus:border-secondary focus:bg-surface-container-lowest focus:outline-none"
-                    >
-                      {GUJARAT_DISTRICTS.map((d) => (
-                        <option key={d} value={d}>
-                          {d}
-                        </option>
-                      ))}
-                    </select>
+                {/* 3-Tier Cascading Location Selection (All-India District -> City -> Taluka / Village) */}
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* 1. All India District Dropdown */}
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-primary flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[16px] text-secondary">map</span>
+                        <span>{t('auth.lblDistrict')}</span>
+                      </label>
+                      <select
+                        value={regDistrict}
+                        onChange={(e) => handleDistrictChange(e.target.value)}
+                        className="w-full bg-surface-container-low px-3 py-2.5 rounded-xl border border-outline-variant/50 text-xs font-bold text-primary focus:border-secondary focus:bg-surface-container-lowest focus:outline-none"
+                      >
+                        {INDIA_STATES_AND_DISTRICTS.map((group) => (
+                          <optgroup key={group.state} label={`📍 ${group.state} (${group.districts.length})`}>
+                            {group.districts.map((d) => (
+                              <option key={d} value={d}>
+                                {d}
+                              </option>
+                            ))}
+                          </optgroup>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* 2. City / Taluka Dropdown according to selected District */}
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-primary flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[16px] text-secondary">location_city</span>
+                        <span>{t('auth.lblCity')}</span>
+                      </label>
+                      <select
+                        value={regCity}
+                        onChange={(e) => handleCityChange(e.target.value)}
+                        className="w-full bg-surface-container-low px-3 py-2.5 rounded-xl border border-outline-variant/50 text-xs font-bold text-primary focus:border-secondary focus:bg-surface-container-lowest focus:outline-none"
+                      >
+                        {getCitiesForDistrict(regDistrict).map((city) => (
+                          <option key={city} value={city}>
+                            {city}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
-                  {/* Village / Taluka */}
+                  {/* 3. Taluka / Area / Village according to selected City */}
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-primary flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[16px] text-secondary">home_pin</span>
-                      <span>{t('auth.lblVillage')}</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={regVillage}
-                      onChange={(e) => setRegVillage(e.target.value)}
-                      placeholder="e.g. Olpad"
-                      className="w-full bg-surface-container-low px-3 py-3 rounded-xl border border-outline-variant/50 text-xs font-semibold text-on-surface focus:border-secondary focus:bg-surface-container-lowest focus:outline-none"
-                    />
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-primary flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[16px] text-secondary">home_pin</span>
+                        <span>{t('auth.lblAreaVillage')}</span>
+                      </label>
+                      {isCustomVillage && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsCustomVillage(false);
+                            const areas = getAreasForCity(regCity, regDistrict);
+                            setRegVillage(areas[0] || '');
+                          }}
+                          className="text-[11px] text-secondary font-bold hover:underline"
+                        >
+                          ← Select from List
+                        </button>
+                      )}
+                    </div>
+
+                    {!isCustomVillage ? (
+                      <select
+                        value={regVillage}
+                        onChange={(e) => {
+                          if (e.target.value === '__CUSTOM__') {
+                            setIsCustomVillage(true);
+                            setRegVillage('');
+                          } else {
+                            setRegVillage(e.target.value);
+                          }
+                        }}
+                        className="w-full bg-surface-container-low px-3 py-2.5 rounded-xl border border-outline-variant/50 text-xs font-bold text-on-surface focus:border-secondary focus:bg-surface-container-lowest focus:outline-none"
+                      >
+                        {getAreasForCity(regCity, regDistrict).map((area) => (
+                          <option key={area} value={area}>
+                            {area}
+                          </option>
+                        ))}
+                        <option value="__CUSTOM__">➕ + Custom Village / અન્ય ગામ લખો...</option>
+                      </select>
+                    ) : (
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={regVillage}
+                          onChange={(e) => setRegVillage(e.target.value)}
+                          placeholder="Type your village / area / hamlet name (ગામનું નામ લખો)..."
+                          className="w-full bg-surface-container-low px-3 py-2.5 rounded-xl border-2 border-secondary text-xs font-semibold text-primary focus:outline-none placeholder:text-on-surface-variant/50"
+                          autoFocus
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
 

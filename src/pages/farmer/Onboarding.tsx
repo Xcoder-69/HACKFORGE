@@ -5,6 +5,11 @@ import { useAuth } from '../../contexts/AuthContext';
 import { farmService } from '../../services/farmService';
 import { storageService, STORAGE_KEYS } from '../../services/storageService';
 import type { FarmParcel } from '../../types';
+import {
+  INDIA_STATES_AND_DISTRICTS,
+  getCitiesForDistrict,
+  getAreasForCity,
+} from '../../data/indiaGeoData';
 
 type UnitType = 'Vigha (વીઘા)' | 'Acre (એકર)' | 'Guntha (ગુંઠા)' | 'Hectare (હેક્ટર)';
 type OwnershipType = 'Own Land' | 'Leased' | 'Shared';
@@ -31,11 +36,32 @@ export const Onboarding: React.FC = () => {
   const [phone, setPhone] = useState(user?.phone || '9876543210');
   const [ageGroup, setAgeGroup] = useState('35-45 yrs');
   const [district, setDistrict] = useState(user?.district || 'Surat');
-  const [taluka, setTaluka] = useState('Kamrej');
+  const [city, setCity] = useState(user?.city || user?.taluka || 'Kamrej');
+  const [taluka, setTaluka] = useState(user?.taluka || user?.city || 'Kamrej');
   const [village, setVillage] = useState(user?.village || 'Kamrej');
+  const [isCustomVillage, setIsCustomVillage] = useState(false);
   const [pincode, setPincode] = useState('394185');
   const [surveyNo, setSurveyNo] = useState('Block 142/A');
   const [landmark, setLandmark] = useState('Near Canal / નહેર પાસે');
+
+  const handleDistrictChange = (newDist: string) => {
+    setDistrict(newDist);
+    const cities = getCitiesForDistrict(newDist);
+    const firstCity = cities[0] || `${newDist} City`;
+    setCity(firstCity);
+    setTaluka(firstCity);
+    const areas = getAreasForCity(firstCity, newDist);
+    setVillage(areas[0] || `${firstCity} Main Village`);
+    setIsCustomVillage(false);
+  };
+
+  const handleCityChange = (newCity: string) => {
+    setCity(newCity);
+    setTaluka(newCity);
+    const areas = getAreasForCity(newCity, district);
+    setVillage(areas[0] || `${newCity} Main Village`);
+    setIsCustomVillage(false);
+  };
 
   // Step 2: GPS Farm Location States
   const [lat, setLat] = useState('21.2721');
@@ -120,6 +146,7 @@ export const Onboarding: React.FC = () => {
         name: farmerName,
         phone,
         district,
+        city,
         village,
         taluka,
         pincode,
@@ -367,37 +394,94 @@ export const Onboarding: React.FC = () => {
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                {/* 1. All India District Dropdown */}
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-primary">District / જિલ્લો</label>
-                  <input
-                    type="text"
+                  <select
                     value={district}
-                    onChange={(e) => setDistrict(e.target.value)}
+                    onChange={(e) => handleDistrictChange(e.target.value)}
                     className="w-full bg-surface-container-low p-2.5 rounded-xl border border-outline-variant/30 text-xs font-bold text-primary focus:outline-none"
-                  />
+                  >
+                    {INDIA_STATES_AND_DISTRICTS.map((g) => (
+                      <optgroup key={g.state} label={`📍 ${g.state} (${g.districts.length})`}>
+                        {g.districts.map((d) => (
+                          <option key={d} value={d}>
+                            {d}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
                 </div>
 
+                {/* 2. City / Taluka Dropdown */}
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-primary">Taluka / તાલુકો</label>
-                  <input
-                    type="text"
-                    value={taluka}
-                    onChange={(e) => setTaluka(e.target.value)}
+                  <label className="text-xs font-bold text-primary">City / Taluka / તાલુકો</label>
+                  <select
+                    value={city}
+                    onChange={(e) => handleCityChange(e.target.value)}
                     className="w-full bg-surface-container-low p-2.5 rounded-xl border border-outline-variant/30 text-xs font-bold text-primary focus:outline-none"
-                  />
+                  >
+                    {getCitiesForDistrict(district).map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
+                {/* 3. Taluka / Area / Village Selection */}
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-primary">Village / ગામ</label>
-                  <input
-                    type="text"
-                    value={village}
-                    onChange={(e) => setVillage(e.target.value)}
-                    className="w-full bg-surface-container-low p-2.5 rounded-xl border border-outline-variant/30 text-xs font-bold text-primary focus:outline-none"
-                  />
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-primary">Village / ગામ</label>
+                    {isCustomVillage && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsCustomVillage(false);
+                          const areas = getAreasForCity(city, district);
+                          setVillage(areas[0] || '');
+                        }}
+                        className="text-[10px] text-secondary font-bold hover:underline"
+                      >
+                        ← List
+                      </button>
+                    )}
+                  </div>
+                  {!isCustomVillage ? (
+                    <select
+                      value={village}
+                      onChange={(e) => {
+                        if (e.target.value === '__CUSTOM__') {
+                          setIsCustomVillage(true);
+                          setVillage('');
+                        } else {
+                          setVillage(e.target.value);
+                        }
+                      }}
+                      className="w-full bg-surface-container-low p-2.5 rounded-xl border border-outline-variant/30 text-xs font-bold text-primary focus:outline-none"
+                    >
+                      {getAreasForCity(city, district).map((a) => (
+                        <option key={a} value={a}>
+                          {a}
+                        </option>
+                      ))}
+                      <option value="__CUSTOM__">➕ + Custom Village...</option>
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      value={village}
+                      onChange={(e) => setVillage(e.target.value)}
+                      placeholder="Village / area name..."
+                      className="w-full bg-surface-container-low p-2.5 rounded-xl border-2 border-secondary text-xs font-bold text-primary focus:outline-none"
+                      autoFocus
+                    />
+                  )}
                 </div>
 
+                {/* 4. PIN Code */}
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-primary">PIN Code</label>
                   <input

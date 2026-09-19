@@ -3,6 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { storageService } from '../../services/storageService';
+import {
+  INDIA_STATES_AND_DISTRICTS,
+  getCitiesForDistrict,
+  getAreasForCity,
+} from '../../data/indiaGeoData';
 
 const PREFS_KEY = 'agromind_farmer_prefs';
 
@@ -29,8 +34,10 @@ export const FarmerProfile: React.FC = () => {
   const [fullName, setFullName] = useState(user?.name || 'Ramesh Patel');
   const [phone, setPhone] = useState(user?.phone || '9876543210');
   const [district, setDistrict] = useState(user?.district || 'Surat');
-  const [taluka, setTaluka] = useState('Kamrej');
+  const [city, setCity] = useState(user?.city || user?.taluka || 'Kamrej');
+  const [taluka, setTaluka] = useState(user?.taluka || user?.city || 'Kamrej');
   const [village, setVillage] = useState(user?.village || 'Kamrej Gam');
+  const [isCustomVillage, setIsCustomVillage] = useState(false);
   const [pmKisanId, setPmKisanId] = useState(user?.pmKisanId || 'GJ-SUR-88412');
 
   useEffect(() => {
@@ -38,10 +45,31 @@ export const FarmerProfile: React.FC = () => {
       setFullName(user.name);
       setPhone(user.phone || '9876543210');
       setDistrict(user.district || 'Surat');
+      setCity(user.city || user.taluka || 'Kamrej');
+      setTaluka(user.taluka || user.city || 'Kamrej');
       setVillage(user.village || 'Kamrej Gam');
       setPmKisanId(user.pmKisanId || 'GJ-SUR-88412');
     }
   }, [user]);
+
+  const handleDistrictChange = (newDist: string) => {
+    setDistrict(newDist);
+    const cities = getCitiesForDistrict(newDist);
+    const firstCity = cities[0] || `${newDist} City`;
+    setCity(firstCity);
+    setTaluka(firstCity);
+    const areas = getAreasForCity(firstCity, newDist);
+    setVillage(areas[0] || `${firstCity} Main Village`);
+    setIsCustomVillage(false);
+  };
+
+  const handleCityChange = (newCity: string) => {
+    setCity(newCity);
+    setTaluka(newCity);
+    const areas = getAreasForCity(newCity, district);
+    setVillage(areas[0] || `${newCity} Main Village`);
+    setIsCustomVillage(false);
+  };
 
   const updatePreferences = (updated: Partial<typeof savedPrefs>) => {
     const current = storageService.get(PREFS_KEY, savedPrefs);
@@ -59,6 +87,8 @@ export const FarmerProfile: React.FC = () => {
       name: fullName,
       phone,
       district,
+      city,
+      taluka,
       village,
       pmKisanId,
     });
@@ -382,25 +412,98 @@ export const FarmerProfile: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              {/* Cascading All-India District & City Selection */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-bold text-[#717974] block mb-1">District</label>
-                  <input
-                    type="text"
+                  <label className="text-xs font-bold text-[#717974] block mb-1">
+                    District / જિલ્લો (All India)
+                  </label>
+                  <select
                     value={district}
-                    onChange={(e) => setDistrict(e.target.value)}
-                    className="w-full h-11 px-4 rounded-xl border border-[#C1C8C3] font-semibold text-sm"
-                  />
+                    onChange={(e) => handleDistrictChange(e.target.value)}
+                    className="w-full h-11 px-3 rounded-xl border border-[#C1C8C3] font-semibold text-sm bg-white focus:border-emerald-600 focus:outline-none"
+                  >
+                    {INDIA_STATES_AND_DISTRICTS.map((g) => (
+                      <optgroup key={g.state} label={`📍 ${g.state} (${g.districts.length})`}>
+                        {g.districts.map((d) => (
+                          <option key={d} value={d}>
+                            {d}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
                 </div>
+
                 <div>
-                  <label className="text-xs font-bold text-[#717974] block mb-1">Taluka</label>
+                  <label className="text-xs font-bold text-[#717974] block mb-1">
+                    City / Taluka / શહેર
+                  </label>
+                  <select
+                    value={city}
+                    onChange={(e) => handleCityChange(e.target.value)}
+                    className="w-full h-11 px-3 rounded-xl border border-[#C1C8C3] font-semibold text-sm bg-white focus:border-emerald-600 focus:outline-none"
+                  >
+                    {getCitiesForDistrict(district).map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Taluka / Area / Village Selection */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-bold text-[#717974]">
+                    Area / Village / ગામ / ફળિયું
+                  </label>
+                  {isCustomVillage && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsCustomVillage(false);
+                        const areas = getAreasForCity(city, district);
+                        setVillage(areas[0] || '');
+                      }}
+                      className="text-[11px] text-emerald-700 font-bold hover:underline"
+                    >
+                      ← Select from List
+                    </button>
+                  )}
+                </div>
+
+                {!isCustomVillage ? (
+                  <select
+                    value={village}
+                    onChange={(e) => {
+                      if (e.target.value === '__CUSTOM__') {
+                        setIsCustomVillage(true);
+                        setVillage('');
+                      } else {
+                        setVillage(e.target.value);
+                      }
+                    }}
+                    className="w-full h-11 px-3 rounded-xl border border-[#C1C8C3] font-semibold text-sm bg-white focus:border-emerald-600 focus:outline-none"
+                  >
+                    {getAreasForCity(city, district).map((a) => (
+                      <option key={a} value={a}>
+                        {a}
+                      </option>
+                    ))}
+                    <option value="__CUSTOM__">➕ + Custom Village / અન્ય ગામ લખો...</option>
+                  </select>
+                ) : (
                   <input
                     type="text"
-                    value={taluka}
-                    onChange={(e) => setTaluka(e.target.value)}
-                    className="w-full h-11 px-4 rounded-xl border border-[#C1C8C3] font-semibold text-sm"
+                    value={village}
+                    onChange={(e) => setVillage(e.target.value)}
+                    placeholder="Enter village or hamlet name..."
+                    className="w-full h-11 px-4 rounded-xl border-2 border-emerald-600 font-semibold text-sm bg-white focus:outline-none"
+                    autoFocus
                   />
-                </div>
+                )}
               </div>
 
               <div>
