@@ -13,8 +13,8 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen, onClose })
   if (!isOpen) return null;
 
   const languages: { code: Language; name: string; english: string; symbol: string }[] = [
-    { code: 'gu', name: 'ગુજરાતી', english: 'Gujarati', symbol: 'ગુ' },
-    { code: 'hi', name: 'हिन्दी', english: 'Hindi', symbol: 'हि' },
+    { code: 'gu', name: 'ગુજરાતી', english: 'Gujarati + English', symbol: 'ગુ' },
+    { code: 'hi', name: 'Hinglish', english: 'Hindi (Hinglish)', symbol: 'हि' },
     { code: 'en', name: 'English', english: 'Global Standard', symbol: 'EN' },
   ];
 

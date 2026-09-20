@@ -14,7 +14,7 @@ const PREFS_KEY = 'agromind_farmer_prefs';
 export const FarmerProfile: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout, updateProfile } = useAuth();
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, bi } = useLanguage();
 
   const savedPrefs = storageService.get(PREFS_KEY, {
     sms: true,
@@ -123,13 +123,13 @@ export const FarmerProfile: React.FC = () => {
           <div>
             <div className="flex items-center gap-2 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-1">
               <span className="material-symbols-outlined text-[18px]">badge</span>
-              <span>Farmer Account & KYC • ખેડૂત પ્રોફાઇલ</span>
+              <span>{bi('ખેડૂત પ્રોફાઇલ & KYC • Farmer Account', 'Farmer Account & KYC • ખેડૂત પ્રોફાઇલ', 'किसान प्रोफाइल & KYC • Farmer Account').primary}</span>
             </div>
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
-              Farmer Profile & Preferences
+              {bi('ખેડૂત પ્રોફાઇલ અને સેટિંગ્સ', 'Farmer Profile & Preferences', 'किसान प्रोफाइल और प्राथमिकताएं').primary}
             </h1>
-            <p className="text-emerald-100/80 text-sm mt-0.5">
-              Manage personal credentials, PM-KISAN linking, alerts, and farm settings
+            <p className="text-emerald-300/90 text-xs font-semibold mt-0.5">
+              {bi('Farmer Profile & Account Settings', 'ખેડૂત પ્રોફાઇલ અને ખાતા સેટિંગ્સ', 'Farmer Profile & Settings').primary}
             </p>
           </div>
 
@@ -139,14 +139,14 @@ export const FarmerProfile: React.FC = () => {
               className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-sm flex items-center gap-1.5 shadow-md transition-all active:scale-95"
             >
               <span className="material-symbols-outlined text-[18px]">edit</span>
-              <span>Edit Details / સંપાદન</span>
+              <span>{bi('સંપાદન કરો / Edit Details', 'Edit Details / સંપાદન', 'संपादित करें / Edit Details').primary}</span>
             </button>
             <button
               onClick={handleLogout}
               className="px-4 py-2.5 bg-red-600/80 hover:bg-red-600 text-white font-semibold rounded-xl text-sm flex items-center gap-1.5 transition-colors"
             >
               <span className="material-symbols-outlined text-[18px]">logout</span>
-              <span>Logout</span>
+              <span>{bi('લૉગઆઉટ / Logout', 'Logout / લૉગઆઉટ', 'लॉगआउट / Logout').primary}</span>
             </button>
           </div>
         </div>
@@ -219,14 +219,14 @@ export const FarmerProfile: React.FC = () => {
         <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-[#E5E2DA] space-y-5">
           <h3 className="text-lg font-extrabold text-[#163A2D] flex items-center gap-2">
             <span className="material-symbols-outlined text-emerald-700">translate</span>
-            <span>Language & Audio Assistance (ભાષા અને અવાજ સહાય)</span>
+            <span>{bi('ભાષા અને સહાય સેટિંગ્સ (Language)', 'Language & Audio Settings', 'Bhasha aur Sahayata Settings').primary}</span>
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <button
               onClick={() => {
                 setLanguage('gu');
-                showToast('ભાષા ગુજરાતી સેટ થઈ.');
+                showToast(bi('ભાષા ગુજરાતી + English સેટ થઈ.', 'Language set to Gujarati + English.', 'Bhasha Gujarati + English set ho gayi.').primary);
               }}
               className={`p-4 rounded-2xl border-2 text-left transition-all ${
                 language === 'gu'
@@ -235,18 +235,18 @@ export const FarmerProfile: React.FC = () => {
               }`}
             >
               <div className="flex justify-between items-center">
-                <span className="font-extrabold text-base text-[#163A2D]">ગુજરાતી</span>
+                <span className="font-extrabold text-base text-[#163A2D]">ગુજરાતી (Gujarati)</span>
                 {language === 'gu' && (
                   <span className="material-symbols-outlined text-emerald-600">check_circle</span>
                 )}
               </div>
-              <p className="text-xs text-[#717974] mt-1">પ્રાદેશિક ભાષા (ગુજરાત)</p>
+              <p className="text-xs text-[#717974] mt-1">{bi('ગુજરાતી + English પ્રાથમિકતા', 'Gujarati + English Priority', 'Gujarati + English Priority').primary}</p>
             </button>
 
             <button
               onClick={() => {
                 setLanguage('hi');
-                showToast('भाषा हिंदी सेट की गई।');
+                showToast(bi('ભાષા Hinglish સેટ થઈ.', 'Language set to Hinglish.', 'Bhasha Hinglish set ho gayi.').primary);
               }}
               className={`p-4 rounded-2xl border-2 text-left transition-all ${
                 language === 'hi'
@@ -255,18 +255,18 @@ export const FarmerProfile: React.FC = () => {
               }`}
             >
               <div className="flex justify-between items-center">
-                <span className="font-extrabold text-base text-[#163A2D]">हिन्दी</span>
+                <span className="font-extrabold text-base text-[#163A2D]">Hinglish (Hindi)</span>
                 {language === 'hi' && (
                   <span className="material-symbols-outlined text-emerald-600">check_circle</span>
                 )}
               </div>
-              <p className="text-xs text-[#717974] mt-1">राष्ट्रीय भाषा</p>
+              <p className="text-xs text-[#717974] mt-1">{bi('Hinglish કિસાન ભાષા', 'Hinglish Farmer Language', 'Hinglish Kisan Bhasha').primary}</p>
             </button>
 
             <button
               onClick={() => {
                 setLanguage('en');
-                showToast('Language set to English.');
+                showToast(bi('ભાષા English સેટ થઈ.', 'Language set to English.', 'Bhasha English set ho gayi.').primary);
               }}
               className={`p-4 rounded-2xl border-2 text-left transition-all ${
                 language === 'en'
@@ -280,7 +280,7 @@ export const FarmerProfile: React.FC = () => {
                   <span className="material-symbols-outlined text-emerald-600">check_circle</span>
                 )}
               </div>
-              <p className="text-xs text-[#717974] mt-1">Default International</p>
+              <p className="text-xs text-[#717974] mt-1">{bi('ગ્લોબલ સ્ટાન્ડર્ડ', 'Global Standard', 'Global Standard').primary}</p>
             </button>
           </div>
 
@@ -437,7 +437,7 @@ export const FarmerProfile: React.FC = () => {
 
                 <div>
                   <label className="text-xs font-bold text-[#717974] block mb-1">
-                    City / Taluka / શહેર
+                    Taluka / તાલુકો
                   </label>
                   <select
                     value={city}

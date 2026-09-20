@@ -215,9 +215,11 @@ export const Onboarding: React.FC = () => {
             <span className="material-symbols-outlined text-[22px]">arrow_back</span>
           </button>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-secondary text-white flex items-center justify-center">
-              <span className="material-symbols-outlined text-[20px]">how_to_reg</span>
-            </div>
+            <img
+              src="/logo.png"
+              alt="AgroMind Logo"
+              className="w-8 h-8 object-contain shrink-0 drop-shadow-sm"
+            />
             <div className="flex flex-col">
               <span className="text-sm font-extrabold text-primary leading-none">AgroMind AI</span>
               <span className="text-[11px] text-on-surface-variant font-medium mt-0.5">
@@ -415,9 +417,9 @@ export const Onboarding: React.FC = () => {
                   </select>
                 </div>
 
-                {/* 2. City / Taluka Dropdown */}
+                {/* 2. Taluka Dropdown */}
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-primary">City / Taluka / તાલુકો</label>
+                  <label className="text-xs font-bold text-primary">Taluka / તાલુકો</label>
                   <select
                     value={city}
                     onChange={(e) => handleCityChange(e.target.value)}

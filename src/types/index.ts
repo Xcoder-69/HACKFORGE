@@ -157,6 +157,7 @@ export interface MandiRecord {
   distance: string;
   crop: string;
   cropGu: string;
+  cropHi?: string;
   minPrice: number;
   maxPrice: number;
   modalPrice: number;
@@ -165,6 +166,7 @@ export interface MandiRecord {
   arrivals: string;
   recommendation: 'SELL NOW' | 'HOLD' | 'FAIR';
   recGu: string;
+  recHi?: string;
 }
 
 export interface DiagnosisTreatment {
@@ -173,10 +175,53 @@ export interface DiagnosisTreatment {
   dosage: string;
 }
 
+export interface CropInfoData {
+  cropName: string;
+  cropNameGu?: string;
+  cropType: string;
+  cropTypeGu?: string;
+  scientificName: string;
+  typicalSeason: string;
+  typicalSeasonGu?: string;
+  typicalGrowthDuration: string;
+  waterRequirement: string;
+  waterRequirementGu?: string;
+  commonPests: string[];
+  commonDiseases: string[];
+  generalCultivationInfo: string;
+  generalCultivationInfoGu?: string;
+}
+
+export interface MarketInfoData {
+  nearestMarket: string;
+  distanceKm: number | null;
+  distanceLabel: string;
+  modalPrice: number | null;
+  minPrice: number | null;
+  maxPrice: number | null;
+  reportedDate: string;
+  source: string;
+  priceTrend: 'Rising' | 'Stable' | 'Falling' | 'Insufficient Data';
+  trend7dPercent: number | null;
+  trend30dPercent?: number | null;
+  marketActivity: 'High' | 'Moderate' | 'Low' | 'Insufficient Data';
+  marketActivityReason: string;
+  dataAvailable: boolean;
+  selectedLocationName?: string;
+}
+
 export interface DiagnosisResult {
   id: string;
   crop: string;
   stage?: string;
+  cropType?: string;
+  growthStage?: string;
+  visualQuality?: string;
+  visibleCondition?: 'Healthy' | 'At Risk' | 'Unknown';
+  possibleIssue?: string | null;
+  possiblePest?: string | null;
+  observedSymptoms?: string[];
+  needsExpertVerification?: boolean;
   diseaseName: string;
   diseaseGu: string;
   pestNameEn?: string;
@@ -199,6 +244,8 @@ export interface DiagnosisResult {
   isAiEstimate: boolean;
   isOfflineFallback?: boolean;
   disclaimer: string;
+  cropInfo?: CropInfoData;
+  marketInfo?: MarketInfoData;
 }
 
 export interface ChatMessage {

@@ -183,33 +183,8 @@ export const initializeDefaultData = (): void => {
   ];
   storageService.set(STORAGE_KEYS.ALERTS, defaultAlerts);
 
-  // 7. Default Scan Diagnoses History
-  const defaultScans: DiagnosisResult[] = [
-    {
-      id: 'scan-1',
-      crop: 'Cotton',
-      diseaseName: 'Pink Bollworm (Pectinophora gossypiella)',
-      diseaseGu: 'ગુલાબી ઈયળ (પિંક બોલવોર્મ)',
-      confidence: 94,
-      confidenceLabel: '94% Match (High Confidence)',
-      severity: 'High',
-      severityColor: 'text-red-700 bg-red-100',
-      symptoms: [
-        'Rosetted flowers with petal tying',
-        'Premature boll opening and lint staining',
-        'Entry holes plugged with frass in medium-sized bolls',
-      ],
-      treatments: [
-        { type: 'Chemical / રાસાયણિક', action: 'Emamectin Benzoate 5% SG', dosage: '5g per 10L water' },
-        { type: 'Biological / જૈવિક', action: 'Install Gossyplure Pheromone Traps', dosage: '5 traps per acre' },
-        { type: 'Cultural / દેશી', action: 'Hand-pick and destroy rosetted flowers', dosage: 'Daily morning sweep' },
-      ],
-      warning: 'AI diagnostic estimate. Confirm with your local KVK agronomist before spraying.',
-      timestamp: 'Today, 10:15 AM',
-      isAiEstimate: true,
-      disclaimer: 'AI inference estimate based on leaf & boll visual patterns. Consult agronomist for certified advice.',
-    },
-  ];
+  // 7. Scan History — starts empty (populated only by real AI diagnosis)
+  const defaultScans: DiagnosisResult[] = [];
   storageService.set(STORAGE_KEYS.SCANS, defaultScans);
 
   // 8. Default Admin Farmers

@@ -6,25 +6,92 @@ import type { Language } from '../i18n/translations';
 
 interface NavItemDef {
   to: string;
-  labelKey: string;
-  fallbackLabel: string;
   icon: string;
   matchAliases?: string[];
+  labels: Record<Language, { primary: string; sub: string }>;
 }
 
 const NAV_ITEMS: NavItemDef[] = [
-  { to: '/home', labelKey: 'nav.home', fallbackLabel: 'Home', icon: 'home', matchAliases: ['/my-farm'] },
-  { to: '/recommendations', labelKey: 'nav.crops', fallbackLabel: 'Crops', icon: 'eco' },
-  { to: '/weather-soil', labelKey: 'nav.weather', fallbackLabel: 'Weather', icon: 'wb_sunny' },
-  { to: '/ai-camera', labelKey: 'nav.camera', fallbackLabel: 'AI Camera', icon: 'photo_camera', matchAliases: ['/diagnosis'] },
-  { to: '/market', labelKey: 'nav.mandi', fallbackLabel: 'Mandi', icon: 'storefront' },
-  { to: '/expenses', labelKey: 'nav.expenses', fallbackLabel: 'Expenses', icon: 'receipt_long', matchAliases: ['/profit'] },
-  { to: '/alerts', labelKey: 'nav.alerts', fallbackLabel: 'Alerts', icon: 'notifications' },
-  { to: '/ai-assistant', labelKey: 'nav.advisory', fallbackLabel: 'AI Advisory', icon: 'chat', matchAliases: ['/chat'] },
+  {
+    to: '/home',
+    icon: 'home',
+    matchAliases: ['/my-farm'],
+    labels: {
+      gu: { primary: 'હોમ', sub: 'Home' },
+      en: { primary: 'Home', sub: 'Mera Khet' },
+      hi: { primary: 'Mera Khet', sub: 'Home' },
+    },
+  },
+  {
+    to: '/recommendations',
+    icon: 'eco',
+    labels: {
+      gu: { primary: 'પાક ભલામણ', sub: 'Crops' },
+      en: { primary: 'Crop Advice', sub: 'Fasal Salah' },
+      hi: { primary: 'Fasal Salah', sub: 'Crops' },
+    },
+  },
+  {
+    to: '/weather-soil',
+    icon: 'wb_sunny',
+    labels: {
+      gu: { primary: 'હવામાન & જમીન', sub: 'Weather' },
+      en: { primary: 'Weather & Soil', sub: 'Mausam & Mitti' },
+      hi: { primary: 'Mausam & Mitti', sub: 'Weather' },
+    },
+  },
+  {
+    to: '/ai-camera',
+    icon: 'photo_camera',
+    matchAliases: ['/diagnosis'],
+    labels: {
+      gu: { primary: 'AI કેમેરા', sub: 'AI Doctor' },
+      en: { primary: 'AI Camera', sub: 'Fasal Doctor' },
+      hi: { primary: 'AI Fasal Doctor', sub: 'Leaf Scanner' },
+    },
+  },
+  {
+    to: '/market',
+    icon: 'storefront',
+    labels: {
+      gu: { primary: 'મંડી ભાવ', sub: 'Mandi Rates' },
+      en: { primary: 'Mandi Prices', sub: 'Mandi Bhav' },
+      hi: { primary: 'Mandi Bhav', sub: 'Market Rates' },
+    },
+  },
+  {
+    to: '/expenses',
+    icon: 'receipt_long',
+    matchAliases: ['/profit'],
+    labels: {
+      gu: { primary: 'ખેતી ખર્ચ', sub: 'Expenses' },
+      en: { primary: 'Expense Ledger', sub: 'Kharach Tracker' },
+      hi: { primary: 'Kharach Tracker', sub: 'Expenses' },
+    },
+  },
+  {
+    to: '/alerts',
+    icon: 'notifications',
+    labels: {
+      gu: { primary: 'કિસાન એલર્ટ', sub: 'Alerts' },
+      en: { primary: 'Farmer Alerts', sub: 'Kisan Alerts' },
+      hi: { primary: 'Kisan Alerts', sub: 'Urgent Notices' },
+    },
+  },
+  {
+    to: '/ai-assistant',
+    icon: 'chat',
+    matchAliases: ['/chat'],
+    labels: {
+      gu: { primary: 'AI સલાહકાર', sub: 'AI Advisory' },
+      en: { primary: 'AI Advisory', sub: 'AI Salahkar' },
+      hi: { primary: 'AI Salahkar', sub: 'Farming Advisory' },
+    },
+  },
 ];
 
 export const FarmerLayout: React.FC = () => {
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage, t, bi } = useLanguage();
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -139,16 +206,18 @@ export const FarmerLayout: React.FC = () => {
               title={isSidebarCollapsed ? 'Click logo to open sidebar' : 'Click logo to close sidebar'}
               aria-label={isSidebarCollapsed ? 'Open navigation sidebar' : 'Close navigation sidebar'}
             >
-              <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-white shadow-md shrink-0 transition-transform">
-                <span className="material-symbols-outlined text-[24px]">eco</span>
-              </div>
+              <img
+                src="/logo.png?v=2"
+                alt="AgroMind Logo"
+                className="w-10 h-10 object-contain shrink-0 transition-transform drop-shadow-sm"
+              />
               {!isSidebarCollapsed && (
                 <div className="flex flex-col text-left min-w-0 overflow-hidden animate-in fade-in duration-200">
                   <span className="text-base font-extrabold text-primary tracking-tight leading-tight truncate">
                     AgroMind AI
                   </span>
                   <span className="text-[10px] text-secondary font-bold tracking-wide uppercase truncate">
-                    Kisan Intelligence
+                    {bi('કિસાન ઇન્ટેલિજન્સ', 'Kisan Intelligence', 'किसान इंटेलिजेंस').primary}
                   </span>
                 </div>
               )}
@@ -159,7 +228,7 @@ export const FarmerLayout: React.FC = () => {
           <nav className="p-3 space-y-1.5 overflow-y-auto max-h-[calc(100vh-230px)]">
             {NAV_ITEMS.map((item) => {
               const active = isItemActive(item);
-              const label = t(item.labelKey) || item.fallbackLabel;
+              const labelInfo = item.labels[language] || item.labels.en;
 
               return (
                 <NavLink
@@ -186,7 +255,18 @@ export const FarmerLayout: React.FC = () => {
 
                   {/* Label (when expanded) */}
                   {!isSidebarCollapsed && (
-                    <span className="truncate flex-1 tracking-tight">{label}</span>
+                    <div className="flex flex-col text-left min-w-0 flex-1">
+                      <span className="truncate tracking-tight font-bold text-sm leading-tight">
+                        {labelInfo.primary}
+                      </span>
+                      <span
+                        className={`text-[10px] truncate leading-tight mt-0.5 ${
+                          active ? 'text-white/80' : 'text-on-surface-variant/70'
+                        }`}
+                      >
+                        {labelInfo.sub}
+                      </span>
+                    </div>
                   )}
 
                   {/* Active Indicator Dot (when expanded) */}
@@ -197,7 +277,8 @@ export const FarmerLayout: React.FC = () => {
                   {/* Floating Tooltip (when collapsed) */}
                   {isSidebarCollapsed && (
                     <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-primary text-white text-xs font-semibold rounded-lg shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
-                      {label}
+                      <div className="font-bold">{labelInfo.primary}</div>
+                      <div className="text-[10px] opacity-80">{labelInfo.sub}</div>
                     </div>
                   )}
                 </NavLink>
@@ -222,7 +303,7 @@ export const FarmerLayout: React.FC = () => {
                       : 'text-on-surface-variant hover:text-primary'
                   }`}
                 >
-                  {code === 'gu' ? 'ગુજરાતી' : code === 'hi' ? 'हिन्दी' : 'EN'}
+                  {code === 'gu' ? 'ગુજરાતી' : code === 'hi' ? 'Hinglish' : 'EN'}
                 </button>
               ))}
             </div>
@@ -299,15 +380,17 @@ export const FarmerLayout: React.FC = () => {
           onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && navigate('/home')}
           aria-label="AgroMind AI Home"
         >
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-secondary flex items-center justify-center text-white shadow-md shrink-0">
-            <span className="material-symbols-outlined text-[22px] sm:text-[24px]">eco</span>
-          </div>
+          <img
+            src="/logo.png?v=2"
+            alt="AgroMind Logo"
+            className="w-9 h-9 sm:w-10 sm:h-10 object-contain shrink-0 drop-shadow-sm"
+          />
           <div className="flex flex-col">
             <span className="text-base sm:text-lg font-extrabold text-primary tracking-tight leading-tight whitespace-nowrap">
               AgroMind AI
             </span>
             <span className="text-[10px] text-secondary font-bold">
-              Kisan Portal
+              {bi('કિસાન પોર્ટલ (Kisan Portal)', 'Kisan Portal (કિસાન પોર્ટલ)', 'किसान पोर्टल (Kisan Portal)').primary}
             </span>
           </div>
         </div>
@@ -327,7 +410,7 @@ export const FarmerLayout: React.FC = () => {
                     : 'text-on-surface-variant hover:text-primary'
                 }`}
               >
-                {code === 'gu' ? 'ગુજ' : code === 'hi' ? 'हिन्दी' : 'EN'}
+                {code === 'gu' ? 'ગુજ' : code === 'hi' ? 'Hinglish' : 'EN'}
               </button>
             ))}
           </div>
@@ -421,6 +504,7 @@ export const FarmerLayout: React.FC = () => {
               <nav className="p-2 space-y-0.5" aria-label="Mobile Drawer Navigation">
                 {NAV_ITEMS.map((item) => {
                   const active = isItemActive(item);
+                  const labelInfo = item.labels[language] || item.labels.en;
                   return (
                     <NavLink
                       key={item.to}
@@ -436,7 +520,12 @@ export const FarmerLayout: React.FC = () => {
                         <span className={`material-symbols-outlined text-[20px] ${active ? 'fill' : ''}`}>
                           {item.icon}
                         </span>
-                        <span className="truncate">{t(item.labelKey) || item.fallbackLabel}</span>
+                        <div className="flex flex-col text-left">
+                          <span className="truncate font-bold leading-tight">{labelInfo.primary}</span>
+                          <span className={`text-[10px] leading-tight ${active ? 'text-white/80' : 'text-on-surface-variant/70'}`}>
+                            {labelInfo.sub}
+                          </span>
+                        </div>
                       </div>
                       <span className="material-symbols-outlined text-[15px] opacity-40">
                         chevron_right
@@ -462,7 +551,7 @@ export const FarmerLayout: React.FC = () => {
                         : 'text-on-surface-variant hover:text-primary'
                     }`}
                   >
-                    {code === 'gu' ? 'ગુજરાતી' : code === 'hi' ? 'हिन्दी' : 'EN'}
+                    {code === 'gu' ? 'ગુજરાતી' : code === 'hi' ? 'Hinglish' : 'EN'}
                   </button>
                 ))}
               </div>
@@ -511,70 +600,51 @@ export const FarmerLayout: React.FC = () => {
         className="flex md:hidden fixed bottom-0 inset-x-0 z-40 bg-surface-container-lowest/95 backdrop-blur-xl border-t border-outline-variant/30 shadow-[0_-4px_20px_rgba(22,58,45,0.08)] pb-safe"
       >
         <div className="max-w-lg mx-auto w-full h-18 px-3 flex items-center justify-around">
-          {/* 1. Home */}
-          <NavLink
-            to="/home"
-            className={({ isActive }) =>
-              `flex flex-col items-center justify-center py-1 flex-1 transition-all active:scale-95 ${
-                isActive ? 'text-secondary font-extrabold' : 'text-on-surface-variant hover:text-primary'
-              }`
-            }
-          >
-            <span className="material-symbols-outlined text-[24px]">home</span>
-            <span className="text-[10px] mt-0.5 tracking-tight">{t('nav.home')}</span>
-          </NavLink>
+          {NAV_ITEMS.slice(0, 5).map((item) => {
+            const active = isItemActive(item);
+            const labelInfo = item.labels[language] || item.labels.en;
+            const isElevated = item.to === '/ai-camera';
 
-          {/* 2. My Farm */}
-          <NavLink
-            to="/my-farm"
-            className={({ isActive }) =>
-              `flex flex-col items-center justify-center py-1 flex-1 transition-all active:scale-95 ${
-                isActive ? 'text-secondary font-extrabold' : 'text-on-surface-variant hover:text-primary'
-              }`
+            if (isElevated) {
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className="flex flex-col items-center justify-center -mt-6 flex-1 group"
+                >
+                  <div className="w-13 h-13 rounded-full bg-secondary text-white shadow-[0_8px_20px_rgba(27,108,59,0.35)] group-hover:bg-primary transition-transform group-active:scale-90 flex items-center justify-center border-4 border-surface-container-lowest">
+                    <span className="material-symbols-outlined text-[26px]">{item.icon}</span>
+                  </div>
+                  <span className="text-[10px] font-bold text-secondary mt-0.5 tracking-tight leading-tight">
+                    {labelInfo.primary}
+                  </span>
+                  <span className="text-[8px] text-secondary/80 font-medium leading-none">
+                    {labelInfo.sub}
+                  </span>
+                </NavLink>
+              );
             }
-          >
-            <span className="material-symbols-outlined text-[24px]">agriculture</span>
-            <span className="text-[10px] mt-0.5 tracking-tight">{t('nav.myFarm')}</span>
-          </NavLink>
 
-          {/* 3. AI Camera (Prominent Elevated Center Button) */}
-          <NavLink
-            to="/ai-camera"
-            className="flex flex-col items-center justify-center -mt-6 flex-1 group"
-          >
-            <div className="w-14 h-14 rounded-full bg-secondary text-white shadow-[0_8px_20px_rgba(27,108,59,0.35)] group-hover:bg-primary transition-transform group-active:scale-90 flex items-center justify-center border-4 border-surface-container-lowest">
-              <span className="material-symbols-outlined text-[28px]">photo_camera</span>
-            </div>
-            <span className="text-[10px] font-bold text-secondary mt-0.5 tracking-tight">
-              {t('nav.camera')}
-            </span>
-          </NavLink>
-
-          {/* 4. Market */}
-          <NavLink
-            to="/market"
-            className={({ isActive }) =>
-              `flex flex-col items-center justify-center py-1 flex-1 transition-all active:scale-95 ${
-                isActive ? 'text-secondary font-extrabold' : 'text-on-surface-variant hover:text-primary'
-              }`
-            }
-          >
-            <span className="material-symbols-outlined text-[24px]">storefront</span>
-            <span className="text-[10px] mt-0.5 tracking-tight">{t('nav.market')}</span>
-          </NavLink>
-
-          {/* 5. Profile */}
-          <NavLink
-            to="/profile"
-            className={({ isActive }) =>
-              `flex flex-col items-center justify-center py-1 flex-1 transition-all active:scale-95 ${
-                isActive ? 'text-secondary font-extrabold' : 'text-on-surface-variant hover:text-primary'
-              }`
-            }
-          >
-            <span className="material-symbols-outlined text-[24px]">person</span>
-            <span className="text-[10px] mt-0.5 tracking-tight">{t('nav.profile')}</span>
-          </NavLink>
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) =>
+                  `flex flex-col items-center justify-center py-1 flex-1 transition-all active:scale-95 ${
+                    isActive ? 'text-secondary font-extrabold' : 'text-on-surface-variant hover:text-primary'
+                  }`
+                }
+              >
+                <span className="material-symbols-outlined text-[22px]">{item.icon}</span>
+                <span className="text-[10px] mt-0.5 tracking-tight font-bold leading-tight">
+                  {labelInfo.primary}
+                </span>
+                <span className="text-[8px] opacity-75 font-normal leading-none">
+                  {labelInfo.sub}
+                </span>
+              </NavLink>
+            );
+          })}
         </div>
       </nav>
     </div>

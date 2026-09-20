@@ -15,6 +15,7 @@ const INITIAL_MANDI_DATA: MandiRecord[] = [
     distance: '14 km (Nearest)',
     crop: 'Cotton (Shankar-6)',
     cropGu: 'કપાસ (શંકર-૬)',
+    cropHi: 'Kapas (Shankar-6)',
     minPrice: 6900,
     maxPrice: 7450,
     modalPrice: 7250,
@@ -23,6 +24,7 @@ const INITIAL_MANDI_DATA: MandiRecord[] = [
     arrivals: '2,400 Qtl',
     recommendation: 'HOLD',
     recGu: '૧૦ દિવસ રોકો (ભાવ વધવાની શક્યતા)',
+    recHi: '10 din roko (bhav badhne ke aasaar)',
   },
   {
     id: 'm-2',
@@ -31,6 +33,7 @@ const INITIAL_MANDI_DATA: MandiRecord[] = [
     distance: '14 km (Nearest)',
     crop: 'Groundnut (GG-20)',
     cropGu: 'મગફળી (જીજી-૨૦)',
+    cropHi: 'Mungfali (GG-20)',
     minPrice: 6400,
     maxPrice: 6980,
     modalPrice: 6880,
@@ -39,6 +42,7 @@ const INITIAL_MANDI_DATA: MandiRecord[] = [
     arrivals: '1,650 Qtl',
     recommendation: 'SELL NOW',
     recGu: 'વેચાણ કરો (ઊંચા ભાવ)',
+    recHi: 'Abhi becho (Uncha bhav)',
   },
   {
     id: 'm-3',
@@ -47,6 +51,7 @@ const INITIAL_MANDI_DATA: MandiRecord[] = [
     distance: '320 km (Export Benchmark)',
     crop: 'Cotton (Shankar-6)',
     cropGu: 'કપાસ (શંકર-૬)',
+    cropHi: 'Kapas (Shankar-6)',
     minPrice: 7100,
     maxPrice: 7600,
     modalPrice: 7420,
@@ -55,6 +60,7 @@ const INITIAL_MANDI_DATA: MandiRecord[] = [
     arrivals: '14,200 Qtl',
     recommendation: 'HOLD',
     recGu: 'ભાવ મજબૂત',
+    recHi: 'Bhav majboot hai',
   },
   {
     id: 'm-4',
@@ -63,6 +69,7 @@ const INITIAL_MANDI_DATA: MandiRecord[] = [
     distance: '320 km',
     crop: 'Groundnut (GG-20 Bold)',
     cropGu: 'મગફળી (બોલ્ડ દાણા)',
+    cropHi: 'Mungfali (Bold Dana)',
     minPrice: 6600,
     maxPrice: 7250,
     modalPrice: 7120,
@@ -71,6 +78,7 @@ const INITIAL_MANDI_DATA: MandiRecord[] = [
     arrivals: '8,900 Qtl',
     recommendation: 'SELL NOW',
     recGu: 'મહત્તમ નફો',
+    recHi: 'Zyada se zyada munafa',
   },
   {
     id: 'm-5',
@@ -79,6 +87,7 @@ const INITIAL_MANDI_DATA: MandiRecord[] = [
     distance: '38 km',
     crop: 'Sugarcane (Factory Gate)',
     cropGu: 'શેરડી (સુગર ફેક્ટરી)',
+    cropHi: 'Ganna / Sherdi (Sugar Mill)',
     minPrice: 3300,
     maxPrice: 3500,
     modalPrice: 3420,
@@ -87,6 +96,7 @@ const INITIAL_MANDI_DATA: MandiRecord[] = [
     arrivals: '6,200 Ton',
     recommendation: 'SELL NOW',
     recGu: 'મિલ સપ્લાય ઉપલબ્ધ',
+    recHi: 'Mill supply khula hai',
   },
   {
     id: 'm-6',
@@ -95,6 +105,7 @@ const INITIAL_MANDI_DATA: MandiRecord[] = [
     distance: '55 km',
     crop: 'Cotton (Shankar-6)',
     cropGu: 'કપાસ (શંકર-૬)',
+    cropHi: 'Kapas (Shankar-6)',
     minPrice: 7000,
     maxPrice: 7380,
     modalPrice: 7200,
@@ -103,6 +114,7 @@ const INITIAL_MANDI_DATA: MandiRecord[] = [
     arrivals: '3,100 Qtl',
     recommendation: 'HOLD',
     recGu: 'સ્થિર વલણ',
+    recHi: 'Sthir bhav',
   },
   {
     id: 'm-7',
@@ -111,6 +123,7 @@ const INITIAL_MANDI_DATA: MandiRecord[] = [
     distance: '345 km (Mandi Hub)',
     crop: 'Groundnut (GG-20)',
     cropGu: 'મગફળી (ગોંડલ યાર્ડ)',
+    cropHi: 'Mungfali (Gondal Yard)',
     minPrice: 6550,
     maxPrice: 7180,
     modalPrice: 7050,
@@ -119,6 +132,7 @@ const INITIAL_MANDI_DATA: MandiRecord[] = [
     arrivals: '18,500 Qtl',
     recommendation: 'SELL NOW',
     recGu: 'સર્વોચ્ચ ભાવ',
+    recHi: 'Top market rate',
   },
 ];
 

@@ -6,7 +6,7 @@ import type { ExpenseItem, ExpenseCategory } from '../../types';
 
 export const ExpenseTracker: React.FC = () => {
   const navigate = useNavigate();
-  const { language } = useLanguage();
+  const { language, bi } = useLanguage();
 
   const [expenses, setExpenses] = useState<ExpenseItem[]>(() => financialService.getExpenses());
   const [filterPlot, setFilterPlot] = useState<string>('All');
@@ -65,13 +65,13 @@ export const ExpenseTracker: React.FC = () => {
           <div>
             <div className="flex items-center gap-2 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-1">
               <span className="material-symbols-outlined text-[18px]">receipt_long</span>
-              <span>Farm Financial Ledger • ખેતી ખર્ચ હિસાબ</span>
+              <span>{bi('ખેતી ખર્ચ હિસાબ • Farm Financial Ledger', 'Farm Financial Ledger • ખેતી ખર્ચ હિસાબ', 'खेत वित्तीय लेजर • Farm Financial Ledger').primary}</span>
             </div>
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
-              Farm Expense Tracker
+              {bi('ખેતી ખર્ચ અને બજેટ ટ્રેકર', 'Farm Expense Tracker', 'खेत खर्च व बजट ट्रैकर').primary}
             </h1>
-            <p className="text-emerald-100/80 text-sm mt-0.5">
-              Live input cost accounting, season budget tracking, and Mandli credit records
+            <p className="text-emerald-300/90 text-xs font-semibold mt-0.5">
+              {bi('Farm Expense & Budget Tracker', 'ખેતી ખર્ચ અને બજેટ હિસાબ', 'Farm Expense & Budget Tracker').primary}
             </p>
           </div>
 
@@ -81,14 +81,14 @@ export const ExpenseTracker: React.FC = () => {
               className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-sm flex items-center gap-2 shadow-md transition-all active:scale-95"
             >
               <span className="material-symbols-outlined text-[20px]">add</span>
-              <span>+ Add Expense / નવો ખર્ચ</span>
+              <span>{bi('+ નવો ખર્ચ / + Add Expense', '+ Add Expense / + નવો ખર્ચ', '+ नया खर्च / + Add Expense').primary}</span>
             </button>
             <button
               onClick={() => navigate('/profit')}
               className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl text-sm flex items-center gap-1.5 transition-colors border border-white/20"
             >
               <span className="material-symbols-outlined text-[18px]">trending_up</span>
-              <span>Profit & Revenue</span>
+              <span>{bi('નફો અને આવક / Profit & Revenue', 'Profit & Revenue / નફો અને આવક', 'लाभ व आय / Profit & Revenue').primary}</span>
             </button>
           </div>
         </div>

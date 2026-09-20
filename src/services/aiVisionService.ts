@@ -1,257 +1,251 @@
 import { DiagnosisResult } from '../types';
 import { storageService, STORAGE_KEYS } from './storageService';
-import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import { syncEngine } from '../lib/syncEngine';
+import { analyzeImageWithGemini, GeminiDiagnosisResult } from './geminiVisionService';
+import { locationService } from './locationService';
+import { cropDatabaseService } from './cropDatabaseService';
 import type { IAiVisionService, DiagnoseRequest } from '../contracts/ai.contract';
 
 interface DiagnoseParams extends DiagnoseRequest {}
 
-// Built-in offline pathology knowledge base for Gujarat agro-climatic zones
-const OFFLINE_PATHOLOGY_DATABASE: Record<string, Partial<DiagnosisResult>> = {
-  cotton_bollworm: {
-    crop: 'Cotton',
-    diseaseName: 'Pink Bollworm Infestation',
-    diseaseGu: 'ગુલાબી ઈયળનો ઉપદ્રવ (Pink Bollworm)',
-    pestNameEn: 'Pink Bollworm Infestation',
-    pestNameGu: 'ગુલાબી ઈયળનો ઉપદ્રવ (Pink Bollworm)',
-    scientificName: 'Pectinophora gossypiella',
-    confidence: 96.4,
-    confidenceLabel: '96.4% Match (High Confidence)',
-    severity: 'High',
-    severityColor: 'text-red-700 bg-red-100',
-    symptoms: [
-      'Rosetted or flared squares (કમળ જેવી બંધ કળીઓ)',
-      'Entry pin-holes in developing green bolls plugged with excreta',
-      'Premature boll dropping and stained discolored lint',
-    ],
-    treatments: [
-      {
-        type: 'Organic / જૈવિક',
-        action: 'Install Pheromone Traps with Gossyplure Septa',
-        dosage: '5-8 traps / acre at canopy height',
-      },
-      {
-        type: 'Chemical / રાસાયણિક',
-        action: 'Emamectin Benzoate 5% SG or Chlorantraniliprole 18.5% SC',
-        dosage: '5g per 10L water in late afternoon',
-      },
-      {
-        type: 'Cultural / વ્યવસ્થાપન',
-        action: 'Collect and bury dropped rosetted flowers in deep soil pit',
-        dosage: 'Daily field sanitation',
-      },
-    ],
-    remedies: [
-      {
-        type: 'Organic / જૈવિક',
-        action: 'Install Pheromone Traps with Gossyplure Septa',
-        dosage: '5-8 traps / acre at canopy height',
-      },
-      {
-        type: 'Chemical / રાસાયણિક',
-        action: 'Emamectin Benzoate 5% SG or Chlorantraniliprole 18.5% SC',
-        dosage: '5g per 10L water in late afternoon',
-      },
-      {
-        type: 'Cultural / વ્યવસ્થાપન',
-        action: 'Collect and bury dropped rosetted flowers in deep soil pit',
-        dosage: 'Daily field sanitation',
-      },
-    ],
-    warning: 'Convective rainfall expected within 48h. Perform spraying only before rain or in clear weather window.',
+/**
+ * User-friendly error messages mapped from internal error codes.
+ * These are shown in the UI — no raw technical errors leak through.
+ */
+const FRIENDLY_ERRORS: Record<string, { en: string; gu: string }> = {
+  GEMINI_API_KEY_MISSING: {
+    en: 'AI Camera is not configured yet. Please add your Gemini API key in settings.',
+    gu: 'AI કેમેરો હજુ સેટ નથી. કૃપા કરીને Gemini API key ઉમેરો.',
   },
-  groundnut_tikka: {
-    crop: 'Groundnut',
-    diseaseName: 'Tikka Leaf Spot (Cercospora)',
-    diseaseGu: 'ટિક્કા રોગ / પાન પર ટપકાં (Tikka Leaf Spot)',
-    pestNameEn: 'Tikka Leaf Spot (Cercospora)',
-    pestNameGu: 'ટિક્કા રોગ / પાન પર ટપકાં (Tikka Leaf Spot)',
-    scientificName: 'Cercospora arachidicola',
-    confidence: 94.8,
-    confidenceLabel: '94.8% Match (High Confidence)',
-    severity: 'Moderate',
-    severityColor: 'text-amber-700 bg-amber-100',
-    symptoms: [
-      'Circular dark brown/black necrotic spots with prominent yellow chlorotic halo',
-      'Lower foliage showing premature senescence and early defoliation',
-      'Stem lesions causing lodging under canopy humidity',
-    ],
-    treatments: [
-      {
-        type: 'Chemical / રાસાયણિક',
-        action: 'Carbendazim 12% + Mancozeb 63% WP (Saaf)',
-        dosage: '25g per 15L spray pump',
-      },
-      {
-        type: 'Organic / જૈવિક',
-        action: 'Neem Seed Kernel Extract (NSKE 5%)',
-        dosage: '50ml per 10L water',
-      },
-      {
-        type: 'Cultural / વ્યવસ્થાપન',
-        action: 'Ensure ridge furrows prevent water stagnation after rainfall',
-        dosage: 'Drain excess surface water',
-      },
-    ],
-    remedies: [
-      {
-        type: 'Chemical / રાસાયણિક',
-        action: 'Carbendazim 12% + Mancozeb 63% WP (Saaf)',
-        dosage: '25g per 15L spray pump',
-      },
-      {
-        type: 'Organic / જૈવિક',
-        action: 'Neem Seed Kernel Extract (NSKE 5%)',
-        dosage: '50ml per 10L water',
-      },
-      {
-        type: 'Cultural / વ્યવસ્થાપન',
-        action: 'Ensure ridge furrows prevent water stagnation after rainfall',
-        dosage: 'Drain excess surface water',
-      },
-    ],
-    warning: 'High relative humidity (>70%) accelerates spore proliferation. Ensure good air circulation.',
+  RATE_LIMITED: {
+    en: 'AI service is busy right now. Please wait a minute and try again.',
+    gu: 'AI સેવા હાલમાં વ્યસ્ત છે. કૃપા કરીને એક મિનિટ રાહ જુઓ.',
   },
-  sugarcane_redrot: {
-    crop: 'Sugarcane',
-    diseaseName: 'Red Rot of Sugarcane',
-    diseaseGu: 'શેરડીનો લાલ સડો (Red Rot)',
-    pestNameEn: 'Red Rot of Sugarcane',
-    pestNameGu: 'શેરડીનો લાલ સડો (Red Rot)',
-    scientificName: 'Colletotrichum falcatum',
-    confidence: 91.2,
-    confidenceLabel: '91.2% Match (High Confidence)',
-    severity: 'Severe',
-    severityColor: 'text-red-700 bg-red-100',
-    symptoms: [
-      'Discoloration and yellowing of the third and fourth whorl leaves',
-      'Internal pith tissue turns dull red with transverse white patches',
-      'Sour alcoholic fermentation odor when split stem is inspected',
-    ],
-    treatments: [
-      {
-        type: 'Cultural / વ્યવસ્થાપન',
-        action: 'Uproot and burn diseased clumps immediately; do not ratoon infected field',
-        dosage: 'Complete eradication of focal spots',
-      },
-      {
-        type: 'Organic / જૈવિક',
-        action: 'Trichoderma harzianum soil application enriched with FYM',
-        dosage: '2.5 kg mixed with 500kg farmyard manure per acre',
-      },
-      {
-        type: 'Chemical / રાસાયણિક',
-        action: 'Carbendazim 50% WP dip for future setts before planting',
-        dosage: '1g per 1L water (sett dip for 15 minutes)',
-      },
-    ],
-    remedies: [
-      {
-        type: 'Cultural / વ્યવસ્થાપન',
-        action: 'Uproot and burn diseased clumps immediately; do not ratoon infected field',
-        dosage: 'Complete eradication of focal spots',
-      },
-      {
-        type: 'Organic / જૈવિક',
-        action: 'Trichoderma harzianum soil application enriched with FYM',
-        dosage: '2.5 kg mixed with 500kg farmyard manure per acre',
-      },
-      {
-        type: 'Chemical / રાસાયણિક',
-        action: 'Carbendazim 50% WP dip for future setts before planting',
-        dosage: '1g per 1L water (sett dip for 15 minutes)',
-      },
-    ],
-    warning: 'Severe fungal vascular infection. Restrict irrigation runoff into neighboring healthy sugarcane plots.',
+  INVALID_API_KEY: {
+    en: 'The AI API key is invalid. Please check your configuration.',
+    gu: 'AI API key અમાન્ય છે. કૃપા કરીને તમારી સેટિંગ્સ તપાસો.',
+  },
+  API_ERROR: {
+    en: 'Could not reach the AI service. Check your internet connection and try again.',
+    gu: 'AI સેવા સુધી પહોંચી શકાયું નથી. ઈન્ટરનેટ કનેક્શન ચેક કરો.',
+  },
+  EMPTY_RESPONSE: {
+    en: 'AI could not analyze this image. Try a clearer, well-lit photo of the leaf.',
+    gu: 'AI આ છબીનું વિશ્લેષણ કરી શક્યું નથી. પાનનો સ્પષ્ટ ફોટો ફરી લો.',
+  },
+  PARSE_ERROR: {
+    en: 'AI returned unexpected results. Please try again with a different photo.',
+    gu: 'AI એ અણધાર્યું પરિણામ આપ્યું. કૃપા કરીને બીજો ફોટો અજમાવો.',
+  },
+  NO_IMAGE: {
+    en: 'No image provided. Please capture or upload a crop photo first.',
+    gu: 'કોઈ છબી નથી. કૃપા કરીને પહેલાં પાક કે પાનનો ફોટો લો.',
+  },
+  IMAGE_TOO_LARGE: {
+    en: 'Image is too large (max 4MB). Please use a smaller photo.',
+    gu: 'છબી ખૂબ મોટી છે (મહત્તમ 4MB). નાનો ફોટો વાપરો.',
   },
 };
 
+function getFriendlyError(code: string): string {
+  return FRIENDLY_ERRORS[code]?.en || FRIENDLY_ERRORS.API_ERROR.en;
+}
+
 export const aiVisionService: IAiVisionService = {
   /**
-   * Diagnoses leaf image using secure serverless Edge Function proxy if online and configured,
-   * or falls back to offline expert agronomic pathology engine.
+   * Diagnoses leaf image using Gemini Vision API through the backend.
+   * Enriches result with crop database info and market data.
+   * 
+   * INDEPENDENT of farmer profile — uses only:
+   * 1. The uploaded image (for crop identification)
+   * 2. User's current location (for market lookup only)
    */
   async diagnoseLeaf(params: DiagnoseParams): Promise<DiagnosisResult> {
-    const { imageBase64, crop = 'Cotton', stage = 'Flowering' } = params;
+    const { imageBase64 } = params;
 
-    // Validate image payload size if present (< 4MB)
-    if (imageBase64) {
-      const base64Data = imageBase64.includes(',') ? imageBase64.split(',')[1] : imageBase64;
-      const approximateSizeBytes = (base64Data.length * 3) / 4;
-      if (approximateSizeBytes > 4 * 1024 * 1024) {
-        console.warn('[AIVision] Image payload exceeds 4MB. Proceeding with offline compression/fallback.');
-      }
+    // Validate: image required
+    if (!imageBase64) {
+      throw new Error(getFriendlyError('NO_IMAGE'));
     }
 
-    // Check if secure serverless Edge Function is accessible
-    if (isSupabaseConfigured() && supabase && syncEngine.isOnline() && imageBase64) {
-      try {
-        const { data, error } = await supabase.functions.invoke('diagnose-leaf', {
-          body: { imageBase64, crop, stage },
-        });
-
-        if (!error && data?.success && data.result) {
-          const cloudResult: DiagnosisResult = {
-            ...data.result,
-            isAiEstimate: true,
-            isOfflineFallback: false,
-          };
-          await this.saveScan(cloudResult);
-          return cloudResult;
-        } else if (error) {
-          console.warn('[AIVision] Serverless Edge Function returned error, using offline engine:', error);
-        }
-      } catch (err) {
-        console.warn('[AIVision] Server AI proxy unreachable, engaging offline pathology engine:', err);
-      }
+    // Validate: size limit (< 4MB)
+    const base64Data = imageBase64.includes(',') ? imageBase64.split(',')[1] : imageBase64;
+    const approximateSizeBytes = (base64Data.length * 3) / 4;
+    if (approximateSizeBytes > 4 * 1024 * 1024) {
+      throw new Error(getFriendlyError('IMAGE_TOO_LARGE'));
     }
 
-    // Offline Expert Agronomic Pathology Engine (Gujarat Agro-Climatic Zones)
-    const offlineResult = this.generateOfflineDiagnosis(crop, stage, imageBase64);
-    await this.saveScan(offlineResult);
-    return offlineResult;
-  },
-
-  /**
-   * Generates offline expert diagnosis based on crop and stage
-   */
-  generateOfflineDiagnosis(crop: string, stage: string, imageBase64?: string): DiagnosisResult {
-    const cropKey = crop.toLowerCase();
-    let template = OFFLINE_PATHOLOGY_DATABASE.cotton_bollworm;
-
-    if (cropKey.includes('groundnut') || cropKey.includes('મગફળી')) {
-      template = OFFLINE_PATHOLOGY_DATABASE.groundnut_tikka;
-    } else if (cropKey.includes('sugarcane') || cropKey.includes('શેરડી')) {
-      template = OFFLINE_PATHOLOGY_DATABASE.sugarcane_redrot;
+    // Get user's current location for market lookup (NOT farm location)
+    let lat: number | undefined;
+    let lng: number | undefined;
+    try {
+      const savedLoc = locationService.getSavedLocation();
+      lat = savedLoc.latitude;
+      lng = savedLoc.longitude;
+    } catch {
+      // Location unavailable — backend will use default Gujarat coordinates
     }
 
-    const now = new Date();
-    const formattedTime = `Today, ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    // Call Gemini Vision through backend (passes lat/lng for market enrichment)
+    let geminiResult: GeminiDiagnosisResult;
+    try {
+      geminiResult = await analyzeImageWithGemini(imageBase64, lat, lng);
+    } catch (err: any) {
+      const code = err?.message || 'API_ERROR';
+      throw new Error(getFriendlyError(code));
+    }
 
-    return {
-      id: `scan-${Date.now()}`,
-      crop: template.crop || crop,
-      stage: stage || 'Active Stage',
-      diseaseName: template.diseaseName || 'Crop Pathogen Detected',
-      diseaseGu: template.diseaseGu || 'રોગના લક્ષણો મળ્યા',
-      pestNameEn: template.pestNameEn || template.diseaseName,
-      pestNameGu: template.pestNameGu || template.diseaseGu,
-      scientificName: template.scientificName || 'Pathogenic foliar disorder',
-      confidence: template.confidence || 94.5,
-      confidenceLabel: `${template.confidence || 94.5}% Match (Local Agronomic Rule Engine)`,
-      severity: template.severity || 'Moderate',
-      severityColor: template.severityColor || 'text-amber-700 bg-amber-100',
-      symptoms: template.symptoms || ['Leaf chlorosis', 'Tissue necrosis'],
-      treatments: template.treatments || [],
-      remedies: template.remedies || template.treatments,
-      warning: template.warning || 'Check local weather conditions before applying foliar spray.',
-      timestamp: formattedTime,
-      imageUrl: imageBase64,
-      isAiEstimate: false,
-      isOfflineFallback: true,
-      disclaimer:
-        'AI diagnostic estimate only. Field-validate with certified KVK extension officer or agronomist before applying chemical pesticides.',
+    // CASE 1: Not a crop image — return a special "invalid image" result
+    if (!geminiResult.isCropImage) {
+      const invalidResult: DiagnosisResult = {
+        id: `scan-${Date.now()}`,
+        crop: 'Unknown',
+        diseaseName: geminiResult.friendlyMessage || 'Not a crop image',
+        diseaseGu: geminiResult.friendlyMessageGu || 'આ પાકની છબી નથી',
+        confidence: 0,
+        confidenceLabel: 'Image Not Recognized',
+        severity: 'Low',
+        severityColor: 'text-amber-700 bg-amber-100',
+        symptoms: [],
+        treatments: [],
+        warning: geminiResult.friendlyMessage || 'Please upload a clear photo of a crop leaf for diagnosis.',
+        timestamp: new Date().toLocaleString('en-IN', {
+          dateStyle: 'medium',
+          timeStyle: 'short',
+        }),
+        imageUrl: imageBase64.substring(0, 200),
+        isAiEstimate: false,
+        isOfflineFallback: false,
+        disclaimer: 'The uploaded image was not recognized as a crop or plant. Please try again with a clear leaf photo.',
+      };
+      // Don't save invalid scans to history
+      return invalidResult;
+    }
+
+    // Get crop database info (independent of farm)
+    const detectedCropName = geminiResult.crop || 'Unknown';
+    const cropDbInfo = cropDatabaseService.getCropInformation(detectedCropName);
+
+    // Build cropInfo from database
+    const cropInfo = {
+      cropName: cropDbInfo.cropName,
+      cropNameGu: cropDbInfo.cropNameGu,
+      cropType: cropDbInfo.cropType,
+      cropTypeGu: cropDbInfo.cropTypeGu,
+      scientificName: cropDbInfo.scientificName,
+      typicalSeason: cropDbInfo.typicalSeason,
+      typicalSeasonGu: cropDbInfo.typicalSeasonGu,
+      typicalGrowthDuration: cropDbInfo.typicalGrowthDuration,
+      waterRequirement: cropDbInfo.waterRequirement,
+      waterRequirementGu: cropDbInfo.waterRequirementGu,
+      commonPests: cropDbInfo.commonPests,
+      commonDiseases: cropDbInfo.commonDiseases,
+      generalCultivationInfo: cropDbInfo.generalCultivationInfo,
+      generalCultivationInfoGu: cropDbInfo.generalCultivationInfoGu,
     };
+
+    // Build marketInfo from backend response
+    const backendMarketInfo = geminiResult.marketInfo;
+    const marketInfo = backendMarketInfo ? {
+      nearestMarket: backendMarketInfo.nearestMarket || 'No data',
+      distanceKm: backendMarketInfo.distanceKm ?? null,
+      distanceLabel: backendMarketInfo.distanceLabel || 'Distance unavailable',
+      modalPrice: backendMarketInfo.modalPrice ?? null,
+      minPrice: backendMarketInfo.minPrice ?? null,
+      maxPrice: backendMarketInfo.maxPrice ?? null,
+      reportedDate: backendMarketInfo.reportedDate || '',
+      source: backendMarketInfo.source || 'Unavailable',
+      priceTrend: backendMarketInfo.priceTrend || 'Insufficient Data' as const,
+      trend7dPercent: backendMarketInfo.trend7dPercent ?? null,
+      trend30dPercent: backendMarketInfo.trend30dPercent ?? null,
+      marketActivity: backendMarketInfo.marketActivity || 'Insufficient Data' as const,
+      marketActivityReason: backendMarketInfo.marketActivityReason || '',
+      dataAvailable: backendMarketInfo.dataAvailable ?? false,
+    } : undefined;
+
+    // Determine visible condition label
+    const visibleCondition: 'Healthy' | 'At Risk' | 'Unknown' =
+      geminiResult.isHealthy ? 'Healthy' :
+      geminiResult.severity === 'Severe' || geminiResult.severity === 'High' ? 'At Risk' :
+      geminiResult.possibleIssue && geminiResult.possibleIssue !== 'None — Healthy Crop' ? 'At Risk' :
+      'Unknown';
+
+    // CASE 2: Healthy crop
+    if (geminiResult.isHealthy) {
+      const healthyResult: DiagnosisResult = {
+        id: `scan-${Date.now()}`,
+        crop: detectedCropName,
+        cropType: geminiResult.cropType || cropDbInfo.cropType,
+        growthStage: geminiResult.growthStage || 'Vegetative',
+        visualQuality: geminiResult.visualQuality || 'Standard',
+        visibleCondition: 'Healthy',
+        possibleIssue: 'None — Healthy Crop',
+        possiblePest: 'None detected',
+        diseaseName: geminiResult.healthMessage || 'Healthy — No Disease Detected',
+        diseaseGu: geminiResult.healthMessageGu || 'સ્વસ્થ — કોઈ રોગ નથી',
+        confidence: geminiResult.confidence || 0,
+        confidenceLabel: geminiResult.confidenceLabel || (geminiResult.confidence ? `${geminiResult.confidence}% Visual Pattern Match` : 'Confidence unavailable'),
+        severity: 'Low',
+        severityColor: 'text-emerald-700 bg-emerald-100',
+        symptoms: geminiResult.symptoms || [],
+        treatments: [],
+        warning: geminiResult.warning || 'Continue regular monitoring. Take photos every 3-5 days.',
+        timestamp: new Date().toLocaleString('en-IN', {
+          dateStyle: 'medium',
+          timeStyle: 'short',
+        }),
+        imageUrl: imageBase64.substring(0, 200),
+        isAiEstimate: true,
+        isOfflineFallback: false,
+        disclaimer: geminiResult.disclaimer || 'AI health assessment. Regular field scouting recommended.',
+        cropInfo,
+        marketInfo,
+      };
+      await this.saveScan(healthyResult);
+      return healthyResult;
+    }
+
+    // CASE 3: Disease / Pest detected — full diagnosis
+    const diagnosisResult: DiagnosisResult = {
+      id: `scan-${Date.now()}`,
+      crop: detectedCropName,
+      cropType: geminiResult.cropType || cropDbInfo.cropType,
+      growthStage: geminiResult.growthStage || 'Vegetative',
+      visualQuality: geminiResult.visualQuality || 'Standard',
+      visibleCondition,
+      possibleIssue: geminiResult.possibleIssue || geminiResult.diseaseName || 'Unknown',
+      possiblePest: geminiResult.possiblePest || 'None detected',
+      diseaseName: geminiResult.diseaseName,
+      diseaseGu: geminiResult.diseaseGu,
+      pestNameEn: geminiResult.pestNameEn,
+      pestNameGu: geminiResult.pestNameGu,
+      scientificName: geminiResult.scientificName,
+      confidence: geminiResult.confidence,
+      confidenceLabel: geminiResult.confidenceLabel || (geminiResult.confidence ? `${geminiResult.confidence}% Visual Pattern Match` : 'Confidence unavailable'),
+      severity: geminiResult.severity,
+      severityColor:
+        geminiResult.severity === 'Severe' || geminiResult.severity === 'High'
+          ? 'text-red-700 bg-red-100'
+          : geminiResult.severity === 'Moderate'
+          ? 'text-orange-700 bg-orange-100'
+          : 'text-yellow-700 bg-yellow-100',
+      symptoms: geminiResult.symptoms || [],
+      treatments: geminiResult.treatments || [],
+      warning: geminiResult.warning,
+      timestamp: new Date().toLocaleString('en-IN', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      }),
+      imageUrl: imageBase64.substring(0, 200),
+      isAiEstimate: true,
+      isOfflineFallback: false,
+      disclaimer: geminiResult.disclaimer,
+      cropInfo,
+      marketInfo,
+    };
+
+    await this.saveScan(diagnosisResult);
+    return diagnosisResult;
   },
 
   /**
@@ -294,7 +288,7 @@ export const aiVisionService: IAiVisionService = {
         treatments: scan.treatments,
         remedies: scan.remedies,
         warning: scan.warning,
-        image_url: scan.imageUrl?.substring(0, 200), // Avoid large payload in sync queue
+        image_url: scan.imageUrl?.substring(0, 200),
         is_ai_estimate: scan.isAiEstimate,
         is_offline_fallback: scan.isOfflineFallback ?? false,
         disclaimer: scan.disclaimer,

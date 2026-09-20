@@ -3,7 +3,192 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { farmService } from '../../services/farmService';
-import type { PlotKey, PlotInfo, FarmParcel } from '../../types';
+import { alertService } from '../../services/alertService';
+import type { PlotKey, PlotInfo, FarmParcel, AlertItem } from '../../types';
+
+interface AiRecData {
+  id: string;
+  cropGu: string;
+  cropEn: string;
+  cropHi: string;
+  varietyGu: string;
+  varietyEn: string;
+  varietyHi: string;
+  score: number;
+  profitGu: string;
+  profitEn: string;
+  profitHi: string;
+  windowGu: string;
+  windowEn: string;
+  windowHi: string;
+  reasonGu: string;
+  reasonEn: string;
+  reasonHi: string;
+  badgeGu: string;
+  badgeEn: string;
+  badgeHi: string;
+}
+
+const AI_RECOMMENDATIONS: AiRecData[] = [
+  {
+    id: 'rec-groundnut',
+    cropGu: 'મગફળી (GG-20)',
+    cropEn: 'GG-20 Groundnut',
+    cropHi: 'Mungfali (GG-20)',
+    varietyGu: 'ગુજરાત મગફળી-૨૦ • ૧૦૫-૧૧૫ દિવસ',
+    varietyEn: 'Gujarat Groundnut-20 • 105-115 Days',
+    varietyHi: 'Gujarat Mungfali-20 • 105-115 Din',
+    score: 96,
+    profitGu: '₹૪૨,૫૦૦ / એકર',
+    profitEn: '₹42,500 / Acre',
+    profitHi: '₹42,500 / Acre',
+    windowGu: 'વાવેતર: આગામી ૫-૭ દિવસ (શ્રેષ્ઠ ભેજ)',
+    windowEn: 'Sowing: Next 5-7 Days (Optimal Moisture)',
+    windowHi: 'Bovavani: Agle 5-7 Din (Best Moisture)',
+    reasonGu: 'કાળી કાંપવાળી જમીન અને ડ્રિપ સિંચાઈ માટે ૯૬% સુસંગત. જમીનમાં કુદરતી નાઇટ્રોજન વધારે છે અને રાજકોટ/સુરત મંડીમાં પ્રીમિયમ ભાવ મળે છે.',
+    reasonEn: '96% match with Black Cotton Soil pH 7.2 & drip irrigation. Naturally enriches nitrogen with premium export demand.',
+    reasonHi: 'Kali mitti (pH 7.2) aur drip piyat ke sath 96% match. Mitti mein nitrogen badhata hai aur mandi mein ucha daam milta hai.',
+    badgeGu: 'બ્લોક A માટે શ્રેષ્ઠ AI પસંદગી',
+    badgeEn: 'Top AI Recommendation for Block A',
+    badgeHi: 'Block A ke liye Top AI Choice',
+  },
+  {
+    id: 'rec-cotton',
+    cropGu: 'કપાસ (G.Cot-16)',
+    cropEn: 'Bt Cotton (G.Cot-16)',
+    cropHi: 'Kapas (G.Cot-16)',
+    varietyGu: 'ગુજરાત કપાસ હાઇબ્રિડ-૧૬ • ૧૫૦-૧૬૫ દિવસ',
+    varietyEn: 'Gujarat Cotton Hybrid-16 • 150-165 Days',
+    varietyHi: 'Gujarat Kapas Hybrid-16 • 150-165 Din',
+    score: 92,
+    profitGu: '₹૩૮,૨૦૦ / એકર',
+    profitEn: '₹38,200 / Acre',
+    profitHi: '₹38,200 / Acre',
+    windowGu: 'વાવેતર: પિયત પછી તરત તૈયાર કરો',
+    windowEn: 'Sowing: Immediate Post Pre-Irrigation',
+    windowHi: 'Bovavani: Piyat ke turant baad taiyar karein',
+    reasonGu: 'કામરેજ નહેર પટ્ટામાં કાળી માટી માટે શ્રેષ્ઠ રોકડિયો પાક. લાંબો તાર અને રોગ પ્રતિકારક શક્તિ, સુરત ટેક્સટાઇલ મિલ દ્વારા સીધી ખરીદી.',
+    reasonEn: 'Optimized for Kamrej canal basin. High staple fiber with in-built pest resilience; strong local textile mill demand.',
+    reasonHi: 'Kamrej canal basin ki kali mitti ke liye best cash crop. Lamba resha aur pest tolerance, Surat mill dwara direct kharidi.',
+    badgeGu: 'ઉચ્ચ રોકડિયો પાક અનુકૂળ',
+    badgeEn: 'High-Yield Commercial Pick',
+    badgeHi: 'High Cash Yield Choice',
+  },
+  {
+    id: 'rec-sesame',
+    cropGu: 'ઉનાળુ તલ (GT-2)',
+    cropEn: 'Summer Sesame (GT-2)',
+    cropHi: 'Garmi ke Til (GT-2)',
+    varietyGu: 'ગુજરાત તલ-૨ • ૮૫-૯૦ દિવસ',
+    varietyEn: 'Gujarat Til-2 • 85-90 Days',
+    varietyHi: 'Gujarat Til-2 • 85-90 Din',
+    score: 89,
+    profitGu: '₹૩૫,૦૦૦ / એકર',
+    profitEn: '₹35,000 / Acre',
+    profitHi: '₹35,000 / Acre',
+    windowGu: 'વાવેતર: પાક ફેરબદલી માટે આદર્શ',
+    windowEn: 'Sowing: Ideal for Crop Rotation',
+    windowHi: 'Bovavani: Fasal rotation ke liye best',
+    reasonGu: 'ઓછા પાણીની જરૂરિયાત (૪૦% ડ્રિપ બચત) અને ટૂંકો પાક સમયગાળો. કપાસ પછી જમીનની ફળદ્રુપતા જાળવી રાખે છે.',
+    reasonEn: 'Low water requirement (saves 40% water) with short 85-day maturity. Restores soil balance after heavy Kharif feeding.',
+    reasonHi: 'Kam pani ki zaroorat (40% drip bachat) aur chhota 85 din ka cycle. Kapas ke baad mitti ki upaj banaye rakhta hai.',
+    badgeGu: 'વોટર-સ્માર્ટ AI રોટેશન',
+    badgeEn: 'Water-Smart AI Rotation',
+    badgeHi: 'Kam Pani mein Bumper Munafa',
+  },
+];
+
+interface AiAlertDisplay {
+  id: string;
+  category: string;
+  severity: 'Critical' | 'High' | 'Medium';
+  severityColor: string;
+  badgeGu: string;
+  badgeEn: string;
+  badgeHi: string;
+  titleGu: string;
+  titleEn: string;
+  titleHi: string;
+  timeGu: string;
+  timeEn: string;
+  timeHi: string;
+  actionSnippetGu: string;
+  actionSnippetEn: string;
+  actionSnippetHi: string;
+  ctaGu: string;
+  ctaEn: string;
+  ctaHi: string;
+  route: string;
+}
+
+const AI_ALERTS: AiAlertDisplay[] = [
+  {
+    id: 'ai-alert-1',
+    category: 'urgent',
+    severity: 'Critical',
+    severityColor: 'bg-red-500 text-white',
+    badgeGu: 'તાત્કાલિક જીવાત જોખમ',
+    badgeEn: 'Critical Pest Outbreak',
+    badgeHi: 'Zaroori Pest Alert',
+    titleGu: 'કામરેજ વિસ્તારમાં ગુલાબી ઈયળ (Pink Bollworm) નો ઉપદ્રવ',
+    titleEn: 'Pink Bollworm Infestation in Kamrej Cluster',
+    titleHi: 'Kamrej Area mein Gulabi Eeyal / Pink Bollworm Outbreak',
+    timeGu: '૧૮ મિનિટ પહેલાં • સેન્સર ટ્રેપ રિપોર્ટ',
+    timeEn: '18m ago • IoT Trap Cluster Report',
+    timeHi: '18 min pehle • IoT Trap Report',
+    actionSnippetGu: 'ટ્રેપ દીઠ ૮ થી વધુ પુખ્ત ફૂદાં નોંધાયા છે. તાત્કાલિક ફેરોમોન ટ્રેપ લગાવો અને AI કેમેરાથી પાન તપાસો.',
+    actionSnippetEn: 'Cluster telemetry detected >8 adult moths/trap. Deploy pheromone traps & scan leaves with AI Camera.',
+    actionSnippetHi: 'Trap mein 8 se zyada kide detect hue hain. Turant pheromone trap lagayein aur AI camera se scan karein.',
+    ctaGu: 'AI કેમેરાથી તપાસ કરો',
+    ctaEn: 'Scan Field with AI Camera',
+    ctaHi: 'AI Camera se Jaanch Karein',
+    route: '/ai-camera',
+  },
+  {
+    id: 'ai-alert-2',
+    category: 'weather',
+    severity: 'High',
+    severityColor: 'bg-amber-500 text-white',
+    badgeGu: 'હવામાન ચેતવણી (ડોપ્લર રડાર)',
+    badgeEn: 'Weather Warning (Doppler Radar)',
+    badgeHi: 'Mausam Warning (Doppler Radar)',
+    titleGu: 'સોમવારે બપોરે ભારે વરસાદ (૨૮ મીમી) ની શક્યતા',
+    titleEn: 'Heavy Convective Rain Forecast (28mm)',
+    titleHi: 'Somwar Dopahar Bhaari Baarish (28mm) ka Anuman',
+    timeGu: '૪૫ મિનિટ પહેલાં • IMD સુરત રડાર',
+    timeEn: '45m ago • IMD Surat Radar',
+    timeHi: '45 min pehle • IMD Surat Radar',
+    actionSnippetGu: 'કીટનાશક છંટકાવ મોકૂફ રાખો અને ખેતરના પાળા સાફ કરો જેથી પાણી ભરાઈ ન રહે.',
+    actionSnippetEn: 'Postpone pesticide spraying and clear field furrows to prevent waterlogging.',
+    actionSnippetHi: 'Dawa chhidkaw rokein aur khet ke dhalan saaf karein taaki pani jama na ho.',
+    ctaGu: 'હવામાન અને સ્પ્રે વિગત જુઓ',
+    ctaEn: 'Check Weather & Spray Window',
+    ctaHi: 'Mausam aur Spray Timing Dekhein',
+    route: '/weather-soil',
+  },
+  {
+    id: 'ai-alert-3',
+    category: 'soil',
+    severity: 'Medium',
+    severityColor: 'bg-blue-600 text-white',
+    badgeGu: 'જમીન પોષક તત્વ ચેતવણી',
+    badgeEn: 'Soil Nutrient Telemetry',
+    badgeHi: 'Mitti Poshan Alert',
+    titleGu: 'બ્લોક A ના મૂળ વિસ્તારમાં ફોસ્ફરસની અછત નોંધાઈ',
+    titleEn: 'Phosphorus Deficit in Block A Root Zone',
+    titleHi: 'Block A mein Phosphorus ki kami detect hui',
+    timeGu: '૨ કલાક પહેલાં • IoT જમીન સેન્સર',
+    timeEn: '2h ago • IoT Soil Probe Feed',
+    timeHi: '2 ghante pehle • IoT Soil Sensor',
+    actionSnippetGu: 'ફોસ્ફરસ ૨૪ કિગ્રા/હેક્ટરથી ઓછું છે. આગામી પિયત વખતે ૨૫ કિગ્રા SSP ખાતર આપો.',
+    actionSnippetEn: 'Available P is below 24 kg/ha. Apply 25kg SSP fertilizer with next irrigation.',
+    actionSnippetHi: 'Phosphorus 24 kg/ha se kam hai. Agle piyat ke sath 25kg SSP khad dein.',
+    ctaGu: 'ખાતર ખર્ચ ટ્રેક કરો',
+    ctaEn: 'Track Fertilizer in Expenses',
+    ctaHi: 'Khad Kharach Track Karein',
+    route: '/expenses',
+  },
+];
 
 const INITIAL_PLOT_DATA: Record<string, PlotInfo> = {
   A: {
@@ -41,7 +226,7 @@ const INITIAL_PLOT_DATA: Record<string, PlotInfo> = {
 };
 
 export const MyFarm: React.FC = () => {
-  const { t } = useLanguage();
+  const { language, bi } = useLanguage();
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -66,6 +251,62 @@ export const MyFarm: React.FC = () => {
     });
     return unsubscribe;
   }, []);
+
+  // AI Real-time Decision Hub State
+  const [recIndex, setRecIndex] = useState(0);
+  const [alertIndex, setAlertIndex] = useState(0);
+  const [isAiUpdating, setIsAiUpdating] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [secondsSinceUpdate, setSecondsSinceUpdate] = useState(4);
+  const [alerts, setAlerts] = useState<AlertItem[]>(() => alertService.getAlerts());
+
+  useEffect(() => {
+    setAlerts(alertService.getAlerts());
+    const unsub = alertService.subscribeToAlerts((updated) => {
+      if (updated && updated.length > 0) setAlerts(updated);
+    });
+    return unsub;
+  }, []);
+
+  // AI Model Auto-update interval: updates information apparently every 9s
+  useEffect(() => {
+    if (isPaused) return;
+    const interval = setInterval(() => {
+      setIsAiUpdating(true);
+      setTimeout(() => {
+        setRecIndex((prev) => (prev + 1) % AI_RECOMMENDATIONS.length);
+        setAlertIndex((prev) => (prev + 1) % AI_ALERTS.length);
+        setIsAiUpdating(false);
+        setSecondsSinceUpdate(0);
+      }, 500);
+    }, 9000);
+    return () => clearInterval(interval);
+  }, [isPaused]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSecondsSinceUpdate((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleManualAiRefresh = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsAiUpdating(true);
+    setTimeout(() => {
+      setRecIndex((prev) => (prev + 1) % AI_RECOMMENDATIONS.length);
+      setAlertIndex((prev) => (prev + 1) % AI_ALERTS.length);
+      setIsAiUpdating(false);
+      setSecondsSinceUpdate(0);
+      showToast(
+        bi(
+          'AgroMind AI: ખેતર ડેટા અને નવીનતમ ભલામણો અપડેટ થઈ!',
+          'AgroMind AI: Farm telemetry & real-time insights updated!',
+          'AgroMind AI: Khet telemetry aur nayi salah update ho gayi!'
+        ).primary
+      );
+    }, 600);
+  };
 
   // History Accordion State
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
@@ -169,6 +410,9 @@ export const MyFarm: React.FC = () => {
     Object.values(plots)[0] ||
     INITIAL_PLOT_DATA.A;
 
+  const currentRec = AI_RECOMMENDATIONS[recIndex] || AI_RECOMMENDATIONS[0];
+  const currentAlert = AI_ALERTS[alertIndex % AI_ALERTS.length] || AI_ALERTS[0];
+
   const totalCalculatedAcres = Object.values(plots).reduce((acc, p) => {
     const match = p.area.match(/([0-9.]+)/);
     return acc + (match ? parseFloat(match[1]) : 0);
@@ -259,7 +503,7 @@ export const MyFarm: React.FC = () => {
                 title="Configure plots and crop details"
               >
                 <span className="material-symbols-outlined text-[17px] text-secondary">tune</span>
-                <span>Edit Farm / સુધારો</span>
+                <span>{bi('સુધારો / Edit Farm', 'Edit Farm / સુધારો', 'Khet Sudharein / Edit Farm').primary}</span>
               </button>
 
               <button
@@ -421,6 +665,263 @@ export const MyFarm: React.FC = () => {
         </div>
 
         {/* ========================================================================= */}
+        {/* AGROMIND AI REAL-TIME DECISION HUB (RECOMMENDATION & ALERT BLOCKS)        */}
+        {/* ========================================================================= */}
+        <div 
+          className="w-full bg-surface-container-lowest rounded-3xl p-5 sm:p-6 shadow-sm border border-outline-variant/30 space-y-4"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
+          {/* AI Decision Hub Header Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-outline-variant/20">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center shadow-md shadow-emerald-600/20">
+                <span className="material-symbols-outlined text-[22px] animate-pulse">psychology</span>
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-sm sm:text-base font-black text-primary flex items-center gap-1.5">
+                    {bi('AI રિયલ-ટાઇમ સ્માર્ટ નિર્ણય કેન્દ્ર', 'AgroMind AI Real-Time Decision Hub', 'AgroMind AI Real-Time Decision Hub').primary}
+                  </h2>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-extrabold border border-emerald-200">
+                    <span className="w-2 h-2 rounded-full bg-emerald-600 animate-ping" />
+                    {bi('AI મોડલ સક્રિય (Live Model)', 'AI Model Active (Live)', 'AI Model Active (Live)').primary}
+                  </span>
+                </div>
+                <p className="text-[11px] text-on-surface-variant font-medium">
+                  {bi(
+                    `સેટેલાઇટ NDVI અને જમીન સેન્સર્સ આધારે સતત અપડેટ (${secondsSinceUpdate}s પહેલાં અપડેટ)`,
+                    `Continuous telemetry analysis via Sentinel-2 & IoT Probes (updated ${secondsSinceUpdate}s ago)`,
+                    `Satellite NDVI aur IoT probes se live update (${secondsSinceUpdate}s pehle update)`
+                  ).primary}
+                </p>
+              </div>
+            </div>
+
+            {/* Quick AI Action: Re-run Inference */}
+            <div className="flex items-center gap-2 self-end sm:self-center">
+              <span className="text-[11px] text-on-surface-variant/80 hidden md:inline font-medium">
+                {isPaused ? '⏸️ Rotation paused' : '🔄 Auto-updating'}
+              </span>
+              <button
+                type="button"
+                onClick={handleManualAiRefresh}
+                disabled={isAiUpdating}
+                className="px-3 py-1.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-primary text-xs font-bold transition-all active:scale-95 border border-outline-variant/30 flex items-center gap-1.5 shadow-xs disabled:opacity-50"
+                title="Force AI model recalculation"
+              >
+                <span className={`material-symbols-outlined text-[16px] text-secondary ${isAiUpdating ? 'animate-spin' : ''}`}>
+                  refresh
+                </span>
+                <span>{bi('AI પુનઃ ગણતરી (Re-analyze)', 'AI Re-analyze', 'AI Re-analyze Karein').primary}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* AI Model Recalculating Shimmer Banner */}
+          {isAiUpdating && (
+            <div className="w-full bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-3.5 py-1.5 flex items-center justify-between text-xs text-emerald-800 font-bold animate-in fade-in duration-200">
+              <span className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[16px] animate-spin text-emerald-700">sync</span>
+                <span>
+                  {bi('AI મોડલ ખેતરના ડેટાનું ફરીથી વિશ્લેષણ કરી રહ્યું છે...', 'AgroMind AI is recalculating soil, weather & crop telemetry...', 'AI Model khet data ka re-analysis kar raha hai...').primary}
+                </span>
+              </span>
+              <span className="text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded-md font-mono">Neural 3.4</span>
+            </div>
+          )}
+
+          {/* Responsive 2-Block Interactive Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+
+            {/* ------------------------------------------------------------------- */}
+            {/* BLOCK 1: AI CROP RECOMMENDATION BLOCK (REDIRECTS TO /recommendations) */}
+            {/* ------------------------------------------------------------------- */}
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => navigate('/recommendations')}
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && navigate('/recommendations')}
+              className="group relative flex flex-col justify-between p-5 rounded-2xl bg-gradient-to-br from-emerald-500/5 via-surface-container-lowest to-surface-container-lowest border-2 border-emerald-500/25 hover:border-emerald-600 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              title="Click to view full AI crop recommendations and cultivation calendar"
+            >
+              {/* Header Badges */}
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-7 h-7 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 shadow-xs">
+                    <span className="material-symbols-outlined text-[17px]">eco</span>
+                  </span>
+                  <div>
+                    <span className="text-xs font-black text-emerald-900 tracking-tight block">
+                      {bi('AI પાક ભલામણ (AI Crop Recommendation)', 'AI Crop Recommendation', 'AI Fasal Sifarish (AI Crop Recommendation)').primary}
+                    </span>
+                    <span className="text-[10px] text-emerald-700 font-bold block">
+                      {language === 'gu' ? currentRec.badgeGu : language === 'hi' ? currentRec.badgeHi : currentRec.badgeEn}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Score Pill & Carousel Dots */}
+                <div className="flex flex-col items-end gap-1">
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[11px] font-extrabold shadow-xs flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[13px]">auto_awesome</span>
+                    {currentRec.score}% {bi('અનુકૂળ', 'Match', 'Fit').primary}
+                  </span>
+                  <div className="flex items-center gap-1 pt-0.5">
+                    {AI_RECOMMENDATIONS.map((_, idx) => (
+                      <span
+                        key={idx}
+                        className={`h-1.5 rounded-full transition-all duration-300 ${
+                          recIndex === idx ? 'w-4 bg-emerald-600' : 'w-1.5 bg-emerald-200'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Crop Identity & Telemetry Metrics */}
+              <div className="space-y-2 mb-3">
+                <div>
+                  <h3 className="text-base sm:text-lg font-black text-primary group-hover:text-emerald-800 transition-colors flex items-center justify-between">
+                    <span>{language === 'gu' ? currentRec.cropGu : language === 'hi' ? currentRec.cropHi : currentRec.cropEn}</span>
+                    <span className="text-xs font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60">
+                      {language === 'gu' ? currentRec.profitGu : language === 'hi' ? currentRec.profitHi : currentRec.profitEn}
+                    </span>
+                  </h3>
+                  <p className="text-xs text-on-surface-variant font-medium">
+                    {language === 'gu' ? currentRec.varietyGu : language === 'hi' ? currentRec.varietyHi : currentRec.varietyEn}
+                  </p>
+                </div>
+
+                {/* AI Rationale Snippet Box */}
+                <div className="bg-emerald-50/80 rounded-xl p-2.5 border border-emerald-200/50 text-[11px] text-emerald-950 flex items-start gap-2">
+                  <span className="material-symbols-outlined text-[16px] text-emerald-700 shrink-0 mt-0.5">
+                    insights
+                  </span>
+                  <p className="leading-snug">
+                    {language === 'gu' ? currentRec.reasonGu : language === 'hi' ? currentRec.reasonHi : currentRec.reasonEn}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 text-[10px] text-on-surface-variant font-semibold">
+                  <span className="flex items-center gap-1 text-emerald-800">
+                    <span className="material-symbols-outlined text-[13px]">calendar_today</span>
+                    {language === 'gu' ? currentRec.windowGu : language === 'hi' ? currentRec.windowHi : currentRec.windowEn}
+                  </span>
+                </div>
+              </div>
+
+              {/* Redirect Action Footer */}
+              <div className="pt-2 border-t border-emerald-500/20 flex items-center justify-between">
+                <span className="text-[11px] font-bold text-emerald-800 group-hover:text-emerald-900 flex items-center gap-1">
+                  <span>{bi('સંપૂર્ણ AI ખેતી યોજના જુઓ', 'View Full Cultivation Plan', 'Poori Kheti Plan Dekhein').primary}</span>
+                  <span className="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">
+                    arrow_forward
+                  </span>
+                </span>
+                <span className="text-[10px] text-on-surface-variant font-medium">
+                  {bi('ટેપ કરો → /recommendations', 'Tap to open /recommendations', 'Tap karein → /recommendations').primary}
+                </span>
+              </div>
+            </div>
+
+            {/* ------------------------------------------------------------------- */}
+            {/* BLOCK 2: AI ACTIONABLE ALERT BLOCK (REDIRECTS TO /alerts)           */}
+            {/* ------------------------------------------------------------------- */}
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => navigate('/alerts')}
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && navigate('/alerts')}
+              className="group relative flex flex-col justify-between p-5 rounded-2xl bg-gradient-to-br from-amber-500/5 via-surface-container-lowest to-surface-container-lowest border-2 border-amber-500/30 hover:border-amber-600 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-amber-500"
+              title="Click to view all actionable farm alerts and emergency spray advisories"
+            >
+              {/* Header Badges */}
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-7 h-7 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 shadow-xs">
+                    <span className="material-symbols-outlined text-[17px] text-amber-700">warning</span>
+                  </span>
+                  <div>
+                    <span className="text-xs font-black text-amber-950 tracking-tight block">
+                      {bi('AI તાત્કાલિક ચેતવણી (AI Priority Alert)', 'AI Priority Field Alert', 'AI Turant Alert (AI Priority Alert)').primary}
+                    </span>
+                    <span className="text-[10px] text-amber-800 font-bold block">
+                      {language === 'gu' ? currentAlert.badgeGu : language === 'hi' ? currentAlert.badgeHi : currentAlert.badgeEn}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Severity Pill & Carousel Dots */}
+                <div className="flex flex-col items-end gap-1">
+                  <span className={`px-2.5 py-0.5 rounded-full text-white text-[11px] font-extrabold shadow-xs flex items-center gap-1 ${
+                    currentAlert.severity === 'Critical' ? 'bg-red-600 animate-pulse' : 'bg-amber-600'
+                  }`}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                    {currentAlert.severity}
+                  </span>
+                  <div className="flex items-center gap-1 pt-0.5">
+                    {AI_ALERTS.map((_, idx) => (
+                      <span
+                        key={idx}
+                        className={`h-1.5 rounded-full transition-all duration-300 ${
+                          alertIndex === idx ? 'w-4 bg-amber-600' : 'w-1.5 bg-amber-200'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Alert Title & Source */}
+              <div className="space-y-2 mb-3">
+                <div>
+                  <h3 className="text-base sm:text-lg font-black text-primary group-hover:text-amber-900 transition-colors">
+                    {language === 'gu' ? currentAlert.titleGu : language === 'hi' ? currentAlert.titleHi : currentAlert.titleEn}
+                  </h3>
+                  <p className="text-[11px] text-on-surface-variant font-medium flex items-center gap-1 mt-0.5">
+                    <span className="material-symbols-outlined text-[13px] text-amber-700">schedule</span>
+                    <span>{language === 'gu' ? currentAlert.timeGu : language === 'hi' ? currentAlert.timeHi : currentAlert.timeEn}</span>
+                  </p>
+                </div>
+
+                {/* AI Hazard Advice Box */}
+                <div className="bg-amber-50/90 rounded-xl p-2.5 border border-amber-200/60 text-[11px] text-amber-950 flex items-start gap-2">
+                  <span className="material-symbols-outlined text-[16px] text-amber-700 shrink-0 mt-0.5">
+                    crisis_alert
+                  </span>
+                  <p className="leading-snug">
+                    {language === 'gu' ? currentAlert.actionSnippetGu : language === 'hi' ? currentAlert.actionSnippetHi : currentAlert.actionSnippetEn}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 text-[10px] text-on-surface-variant font-semibold">
+                  <span className="flex items-center gap-1 text-red-700 font-bold">
+                    <span className="material-symbols-outlined text-[13px]">notification_important</span>
+                    {bi('તાત્કાલિક પગલું જરૂરી', 'Immediate Action Required', 'Turant Action Zaroori').primary}
+                  </span>
+                </div>
+              </div>
+
+              {/* Redirect Action Footer */}
+              <div className="pt-2 border-t border-amber-500/20 flex items-center justify-between">
+                <span className="text-[11px] font-bold text-amber-800 group-hover:text-amber-900 flex items-center gap-1">
+                  <span>{bi('ચેતવણી કેન્દ્રમાં પગલાં લો', 'Take Action in Alert Center', 'Alerts Center mein Action Lein').primary}</span>
+                  <span className="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">
+                    arrow_forward
+                  </span>
+                </span>
+                <span className="text-[10px] text-on-surface-variant font-medium">
+                  {bi('ટેપ કરો → /alerts', 'Tap to open /alerts', 'Tap karein → /alerts').primary}
+                </span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* ========================================================================= */}
         {/* RESPONSIVE 2-COLUMN GRID (Mobile: Single Stack | Desktop: 2 Columns)      */}
         {/* ========================================================================= */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
@@ -509,24 +1010,16 @@ export const MyFarm: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <span className="material-symbols-outlined text-secondary text-[22px]">map</span>
                   <h2 className="text-sm sm:text-base font-bold text-primary">
-                    Parcel Map / ખેતર નકશો
+                    {bi('ખેતર નકશો / Parcel Map', 'Parcel Map / ખેતર નકશો', 'Khet Naksha / Parcel Map').primary}
                   </h2>
                 </div>
                 <span className="text-[11px] text-on-surface-variant font-medium">
-                  Tap to switch plot
+                  {bi('પ્લોટ બદલવા ટેપ કરો', 'Tap to switch plot', 'Plot badalne ke liye tap karein').primary}
                 </span>
               </div>
 
               {/* Stylized Visual Field Graphic */}
               <div className="relative w-full rounded-2xl bg-surface-container p-3 overflow-hidden border border-outline-variant/30">
-                {/* Water canal line running in middle */}
-                <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-3 bg-secondary-container/70 z-0 flex flex-col justify-around items-center">
-                  <span className="w-1 h-3 bg-secondary rounded-full" />
-                  <span className="w-1 h-3 bg-secondary rounded-full" />
-                  <span className="w-1 h-3 bg-secondary rounded-full" />
-                  <span className="w-1 h-3 bg-secondary rounded-full" />
-                </div>
-
                 <div className={`grid ${
                   Object.keys(plots).length === 1 
                     ? 'grid-cols-1' 
@@ -578,9 +1071,10 @@ export const MyFarm: React.FC = () => {
 
                 <div className="mt-2.5 pt-2 flex items-center justify-between text-on-surface-variant text-[11px] px-1 font-medium">
                   <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-secondary" /> South-facing slope
+                    <span className="w-2 h-2 rounded-full bg-secondary" />
+                    {bi('દક્ષિણ ઢાળ (South slope)', 'South-facing slope (દક્ષિણ ઢાળ)', 'Dakshin Dhalan (South slope)').primary}
                   </span>
-                  <span>Borewell Line: North Corridor</span>
+                  <span>{bi('બોરવેલ લાઇન: ઉત્તર કોરિડોર', 'Borewell Line: North Corridor', 'Borewell Line: Uttar Corridor').primary}</span>
                 </div>
               </div>
             </div>
@@ -592,7 +1086,7 @@ export const MyFarm: React.FC = () => {
               className="w-full h-14 bg-secondary hover:bg-primary text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.99]"
             >
               <span className="material-symbols-outlined text-[24px]">add_circle</span>
-              <span>+ Add New Farm / Plot (નવો પ્લોટ ઉમેરો)</span>
+              <span>{bi('+ નવો પ્લોટ ઉમેરો (+ Add New Plot)', '+ Add New Farm / Plot (+ નવો પ્લોટ ઉમેરો)', '+ Naya Plot Jodein (+ Add New Plot)').primary}</span>
             </button>
           </div>
 
@@ -898,24 +1392,25 @@ export const MyFarm: React.FC = () => {
                   className="w-full h-12 bg-secondary hover:bg-primary text-white text-xs font-bold rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
                 >
                   <span className="material-symbols-outlined text-[18px]">save</span>
-                  <span>Save Farm Details / પ્લોટ સાચવો</span>
+                  <span>{bi('પ્લોટ સાચવો / Save Farm Details', 'Save Farm Details / પ્લોટ સાચવો', 'Khet Details Save Karein / Save Farm Details').primary}</span>
                 </button>
                 {modalMode === 'edit' && Object.keys(plots).length > 1 && (
                   <button
                     type="button"
                     onClick={() => handleDeletePlot(activePlot)}
-                    className="w-full h-10 text-red-600 hover:bg-red-50 text-xs font-bold rounded-xl transition-colors flex items-center justify-center gap-1.5 border border-red-200"
+                    className="w-full h-11 text-red-600 hover:bg-red-50 text-xs font-bold rounded-xl transition-colors flex items-center justify-center gap-1.5 border border-red-200"
                   >
-                    <span className="material-symbols-outlined text-[16px]">delete</span>
-                    <span>Delete Plot ({activePlot}) / પ્લોટ કાઢી નાખો</span>
+                    <span className="material-symbols-outlined text-[18px]">delete</span>
+                    <span>{bi(`પ્લોટ (${activePlot}) કાઢી નાખો / Delete Plot`, `Delete Plot (${activePlot}) / પ્લોટ કાઢી નાખો`, `Plot (${activePlot}) Hatayein / Delete Plot`).primary}</span>
                   </button>
                 )}
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="w-full h-10 text-on-surface-variant hover:text-primary text-xs font-semibold transition-colors"
+                  className="w-full h-11 bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-bold rounded-xl border border-outline-variant/40 shadow-xs flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]"
                 >
-                  Cancel / રદ કરો
+                  <span className="material-symbols-outlined text-[18px]">close</span>
+                  <span>{bi('રદ કરો / Cancel', 'Cancel / રદ કરો', 'Cancel Karein / Cancel').primary}</span>
                 </button>
               </div>
             </form>

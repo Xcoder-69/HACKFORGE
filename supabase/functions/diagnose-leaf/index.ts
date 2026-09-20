@@ -1,5 +1,6 @@
 // Supabase Edge Function: diagnose-leaf
 // Secure server-side multimodal AI diagnosis for crop leaf pathology
+// ENRICHED with market price context (Mandi data) and weather spray-window context (Open-Meteo).
 // GEMINI_API_KEY is retrieved securely from server environment variables and NEVER exposed to clients.
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
@@ -31,6 +32,175 @@ function checkRateLimit(ip: string): boolean {
   return true;
 }
 
+// ============================================================
+// JOB STATUS TRACKING
+// Stores in-memory job status for async diagnosis tracking.
+// ============================================================
+interface JobStatus {
+  jobId: string;
+  status: 'processing' | 'completed' | 'failed';
+  createdAt: string;
+  completedAt?: string;
+  result?: any;
+  error?: string;
+}
+
+const jobStore = new Map<string, JobStatus>();
+const MAX_JOB_HISTORY = 100;
+
+function cleanOldJobs() {
+  if (jobStore.size > MAX_JOB_HISTORY) {
+    const entries = [...jobStore.entries()].sort(
+      (a, b) => new Date(a[1].createdAt).getTime() - new Date(b[1].createdAt).getTime()
+    );
+    const toRemove = entries.slice(0, entries.length - MAX_JOB_HISTORY);
+    toRemove.forEach(([key]) => jobStore.delete(key));
+  }
+}
+
+// ============================================================
+// ENRICHMENT: Market Context from Mandi Data
+// ============================================================
+interface MarketContext {
+  cropPrice: number | null;
+  priceSource: string;
+  trend: 'up' | 'down' | 'stable' | 'unknown';
+  recommendation: string;
+  dataAvailable: boolean;
+  market?: string;
+}
+
+async function fetchMarketContext(crop: string, baseUrl: string): Promise<MarketContext> {
+  const fallback: MarketContext = {
+    cropPrice: null,
+    priceSource: 'unavailable',
+    trend: 'unknown',
+    recommendation: 'Check mandi prices manually',
+    dataAvailable: false,
+  };
+
+  try {
+    // Try Government Live API first
+    const liveUrl = `${baseUrl}/mandi-live?state=Gujarat&commodity=${encodeURIComponent(crop)}&limit=5`;
+    const liveResponse = await fetch(liveUrl, {
+      signal: AbortSignal.timeout(4000),
+      headers: { 'Accept': 'application/json' },
+    });
+
+    if (liveResponse.ok) {
+      const liveData = await liveResponse.json();
+      if (liveData.success && liveData.data && liveData.data.length > 0) {
+        const topRecord = liveData.data[0];
+        return {
+          cropPrice: topRecord.modalPrice,
+          priceSource: 'government_api_live',
+          trend: 'stable', // Would need historical comparison for real trend
+          recommendation: topRecord.modalPrice > 5000 ? 'SELL NOW' : 'HOLD',
+          dataAvailable: true,
+          market: topRecord.market,
+        };
+      }
+    }
+  } catch (_e) {
+    console.warn('[diagnose-leaf] Live mandi API enrichment failed, trying CSV data');
+  }
+
+  try {
+    // Fallback to CSV historical data
+    const csvUrl = `${baseUrl}/mandi-data?state=Gujarat&commodity=${encodeURIComponent(crop)}&limit=5`;
+    const csvResponse = await fetch(csvUrl, {
+      signal: AbortSignal.timeout(3000),
+      headers: { 'Accept': 'application/json' },
+    });
+
+    if (csvResponse.ok) {
+      const csvData = await csvResponse.json();
+      if (csvData.success && csvData.data && csvData.data.length > 0) {
+        const topRecord = csvData.data[0];
+        return {
+          cropPrice: topRecord.modalPrice,
+          priceSource: 'csv_historical',
+          trend: 'stable',
+          recommendation: 'Check latest mandi rates',
+          dataAvailable: true,
+          market: topRecord.market,
+        };
+      }
+    }
+  } catch (_e) {
+    console.warn('[diagnose-leaf] CSV mandi data enrichment also failed');
+  }
+
+  return fallback;
+}
+
+// ============================================================
+// ENRICHMENT: Weather Context from Open-Meteo
+// ============================================================
+interface WeatherContext {
+  condition: string;
+  temperature: number | null;
+  humidity: number | null;
+  sprayWindow: 'Optimal' | 'Safe' | 'Moderate' | 'Unsafe' | 'Unknown';
+  rainProbability: number | null;
+  dataAvailable: boolean;
+}
+
+const WMO_SPRAY_MAP: Record<number, { condition: string; score: 'Optimal' | 'Safe' | 'Moderate' | 'Unsafe' }> = {
+  0: { condition: 'Clear Sky', score: 'Optimal' },
+  1: { condition: 'Mainly Clear', score: 'Optimal' },
+  2: { condition: 'Partly Cloudy', score: 'Safe' },
+  3: { condition: 'Overcast', score: 'Moderate' },
+  45: { condition: 'Foggy', score: 'Moderate' },
+  51: { condition: 'Light Drizzle', score: 'Moderate' },
+  53: { condition: 'Moderate Drizzle', score: 'Unsafe' },
+  61: { condition: 'Slight Rain', score: 'Unsafe' },
+  63: { condition: 'Moderate Rain', score: 'Unsafe' },
+  65: { condition: 'Heavy Rain', score: 'Unsafe' },
+  80: { condition: 'Rain Showers', score: 'Unsafe' },
+  95: { condition: 'Thunderstorm', score: 'Unsafe' },
+};
+
+async function fetchWeatherContext(lat: number = 21.1702, lng: number = 72.8311): Promise<WeatherContext> {
+  const fallback: WeatherContext = {
+    condition: 'Unknown',
+    temperature: null,
+    humidity: null,
+    sprayWindow: 'Unknown',
+    rainProbability: null,
+    dataAvailable: false,
+  };
+
+  try {
+    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,weather_code,precipitation&daily=precipitation_probability_max&timezone=Asia%2FKolkata`;
+    const response = await fetch(weatherUrl, { signal: AbortSignal.timeout(4000) });
+
+    if (response.ok) {
+      const json = await response.json();
+      const weatherCode = json.current?.weather_code ?? 2;
+      const wmo = WMO_SPRAY_MAP[weatherCode] || { condition: 'Fair', score: 'Safe' };
+      const rainProb = json.daily?.precipitation_probability_max?.[0] ?? 10;
+
+      let sprayWindow = wmo.score;
+      if (rainProb >= 60) sprayWindow = 'Unsafe';
+      else if (rainProb >= 30 && sprayWindow !== 'Unsafe') sprayWindow = 'Moderate';
+
+      return {
+        condition: wmo.condition,
+        temperature: Math.round(json.current?.temperature_2m ?? 31),
+        humidity: Math.round(json.current?.relative_humidity_2m ?? 65),
+        sprayWindow,
+        rainProbability: rainProb,
+        dataAvailable: true,
+      };
+    }
+  } catch (_e) {
+    console.warn('[diagnose-leaf] Weather enrichment failed, returning unavailable');
+  }
+
+  return fallback;
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -38,6 +208,27 @@ serve(async (req) => {
   }
 
   try {
+    const url = new URL(req.url);
+    const pathname = url.pathname.replace(/^\/diagnose-leaf\/?/, '').replace(/^\/+/, '');
+
+    // ---- Job Status Endpoint ----
+    // GET /diagnose-leaf/status/:jobId
+    if (pathname.startsWith('status/') || pathname.startsWith('status\\')) {
+      const jobId = pathname.replace(/^status[\\/]/, '');
+      const job = jobStore.get(jobId);
+
+      if (!job) {
+        return new Response(
+          JSON.stringify({ error: `Job ${jobId} not found`, jobId }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      return new Response(JSON.stringify({ success: true, job }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'client';
     if (!checkRateLimit(clientIp)) {
       return new Response(
@@ -66,7 +257,7 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { imageBase64, crop = 'Cotton', stage = 'Flowering' } = body;
+    const { imageBase64, crop = 'Cotton', stage = 'Flowering', lat, lng } = body;
 
     if (!imageBase64) {
       return new Response(
@@ -98,6 +289,16 @@ serve(async (req) => {
         { status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Create job entry for tracking
+    const jobId = `job-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+    const jobStatus: JobStatus = {
+      jobId,
+      status: 'processing',
+      createdAt: new Date().toISOString(),
+    };
+    jobStore.set(jobId, jobStatus);
+    cleanOldJobs();
 
     const prompt = `You are a certified Indian agricultural plant pathologist and agronomist at Gujarat Krishi Vigyan Kendra (KVK).
 The farmer has uploaded an image of a crop leaf with crop: "${crop}" at stage: "${stage}".
@@ -145,8 +346,9 @@ Return ONLY pure JSON. Do not include markdown codeblocks or other commentary.`;
     });
 
     if (!geminiResponse.ok) {
+      jobStore.set(jobId, { ...jobStatus, status: 'failed', error: `AI provider error: ${geminiResponse.status}` });
       return new Response(
-        JSON.stringify({ error: `Upstream AI provider error: ${geminiResponse.status}` }),
+        JSON.stringify({ error: `Upstream AI provider error: ${geminiResponse.status}`, jobId }),
         { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -154,8 +356,9 @@ Return ONLY pure JSON. Do not include markdown codeblocks or other commentary.`;
     const geminiData = await geminiResponse.json();
     const rawText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!rawText) {
+      jobStore.set(jobId, { ...jobStatus, status: 'failed', error: 'No AI interpretation received' });
       return new Response(
-        JSON.stringify({ error: 'No diagnostic interpretation received from AI model' }),
+        JSON.stringify({ error: 'No diagnostic interpretation received from AI model', jobId }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -166,8 +369,17 @@ Return ONLY pure JSON. Do not include markdown codeblocks or other commentary.`;
     const now = new Date();
     const formattedTime = `Today, ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 
+    // ---- ENRICHMENT PIPELINE ----
+    // Step 1: Fetch market context for the identified crop
+    const baseOrigin = url.origin;
+    const [marketContext, weatherContext] = await Promise.all([
+      fetchMarketContext(crop, baseOrigin),
+      fetchWeatherContext(lat || 21.1702, lng || 72.8311),
+    ]);
+
     const diagnosisResult = {
       id: `scan-${Date.now()}`,
+      jobId,
       crop,
       stage,
       diseaseName: parsed.diseaseName || `${crop} Foliar Anomaly`,
@@ -192,9 +404,20 @@ Return ONLY pure JSON. Do not include markdown codeblocks or other commentary.`;
       isOfflineFallback: false,
       disclaimer:
         'AI diagnostic estimate only. Field-validate with certified KVK extension officer or agronomist before applying chemical pesticides.',
+      // ---- ENRICHMENT CONTEXT ----
+      marketContext,
+      weatherContext,
     };
 
-    return new Response(JSON.stringify({ success: true, result: diagnosisResult }), {
+    // Update job store
+    jobStore.set(jobId, {
+      ...jobStatus,
+      status: 'completed',
+      completedAt: new Date().toISOString(),
+      result: { id: diagnosisResult.id, crop, diseaseName: diagnosisResult.diseaseName },
+    });
+
+    return new Response(JSON.stringify({ success: true, result: diagnosisResult, jobId }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (err: any) {

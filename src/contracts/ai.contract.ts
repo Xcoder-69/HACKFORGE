@@ -5,9 +5,9 @@ import type { DiagnosisResult, ChatMessage } from '../types';
 export interface DiagnoseRequest {
   imageBase64?: string;
   imageFile?: File;
-  crop: string;
-  stage?: string;
-  farmerId?: string;
+  // Location for market lookup (NOT farm location)
+  lat?: number;
+  lng?: number;
 }
 
 export interface DiagnoseResponse {

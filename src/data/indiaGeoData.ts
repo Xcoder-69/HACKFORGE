@@ -316,25 +316,24 @@ export const INDIA_STATES_AND_DISTRICTS: StateDistrictMapping[] = [
 export const DISTRICT_CITIES_MAP: Record<string, string[]> = {
   // GUJARAT DISTRICTS
   'Surat': [
-    'Surat City', 'Kamrej', 'Bardoli', 'Olpad', 'Mandvi', 'Mangrol',
-    'Palsana', 'Mahuva', 'Umarpada', 'Hazira', 'Sachin', 'Kosamba',
-    'Kadodara', 'Kim', 'Sayan', 'Chalthan'
+    'Kamrej', 'Bardoli', 'Olpad', 'Mandvi', 'Mangrol',
+    'Palsana', 'Mahuva', 'Umarpada', 'Choryasi', 'Surat City'
   ],
   'Rajkot': [
-    'Rajkot City', 'Gondal', 'Jetpur', 'Dhoraji', 'Upleta', 'Jasdan',
-    'Kotda Sangani', 'Lodhika', 'Paddhari', 'Jamkandorna', 'Vinchhiya', 'Shapar-Veraval'
+    'Gondal', 'Jetpur', 'Dhoraji', 'Upleta', 'Jasdan',
+    'Kotda Sangani', 'Lodhika', 'Paddhari', 'Jamkandorna', 'Vinchhiya', 'Rajkot City'
   ],
   'Ahmedabad': [
-    'Ahmedabad City', 'Sanand', 'Dholka', 'Viramgam', 'Bavla', 'Dhandhuka',
-    'Daskroi', 'Mandal', 'Detroj-Rampura', 'Dholera', 'Changodar'
+    'Sanand', 'Dholka', 'Viramgam', 'Bavla', 'Dhandhuka',
+    'Daskroi', 'Mandal', 'Detroj-Rampura', 'Dholera', 'Ahmedabad City'
   ],
   'Vadodara': [
-    'Vadodara City', 'Padra', 'Dabhoi', 'Karjan', 'Waghodia', 'Savli',
-    'Sinor', 'Desar', 'Por-Ramangamdi'
+    'Padra', 'Dabhoi', 'Karjan', 'Waghodia', 'Savli',
+    'Sinor', 'Desar', 'Vadodara City'
   ],
   'Anand': [
-    'Anand City', 'Petlad', 'Borsad', 'Khambhat', 'Umreth', 'Sojitra',
-    'Tarapur', 'Anklav', 'Vasad', 'Vallabh Vidyanagar'
+    'Petlad', 'Borsad', 'Khambhat', 'Umreth', 'Sojitra',
+    'Tarapur', 'Anklav', 'Anand City'
   ],
   'Bhavnagar': [
     'Bhavnagar City', 'Mahuva', 'Talaja', 'Sihor', 'Palitana', 'Gariadhar',
@@ -735,17 +734,19 @@ export const CITY_AREAS_MAP: Record<string, string[]> = {
     'Mahuva Gam', 'Karchelia (કરચેલીયા)', 'Anaval (અનાવલ)', 'Bhoria',
     'Vankla', 'Dholikui', 'Gopla'
   ],
+  'Choryasi': [
+    'Hazira Coastal Farm (હજીરા)', 'Mora (મોરા)', 'Damka (દામકા)', 'Bhatlai (ભાટલાઈ)',
+    'Suvali (સુવાલી)', 'Sachin Gam (સચીન)', 'Vanz (વાંઝ)', 'Lajpore (લાજપોર)'
+  ],
+  'Umarpada': [
+    'Umarpada Gam (ઉમરપાડા)', 'Chavda (ચાવડા)', 'Vadpada (વડપાડા)',
+    'Sarda (સારડા)', 'Gowali (ગોવાલી)', 'Pada (પાડા)'
+  ],
   'Hazira': [
     'Hazira Coastal Farm', 'Mora (મોરા)', 'Damka', 'Bhatlai', 'Suvali', 'Sunwali'
   ],
   'Sachin': [
     'Sachin Gam', 'Kansad', 'Lajpore', 'Vanz', 'Pardi Kande', 'Hojiwala'
-  ],
-  'Kim': [
-    'Kim Station Area', 'Kudsad', 'Pardi', 'Kathodara', 'Mulad Border'
-  ],
-  'Sayan': [
-    'Sayan Sugar Mill Area', 'Sandhier', 'Delad', 'Kalyan Farm', 'Gothan'
   ],
 
   // RAJKOT DISTRICT CITIES

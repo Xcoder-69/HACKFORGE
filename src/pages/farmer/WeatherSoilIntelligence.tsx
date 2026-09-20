@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { weatherService, type WeatherData } from '../../services/weatherService';
 import { farmService } from '../../services/farmService';
+import { filterAndSortMultilingual } from '../../utils/multilingualSearch';
 import {
   locationService,
   GUJARAT_DISTRICT_PRESETS,
@@ -12,7 +13,7 @@ import {
 
 export const WeatherSoilIntelligence: React.FC = () => {
   const navigate = useNavigate();
-  const { language } = useLanguage();
+  const { language, bi } = useLanguage();
   const [activeTab, setActiveTab] = useState<'weather' | 'soil' | 'spray'>('weather');
   const [selectedDay, setSelectedDay] = useState<number>(0);
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
@@ -29,6 +30,21 @@ export const WeatherSoilIntelligence: React.FC = () => {
     type: 'info' | 'warning' | 'success';
   } | null>(null);
   const [showDistrictModal, setShowDistrictModal] = useState<boolean>(false);
+  const [districtSearch, setDistrictSearch] = useState<string>('');
+
+  const filteredDistricts = filterAndSortMultilingual(
+    GUJARAT_DISTRICT_PRESETS,
+    districtSearch,
+    (preset) => ({
+      primaryGu: preset.nameGu,
+      primaryEn: preset.name,
+      primaryHi: preset.name,
+      secondaryGu: [preset.districtGu, preset.district],
+      secondaryEn: [preset.district, preset.name],
+      secondaryHi: [preset.district],
+    }),
+    language
+  );
 
   const fetchWeather = async (
     lat?: number,
@@ -175,8 +191,11 @@ export const WeatherSoilIntelligence: React.FC = () => {
               </span>
             </div>
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
-              Weather & Soil Intelligence
+              {bi('હવામાન અને જમીન વિશ્લેષણ', 'Weather & Soil Intelligence', 'मौसम और मृदा विश्लेषण').primary}
             </h1>
+            <p className="text-emerald-300/90 text-xs font-semibold mt-0.5">
+              {bi('Live Weather & Soil Intelligence', 'જીવંત હવામાન અને જમીન સ્થિતિ', 'Live Weather & Soil Intelligence').primary}
+            </p>
             <p className="text-emerald-100/80 text-sm mt-0.5 flex items-center gap-1.5 flex-wrap">
               <span>
                 Hyperlocal telemetry for{' '}
@@ -209,12 +228,8 @@ export const WeatherSoilIntelligence: React.FC = () => {
               </span>
               <span>
                 {isDetectingLocation
-                  ? language === 'gu'
-                    ? 'શોધાય છે...'
-                    : 'Detecting GPS...'
-                  : language === 'gu'
-                  ? 'GPS સ્થાન'
-                  : 'Detect GPS'}
+                  ? bi('શોધાય છે...', 'Detecting GPS...', 'GPS Khoj Rahe Hain...').primary
+                  : bi('GPS સ્થાન (Detect GPS)', 'Detect GPS (GPS સ્થાન)', 'GPS Location Pata Karein').primary}
               </span>
             </button>
 
@@ -228,7 +243,7 @@ export const WeatherSoilIntelligence: React.FC = () => {
                 location_on
               </span>
               <span>
-                {language === 'gu' ? 'જિલ્લો બદલો' : 'Change District'}
+                {bi('જિલ્લો બદલો (Change District)', 'Change District (જિલ્લો બદલો)', 'Jila Badlein (Change District)').primary}
               </span>
             </button>
 
@@ -693,60 +708,113 @@ export const WeatherSoilIntelligence: React.FC = () => {
                 <h3 className="font-extrabold text-lg text-[#163A2D] flex items-center gap-2">
                   <span className="material-symbols-outlined text-emerald-700">pin_drop</span>
                   <span>
-                    {language === 'gu'
-                      ? 'કૃષિ જિલ્લો પસંદ કરો'
-                      : 'Select Agricultural District'}
+                    {bi('કૃષિ જિલ્લો પસંદ કરો', 'Select Agricultural District', 'Krishi Jila Chunein').primary}
                   </span>
                 </h3>
                 <p className="text-xs text-[#717974] mt-0.5">
-                  {language === 'gu'
-                    ? 'તમારા વિસ્તારનું હવામાન અને દવા છંટકાવ વિગતો મેળવવા જિલ્લો પસંદ કરો'
-                    : 'Choose your district to load localized Open-Meteo weather forecasts'}
+                  {bi(
+                    'તમારા વિસ્તારનું હવામાન અને દવા છંટકાવ વિગતો મેળવવા જિલ્લો પસંદ કરો',
+                    'Choose your district to load localized Open-Meteo weather forecasts',
+                    'Apne kshetra ka mausam aur spray timing dekhne ke liye jila chunein'
+                  ).primary}
                 </p>
               </div>
               <button
-                onClick={() => setShowDistrictModal(false)}
+                onClick={() => {
+                  setShowDistrictModal(false);
+                  setDistrictSearch('');
+                }}
                 className="w-8 h-8 rounded-full hover:bg-[#F1EEE5] flex items-center justify-center text-[#717974] transition-colors"
               >
                 <span className="material-symbols-outlined text-[20px]">close</span>
               </button>
             </div>
 
+            {/* Search Input for Districts */}
+            <div className="relative">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-emerald-700 text-base">
+                search
+              </span>
+              <input
+                type="text"
+                value={districtSearch}
+                onChange={(e) => setDistrictSearch(e.target.value)}
+                placeholder={bi(
+                  'જિલ્લો અથવા તાલુકો શોધો... (Surat, સુરત, Rajkot, રાજકોટ)',
+                  'Search district or taluka... (Surat, Rajkot, Junagadh)',
+                  'Jila ya taluka khojein... (Surat, Rajkot, Junagadh)'
+                ).primary}
+                className="w-full pl-9 pr-9 py-2.5 bg-[#FCF9F0] border border-[#E5E2DA] rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-600 transition-all"
+              />
+              {districtSearch && (
+                <button
+                  type="button"
+                  onClick={() => setDistrictSearch('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 p-1"
+                  title="Clear search"
+                >
+                  <span className="material-symbols-outlined text-sm">close</span>
+                </button>
+              )}
+            </div>
+
             {/* District list grid */}
-            <div className="overflow-y-auto space-y-2 pr-1 flex-1 py-1">
-              {GUJARAT_DISTRICT_PRESETS.map((preset) => {
-                const isSelected = currentLocation.district === preset.district;
-                return (
+            <div className="overflow-y-auto space-y-2 pr-1 flex-1 py-1 max-h-[45vh]">
+              {filteredDistricts.length === 0 ? (
+                <div className="p-6 text-center text-xs text-[#717974] bg-[#FCF9F0] rounded-2xl border border-[#E5E2DA] space-y-2">
+                  <span className="material-symbols-outlined text-2xl text-gray-400">location_off</span>
+                  <p className="font-bold text-[#163A2D]">
+                    {bi(`"${districtSearch}" માટે કોઈ જિલ્લો મળ્યો નથી`, `No districts found matching "${districtSearch}"`, `"${districtSearch}" ke liye koi jila nahi mila`).primary}
+                  </p>
                   <button
-                    key={preset.district}
-                    onClick={() => handleSelectDistrict(preset)}
-                    className={`w-full text-left p-3.5 rounded-2xl border transition-all flex items-center justify-between active:scale-[0.99] ${
-                      isSelected
-                        ? 'bg-emerald-50 border-emerald-600 shadow-sm ring-1 ring-emerald-600'
-                        : 'bg-[#FCF9F0] hover:bg-[#F6F3EA] border-[#E5E2DA]'
-                    }`}
+                    onClick={() => setDistrictSearch('')}
+                    className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold"
                   >
-                    <div>
-                      <div className="font-extrabold text-sm text-[#163A2D] flex items-center gap-1.5">
-                        <span>{language === 'gu' ? preset.nameGu : preset.name}</span>
-                        {preset.district === 'Surat' && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">
-                            KVK Main Node
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-[11px] text-[#717974] mt-0.5">
-                        Coordinates: {preset.lat.toFixed(3)}° N, {preset.lng.toFixed(3)}° E
-                      </div>
-                    </div>
-                    {isSelected && (
-                      <span className="material-symbols-outlined text-emerald-700 text-[22px]">
-                        check_circle
-                      </span>
-                    )}
+                    {bi('શોધ સાફ કરો', 'Clear Search', 'Khoj Saaf Karein').primary}
                   </button>
-                );
-              })}
+                </div>
+              ) : (
+                filteredDistricts.map((preset) => {
+                  const isSelected = currentLocation.district === preset.district;
+                  const districtTitle = bi(preset.nameGu, preset.name, preset.nameGu);
+                  return (
+                    <button
+                      key={preset.district}
+                      onClick={() => {
+                        handleSelectDistrict(preset);
+                        setDistrictSearch('');
+                      }}
+                      className={`w-full text-left p-3.5 rounded-2xl border transition-all flex items-center justify-between active:scale-[0.99] ${
+                        isSelected
+                          ? 'bg-emerald-50 border-emerald-600 shadow-sm ring-1 ring-emerald-600'
+                          : 'bg-[#FCF9F0] hover:bg-[#F6F3EA] border-[#E5E2DA]'
+                      }`}
+                    >
+                      <div>
+                        <div className="font-extrabold text-sm text-[#163A2D] flex items-center gap-1.5">
+                          <span>{districtTitle.primary}</span>
+                          {preset.district === 'Surat' && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">
+                              KVK Main Node
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[11px] font-semibold text-emerald-800">
+                          {districtTitle.secondary}
+                        </div>
+                        <div className="text-[10px] text-[#717974] mt-0.5">
+                          Coordinates: {preset.lat.toFixed(3)}° N, {preset.lng.toFixed(3)}° E
+                        </div>
+                      </div>
+                      {isSelected && (
+                        <span className="material-symbols-outlined text-emerald-700 text-[22px]">
+                          check_circle
+                        </span>
+                      )}
+                    </button>
+                  );
+                })
+              )}
             </div>
 
             <div className="pt-3 border-t border-[#E5E2DA] flex items-center justify-between text-xs text-[#717974]">

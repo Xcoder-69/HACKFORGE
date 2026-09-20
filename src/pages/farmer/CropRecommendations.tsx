@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { farmService } from '../../services/farmService';
+import { filterAndSortMultilingual } from '../../utils/multilingualSearch';
 import { locationService } from '../../services/locationService';
 
 interface CropRec {
@@ -30,7 +31,7 @@ const CROPS_DATA: Record<string, CropRec[]> = {
       id: 'groundnut',
       nameEn: 'Groundnut',
       nameGu: 'મગફળી (GG-20)',
-      nameHi: 'मूंगफली (GG-20)',
+      nameHi: 'Mungfali (GG-20)',
       variety: 'Gujarat Groundnut-20',
       matchScore: 94,
       expectedProfit: '₹42,500 / Acre',
@@ -56,7 +57,7 @@ const CROPS_DATA: Record<string, CropRec[]> = {
       id: 'cotton',
       nameEn: 'Bt Cotton',
       nameGu: 'કપાસ (G.Cot-16)',
-      nameHi: 'कपास (G.Cot-16)',
+      nameHi: 'Kapas (G.Cot-16)',
       variety: 'Gujarat Cotton Hybrid-16',
       matchScore: 88,
       expectedProfit: '₹38,200 / Acre',
@@ -82,7 +83,7 @@ const CROPS_DATA: Record<string, CropRec[]> = {
       id: 'sugarcane',
       nameEn: 'Sugarcane',
       nameGu: 'શેરડી (Co-86032)',
-      nameHi: 'गन्ना (Co-86032)',
+      nameHi: 'Ganna / Sherdi (Co-86032)',
       variety: 'Co-86032 (Nayana)',
       matchScore: 79,
       expectedProfit: '₹65,000 / Acre',
@@ -110,7 +111,7 @@ const CROPS_DATA: Record<string, CropRec[]> = {
       id: 'wheat',
       nameEn: 'Durum Wheat',
       nameGu: 'ટુકડી / ભાલીયા ઘઉં',
-      nameHi: 'शरबती गेहूं (GW-496)',
+      nameHi: 'Sharbati Gehun (GW-496)',
       variety: 'GW-496 Gold Line',
       matchScore: 92,
       expectedProfit: '₹28,500 / Acre',
@@ -136,7 +137,7 @@ const CROPS_DATA: Record<string, CropRec[]> = {
       id: 'chickpea',
       nameEn: 'Gram / Chickpea',
       nameGu: 'ચણા (ગુજરાત ચણા-૫)',
-      nameHi: 'चना (GG-5)',
+      nameHi: 'Chana (GG-5)',
       variety: 'Gujarat Gram-5',
       matchScore: 89,
       expectedProfit: '₹31,000 / Acre',
@@ -163,7 +164,7 @@ const CROPS_DATA: Record<string, CropRec[]> = {
       id: 'summer_sesame',
       nameEn: 'Summer Sesame (Til)',
       nameGu: 'ઉનાળુ તલ (ગુજરાત તલ-૨)',
-      nameHi: 'ग्रीष्मकालीन तिल (GT-2)',
+      nameHi: 'Garmi ke Til (GT-2)',
       variety: 'Gujarat Til-2 (White)',
       matchScore: 85,
       expectedProfit: '₹34,000 / Acre',
@@ -188,14 +189,37 @@ const CROPS_DATA: Record<string, CropRec[]> = {
 
 export const CropRecommendations: React.FC = () => {
   const navigate = useNavigate();
-  const { language } = useLanguage();
+  const { language, bi } = useLanguage();
   const [season, setSeason] = useState<'kharif' | 'rabi' | 'zaid'>('kharif');
   const [selectedCrop, setSelectedCrop] = useState<CropRec>(CROPS_DATA.kharif[0]);
   const [showComparison, setShowComparison] = useState(false);
   const [compareWith, setCompareWith] = useState<CropRec>(CROPS_DATA.kharif[1]);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
+  const [cropSearch, setCropSearch] = useState('');
+
   const activeCrops = CROPS_DATA[season] || [];
+  const filteredCrops = filterAndSortMultilingual(
+    activeCrops,
+    cropSearch,
+    (c) => ({
+      primaryGu: c.nameGu,
+      primaryEn: c.nameEn,
+      primaryHi: c.nameHi,
+      secondaryGu: [c.variety, c.waterNeedGu, c.recommendedReasonGu],
+      secondaryEn: [c.variety, c.waterNeed, c.description],
+      secondaryHi: [c.variety],
+    }),
+    language
+  );
+
+  useEffect(() => {
+    if (cropSearch.trim() && filteredCrops.length > 0) {
+      if (!filteredCrops.some((c) => c.id === selectedCrop.id)) {
+        setSelectedCrop(filteredCrops[0]);
+      }
+    }
+  }, [cropSearch, filteredCrops, selectedCrop.id]);
 
   const handleSelectSeason = (s: 'kharif' | 'rabi' | 'zaid') => {
     setSeason(s);
@@ -223,13 +247,13 @@ export const CropRecommendations: React.FC = () => {
           <div>
             <div className="flex items-center gap-2 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-1">
               <span className="material-symbols-outlined text-[18px]">psychology</span>
-              <span>Autonomous Agronomy AI • પાક ભલામણ કેન્દ્ર</span>
+              <span>{bi('AI પાક ભલામણ કેન્દ્ર • Autonomous Agronomy', 'Autonomous Agronomy AI • Crop Advisory', 'स्वायत्त एग्रोनॉमी AI • फसल सलाह').primary}</span>
             </div>
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
-              Crop Recommendations & Cultivation Planning
+              {bi('પાક ભલામણ અને ખેતી આયોજન', 'Crop Recommendations & Cultivation Planning', 'फसल सिफारिशें और कृषि योजना').primary}
             </h1>
-            <p className="text-emerald-100/80 text-sm mt-0.5">
-              Personalized agro-climatic matching for {locationService.getSavedLocation().district} ({locationService.getSavedLocation().latitude.toFixed(2)}°N, {locationService.getSavedLocation().longitude.toFixed(2)}°E) • Block A (Black Cotton Soil, pH 7.4)
+            <p className="text-emerald-300/90 text-xs font-semibold mt-0.5">
+              {bi('Crop Recommendations & Cultivation Planning', 'પાક ભલામણ અને ખેતી આયોજન', 'Crop Recommendations & Planning').primary}
             </p>
           </div>
 
@@ -239,14 +263,14 @@ export const CropRecommendations: React.FC = () => {
               className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-sm flex items-center gap-2 shadow-md transition-all active:scale-95"
             >
               <span className="material-symbols-outlined text-[20px]">compare_arrows</span>
-              <span>Compare Crops / સરખામણી</span>
+              <span>{bi('સરખામણી કરો / Compare Crops', 'Compare Crops / સરખામણી કરો', 'फसल तुलना / Compare Crops').primary}</span>
             </button>
             <button
               onClick={() => navigate('/market')}
               className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold text-sm flex items-center gap-1.5 transition-colors border border-white/20"
             >
               <span className="material-symbols-outlined text-[18px]">storefront</span>
-              <span>Live Mandi Prices</span>
+              <span>{bi('લાઇવ મંડી ભાવ / Live Mandi Rates', 'Live Mandi Rates / લાઇવ મંડી ભાવ', 'लाइव मंडी भाव / Live Mandi').primary}</span>
             </button>
           </div>
         </div>
@@ -307,7 +331,7 @@ export const CropRecommendations: React.FC = () => {
                 : 'text-[#414844] hover:text-[#163A2D] hover:bg-white/60'
             }`}
           >
-            <span>Kharif (ચોમાસુ)</span>
+            <span>{bi('ચોમાસુ (Kharif)', 'Kharif (ચોમાસુ)', 'खरीफ (Kharif)').primary}</span>
             <span className="text-[11px] font-normal opacity-80">Jun - Oct • Current</span>
           </button>
           <button
@@ -318,7 +342,7 @@ export const CropRecommendations: React.FC = () => {
                 : 'text-[#414844] hover:text-[#163A2D] hover:bg-white/60'
             }`}
           >
-            <span>Rabi (શિયાળુ)</span>
+            <span>{bi('શિયાળુ (Rabi)', 'Rabi (શિયાળુ)', 'रबी (Rabi)').primary}</span>
             <span className="text-[11px] font-normal opacity-80">Oct - Mar</span>
           </button>
           <button
@@ -329,7 +353,7 @@ export const CropRecommendations: React.FC = () => {
                 : 'text-[#414844] hover:text-[#163A2D] hover:bg-white/60'
             }`}
           >
-            <span>Zaid (ઉનાળુ)</span>
+            <span>{bi('ઉનાળુ (Zaid)', 'Zaid (ઉનાળુ)', 'जायद (Zaid)').primary}</span>
             <span className="text-[11px] font-normal opacity-80">Mar - Jun</span>
           </button>
         </div>
@@ -341,80 +365,149 @@ export const CropRecommendations: React.FC = () => {
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-[#163A2D] flex items-center gap-2">
                 <span className="material-symbols-outlined text-emerald-700">stars</span>
-                <span>Ranked by AI Profit & Soil Fit</span>
+                <span>
+                  {bi(
+                    'AI ભલામણ અને જમીન અનુરૂપતા',
+                    'Ranked by AI Profit & Soil Fit',
+                    'एआई लाभ व मृदा अनुकूलता'
+                  ).primary}
+                </span>
               </h2>
-              <span className="text-xs font-semibold text-[#717974]">{activeCrops.length} Candidates</span>
+              <span className="text-xs font-semibold text-[#717974]">
+                {filteredCrops.length} / {activeCrops.length} {bi('પાક', 'Crops', 'फसलें').primary}
+              </span>
             </div>
 
-            {activeCrops.map((crop, idx) => {
-              const isSelected = selectedCrop.id === crop.id;
-              return (
-                <div
-                  key={crop.id}
-                  onClick={() => setSelectedCrop(crop)}
-                  className={`cursor-pointer rounded-2xl p-5 border-2 transition-all shadow-sm ${
-                    isSelected
-                      ? 'border-emerald-600 bg-white ring-2 ring-emerald-500/20 shadow-md scale-[1.01]'
-                      : 'border-[#E5E2DA] bg-white hover:border-emerald-300'
-                  }`}
+            {/* Multilingual Search Bar */}
+            <div className="relative">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-emerald-700 text-lg">
+                search
+              </span>
+              <input
+                type="text"
+                value={cropSearch}
+                onChange={(e) => setCropSearch(e.target.value)}
+                placeholder={bi(
+                  'પાક અથવા જાત શોધો... (કપાસ, ઘઉં, kapas, wheat)',
+                  'Search crop or variety... (Cotton, Wheat, Kapas)',
+                  'फसल या किस्म खोजें... (कपास, गेहूं, cotton)'
+                ).primary}
+                className="w-full pl-10 pr-10 py-2.5 bg-white border border-[#E5E2DA] rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-600 transition-all shadow-sm"
+              />
+              {cropSearch && (
+                <button
+                  type="button"
+                  onClick={() => setCropSearch('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 p-1 flex items-center justify-center"
+                  title="Clear search"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3">
-                      <div
-                        className={`w-12 h-12 rounded-xl flex items-center justify-center font-extrabold text-base shrink-0 ${
-                          idx === 0
-                            ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                            : 'bg-emerald-100 text-emerald-900'
+                  <span className="material-symbols-outlined text-base">close</span>
+                </button>
+              )}
+            </div>
+
+            {/* Empty state if search has no results */}
+            {filteredCrops.length === 0 ? (
+              <div className="bg-white rounded-2xl p-8 text-center border border-[#E5E2DA] space-y-3 shadow-sm">
+                <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-700">
+                  <span className="material-symbols-outlined text-2xl">search_off</span>
+                </div>
+                <p className="font-bold text-[#163A2D] text-base">
+                  {bi(
+                    `"${cropSearch}" માટે કોઈ પાક મળ્યો નથી`,
+                    `No crops found matching "${cropSearch}"`,
+                    `"${cropSearch}" के लिए कोई फसल नहीं मिली`
+                  ).primary}
+                </p>
+                <p className="text-xs text-[#717974] leading-relaxed">
+                  {bi(
+                    'અન્ય પાક અથવા અંગ્રેજી/ગુજરાતી નામ (દા.ત. કપાસ, ઘઉં, મગફળી, kapas, wheat) લખીને શોધો.',
+                    'Try searching with English or regional terms (e.g. Cotton, Kapas, Wheat, Groundnut).',
+                    'अन्य फसल या नाम (उदा. कपास, गेहूं, cotton, wheat) लिखकर खोजें।'
+                  ).primary}
+                </p>
+                <button
+                  onClick={() => setCropSearch('')}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
+                >
+                  {bi('શોધ સાફ કરો (Clear Search)', 'Clear Search (શોધ સાફ કરો)', 'खोज साफ़ करें (Clear Search)').primary}
+                </button>
+              </div>
+            ) : (
+              filteredCrops.map((crop, idx) => {
+                const isSelected = selectedCrop.id === crop.id;
+                return (
+                  <div
+                    key={crop.id}
+                    onClick={() => setSelectedCrop(crop)}
+                    className={`cursor-pointer rounded-2xl p-5 border-2 transition-all shadow-sm ${
+                      isSelected
+                        ? 'border-emerald-600 bg-white ring-2 ring-emerald-500/20 shadow-md scale-[1.01]'
+                        : 'border-[#E5E2DA] bg-white hover:border-emerald-300'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3">
+                        <div
+                          className={`w-12 h-12 rounded-xl flex items-center justify-center font-extrabold text-base shrink-0 ${
+                            idx === 0
+                              ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                              : 'bg-emerald-100 text-emerald-900'
+                          }`}
+                        >
+                          #{idx + 1}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-extrabold text-lg text-[#163A2D]">
+                              {bi(crop.nameGu, crop.nameEn, crop.nameHi).primary}
+                            </h3>
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
+                              {crop.matchScore}% Match
+                            </span>
+                          </div>
+                          <p className="text-sm font-semibold text-emerald-700">
+                            {bi(crop.nameGu, crop.nameEn, crop.nameHi).secondary}
+                          </p>
+                          <p className="text-xs text-[#717974]">{crop.variety}</p>
+                        </div>
+                      </div>
+
+                      <span
+                        className={`material-symbols-outlined text-[24px] ${
+                          isSelected ? 'text-emerald-600' : 'text-[#C1C8C3]'
                         }`}
                       >
-                        #{idx + 1}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-extrabold text-lg text-[#163A2D]">{crop.nameEn}</h3>
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
-                            {crop.matchScore}% Match
-                          </span>
-                        </div>
-                        <p className="text-sm font-semibold text-emerald-700">{crop.nameGu}</p>
-                        <p className="text-xs text-[#717974]">{crop.variety}</p>
-                      </div>
-                    </div>
-
-                    <span
-                      className={`material-symbols-outlined text-[24px] ${
-                        isSelected ? 'text-emerald-600' : 'text-[#C1C8C3]'
-                      }`}
-                    >
-                      {isSelected ? 'radio_button_checked' : 'radio_button_unchecked'}
-                    </span>
-                  </div>
-
-                  {/* Profit & Metric Badges */}
-                  <div className="mt-4 pt-3 border-t border-[#F1EEE5] grid grid-cols-3 gap-2 text-center">
-                    <div className="bg-[#F6F3EA] p-2 rounded-xl">
-                      <span className="text-[10px] uppercase font-bold text-[#717974] block">Exp. Profit</span>
-                      <span className="text-xs md:text-sm font-extrabold text-emerald-800">{crop.expectedProfit}</span>
-                    </div>
-                    <div className="bg-[#F6F3EA] p-2 rounded-xl">
-                      <span className="text-[10px] uppercase font-bold text-[#717974] block">Mandi Rate</span>
-                      <span className="text-xs md:text-sm font-extrabold text-[#163A2D] flex items-center justify-center gap-0.5">
-                        {crop.mandiPrice}
-                        <span className="material-symbols-outlined text-xs text-emerald-600">arrow_upward</span>
+                        {isSelected ? 'radio_button_checked' : 'radio_button_unchecked'}
                       </span>
                     </div>
-                    <div className="bg-[#F6F3EA] p-2 rounded-xl">
-                      <span className="text-[10px] uppercase font-bold text-[#717974] block">Duration</span>
-                      <span className="text-xs md:text-sm font-bold text-[#1C1C17]">{crop.duration.split(' ')[0]} d</span>
-                    </div>
-                  </div>
 
-                  <p className="text-xs text-[#414844] mt-3 leading-relaxed bg-[#FCF9F0] p-2.5 rounded-xl border border-[#E5E2DA]">
-                    💡 <strong>AI ભલામણ:</strong> {crop.recommendedReasonGu}
-                  </p>
-                </div>
-              );
-            })}
+                    {/* Profit & Metric Badges */}
+                    <div className="mt-4 pt-3 border-t border-[#F1EEE5] grid grid-cols-3 gap-2 text-center">
+                      <div className="bg-[#F6F3EA] p-2 rounded-xl">
+                        <span className="text-[10px] uppercase font-bold text-[#717974] block">Exp. Profit</span>
+                        <span className="text-xs md:text-sm font-extrabold text-emerald-800">{crop.expectedProfit}</span>
+                      </div>
+                      <div className="bg-[#F6F3EA] p-2 rounded-xl">
+                        <span className="text-[10px] uppercase font-bold text-[#717974] block">Mandi Rate</span>
+                        <span className="text-xs md:text-sm font-extrabold text-[#163A2D] flex items-center justify-center gap-0.5">
+                          {crop.mandiPrice}
+                          <span className="material-symbols-outlined text-xs text-emerald-600">arrow_upward</span>
+                        </span>
+                      </div>
+                      <div className="bg-[#F6F3EA] p-2 rounded-xl">
+                        <span className="text-[10px] uppercase font-bold text-[#717974] block">Duration</span>
+                        <span className="text-xs md:text-sm font-bold text-[#1C1C17]">{crop.duration.split(' ')[0]} d</span>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-[#414844] mt-3 leading-relaxed bg-[#FCF9F0] p-2.5 rounded-xl border border-[#E5E2DA]">
+                      💡 <strong>AI ભલામણ:</strong> {crop.recommendedReasonGu}
+                    </p>
+                  </div>
+                );
+              })
+            )}
           </div>
 
           {/* Right Column: Selected Crop Cultivation Roadmap & Planning (7 cols) */}
@@ -430,7 +523,7 @@ export const CropRecommendations: React.FC = () => {
                     <span className="text-xs font-semibold text-emerald-700">6-Stage Cultivation Guide</span>
                   </div>
                   <h2 className="text-2xl font-extrabold text-[#163A2D] mt-1">
-                    {selectedCrop.nameEn} ({selectedCrop.nameGu})
+                    {bi(selectedCrop.nameGu, selectedCrop.nameEn, selectedCrop.nameHi).primary} ({bi(selectedCrop.nameGu, selectedCrop.nameEn, selectedCrop.nameHi).secondary})
                   </h2>
                   <p className="text-sm text-[#717974] mt-0.5">{selectedCrop.soilSuitability}</p>
                 </div>
@@ -441,7 +534,7 @@ export const CropRecommendations: React.FC = () => {
                     className="px-5 py-2.5 bg-[#163A2D] hover:bg-emerald-900 text-white rounded-xl font-bold text-sm flex items-center gap-2 shadow-md transition-all active:scale-95"
                   >
                     <span className="material-symbols-outlined text-[20px]">add_task</span>
-                    <span>Apply to Block A / પાક સ્વીકારો</span>
+                    <span>{bi('પાક સ્વીકારો (Apply to Farm)', 'Apply to Farm (પાક સ્વીકારો)', 'फसल स्वीकारें (Apply to Farm)').primary}</span>
                   </button>
                 </div>
               </div>

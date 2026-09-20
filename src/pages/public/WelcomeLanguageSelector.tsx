@@ -23,13 +23,13 @@ export const WelcomeLanguageSelector: React.FC = () => {
     {
       code: 'gu',
       name: 'ગુજરાતી',
-      sub: 'Gujarati • મુખ્ય પસંદગી',
+      sub: 'Gujarati + English • મુખ્ય પસંદગી',
       badgeSymbol: 'ગુ',
     },
     {
       code: 'hi',
-      name: 'हिन्दी',
-      sub: 'Hindi • आसान और सरल',
+      name: 'Hinglish',
+      sub: 'Hindi (Hinglish) • Aasan & Saral',
       badgeSymbol: 'हि',
     },
     {
@@ -72,7 +72,7 @@ export const WelcomeLanguageSelector: React.FC = () => {
             </button>
             
             <div className="flex items-center gap-2 truncate">
-              <span className="material-symbols-outlined text-secondary text-[26px]">eco</span>
+              <img src="/logo.png" alt="AgroMind Logo" className="w-8 h-8 object-contain shrink-0 drop-shadow-sm" />
               <h1 className="text-base font-bold text-primary truncate">
                 {t('nav.title')}
               </h1>
