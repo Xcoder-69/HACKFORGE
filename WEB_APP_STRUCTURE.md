@@ -29,7 +29,7 @@ AgroMind AI implements a dual-tier AI vision pipeline to ensure sub-2-second inf
 
 ```mermaid
 flowchart TD
-    Img["📸 Base64 Leaf Image + GPS Lat/Lng"] --> Endpoint["POST /api/ai/analyze-crop"]
+    Img["Base64 Leaf Image + GPS Lat/Lng"] --> Endpoint["POST /api/ai/analyze-crop"]
     Endpoint --> Primary{"Try Primary Model:<br>gemini-3.8-flash"}
     
     Primary -->|Success| MandiLookup["Enrich with Live Mandi & Crop DB"]

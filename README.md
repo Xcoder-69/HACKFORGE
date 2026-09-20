@@ -10,12 +10,12 @@
 [![Cloud DB](https://img.shields.io/badge/Cloud_Database-Supabase_PostgreSQL-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com/)
 [![Mandi API](https://img.shields.io/badge/Mandi_API-Agmarknet_Data.gov.in-orange?style=for-the-badge)](https://data.gov.in/)
 
-> 📖 **Looking for deep technical architecture, AI models & API specifications?**  
+> **Looking for deep technical architecture, AI models & API specifications?**  
 > See [WEB_APP_STRUCTURE.md](./WEB_APP_STRUCTURE.md) for full details on models, APIs, secure proxy design, and system architecture.
 
 ---
 
-## ⚡ Quick Summary for Hackathon Judges
+## Quick Summary for Hackathon Judges
 
 | Evaluation Dimension | Hackathon Project Details |
 |---|---|
@@ -36,11 +36,11 @@ India is home to over 150 million farming families. Despite having smartphones, 
 
 ```mermaid
 flowchart TD
-    Problem["🌾 Critical Agricultural Roadblocks"]
-    Problem --> A["📊 Data Overload<br>Raw numbers without clear, everyday farming actions"]
-    Problem --> B["🐛 Delayed Diagnosis<br>Crop leaf diseases spread before an agronomist visits"]
-    Problem --> C["📉 Market Exploitation<br>Lack of real-time APMC mandi prices and cost tracking"]
-    Problem --> D["📵 Rural Connectivity Void<br>Conventional farm apps fail when cellular signal drops"]
+    Problem["Critical Agricultural Roadblocks"]
+    Problem --> A["Data Overload<br>Raw numbers without clear, everyday farming actions"]
+    Problem --> B["Delayed Diagnosis<br>Crop leaf diseases spread before an agronomist visits"]
+    Problem --> C["Market Exploitation<br>Lack of real-time APMC mandi prices and cost tracking"]
+    Problem --> D["Rural Connectivity Void<br>Conventional farm apps fail when cellular signal drops"]
 ```
 
 1. **Information Overload without Actionable Clarity**: Farmers see metrics like *"Humidity 82%, Soil Moisture 24%"*, but no tool translates this into: *"Hold nitrogen spraying for 24 hours to prevent rain wash-off."*
@@ -56,14 +56,14 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    Img["📸 Leaf Photo"] --> AI["🧠 AgroMind AI Engine<br>(Gemini Vision + Heuristics)"]
-    Wx["🌦️ GPS Weather"] --> AI
-    Mkt["📈 Live Mandi API"] --> AI
+    Img["Leaf Photo"] --> AI["AgroMind AI Engine<br>(Gemini Vision + Heuristics)"]
+    Wx["GPS Weather"] --> AI
+    Mkt["Live Mandi API"] --> AI
 
-    AI --> Act["✅ Daily Action Checklist"]
-    AI --> Med["💊 Instant Disease Remedy"]
-    AI --> MktInfo["📍 Nearest Market & Price Trend"]
-    AI --> KVK["🏛️ KVK Officer Dashboard"]
+    AI --> Act["Daily Action Checklist"]
+    AI --> Med["Instant Disease Remedy"]
+    AI --> MktInfo["Nearest Market & Price Trend"]
+    AI --> KVK["KVK Officer Dashboard"]
 ```
 
 ### Core Value Proposition:
@@ -76,7 +76,7 @@ flowchart LR
 
 ## 3. Key Features
 
-### 🌿 1. AI Crop Health Camera (`/ai-camera`)
+### 1. AI Crop Health Camera (`/ai-camera`)
 - **Universal Crop Analysis**: Upload or capture a photo of *any* crop — completely independent of registered farm profile.
 - **Multimodal Intelligence**: Powered by **Google Gemini 3.8 Flash** to identify:
   - Detected crop name, variety, and scientific name.
@@ -86,30 +86,30 @@ flowchart LR
 - **Live Mandi Integration**: Instantly fetches current APMC market prices, 7-day/30-day trends, and "Sell vs. Store" recommendations for the detected crop.
 - **Progressive Loader**: Real 6-stage verification progress (Camera → Model → Symptoms → Knowledge Base → Mandi API → Action Plan).
 
-### 🗺️ 2. Dynamic Farm & Parcel Management (`/home`)
+### 2. Dynamic Farm & Parcel Management (`/home`)
 - **Visual Block Mapping**: Manage distinct plots (`Block A`, `Block B`, `Block C`) with independent crop stages and soil moisture tracking.
 - **At-a-Glance Telemetry**: Land acreage, soil classification, irrigation type, and Sentinel-2 NDVI satellite health index.
 
-### 📋 3. Daily Action Checklist & Alert Center (`/alerts`)
+### 3. Daily Action Checklist & Alert Center (`/alerts`)
 - Translates weather telemetry (rain forecasts, humidity, wind) into prioritized farming instructions:
   - *Spray Window Alerts* (e.g., "Wind speed favorable for spraying between 7 AM – 10 AM").
   - *Irrigation Triggers* (e.g., "Delay irrigation — 18mm rain expected tomorrow").
 
-### 📈 4. APMC Mandi Market Intelligence (`/market`)
+### 4. APMC Mandi Market Intelligence (`/market`)
 - Direct integration with **Government Agmarknet Mandi API** (`api.data.gov.in`).
 - 7,990+ historical commodity price records for 7-day and 30-day trend analysis.
 - Haversine GPS formula to find the **nearest physical APMC market** and distance in kilometers.
 
-### 💰 5. Financial OpEx & Profit Ledger (`/expenses`, `/profit`)
+### 5. Financial OpEx & Profit Ledger (`/expenses`, `/profit`)
 - Easy mobile ledger for recording input costs: seeds, fertilizer, machinery, diesel, and labor.
 - Automatically calculates the farmer's **Break-Even Price per Quintal** so they know their exact profit margin before negotiating with buyers.
 
-### 🤖 6. Multilingual AI Assistant (`/ai-assistant`)
+### 6. Multilingual AI Assistant (`/ai-assistant`)
 - Conversational agronomy chat assistant in Gujarati, Hindi, and English.
 - Context-aware advice tailored to the farmer's specific crops and local soil type.
 - Full offline fallback engine with pre-trained agronomic advisory rules.
 
-### 🏛️ 7. KVK Extension Officer Command Center (`/admin`)
+### 7. KVK Extension Officer Command Center (`/admin`)
 - Built for **Krishi Vigyan Kendra (KVK)** scientists and district agricultural officers.
 - Real-time regional disease outbreak heatmaps and cluster surveillance.
 - 1-click emergency SMS broadcast system to warn farmers in affected talukas.
@@ -225,5 +225,5 @@ To test the onboarding flow from a fresh account:
 
 ## 7. Project Documentation
 
-- 📘 [README.md](./README.md) — Main Project Pitch, Problem Statement & Overview *(this file)*
-- 🛠️ [WEB_APP_STRUCTURE.md](./WEB_APP_STRUCTURE.md) — Technical Stack, Models, APIs, Security Proxy & Architecture
+- [README.md](./README.md) — Main Project Pitch, Problem Statement & Overview *(this file)*
+- [WEB_APP_STRUCTURE.md](./WEB_APP_STRUCTURE.md) — Technical Stack, Models, APIs, Security Proxy & Architecture
