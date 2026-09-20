@@ -8,18 +8,20 @@ import { syncEngine } from '../lib/syncEngine';
 import type { FarmParcel, PlotInfo, PlotKey, CropRec } from '../types';
 import type { CreatePlotPayload } from '../contracts/farm.contract';
 
+const now = Date.now();
 const DEFAULT_PLOTS: Record<string, PlotInfo> = {
   A: {
     id: 'plot_A',
     key: 'A',
     title: 'Plot Details: Block A (બ્લોક એ - કપાસ)',
     crop: 'Shankar-6 Cotton',
-    subCrop: 'કપાસ (Day 54)',
+    subCrop: 'કપાસ',
     variety: 'Gujarat Cotton Hybrid-16',
     area: '2.5 Acres',
     stageBadge: 'Flowering (Day 54/150)',
     stageName: 'Flowering Stage',
     dayCount: 'Day 54',
+    plantingDate: new Date(now - 54 * 86400000).toISOString().split('T')[0],
     progressBar: '36%',
     health: 'Good (તંદુરસ્ત)',
     moisture: '68% (Optimal / ઉત્તમ)',
@@ -33,12 +35,13 @@ const DEFAULT_PLOTS: Record<string, PlotInfo> = {
     key: 'B',
     title: 'Plot Details: Block B (બ્લોક બી - મગફળી)',
     crop: 'GG-20 Groundnut',
-    subCrop: 'મગફળી (Day 32)',
+    subCrop: 'મગફળી',
     variety: 'Gujarat Groundnut-20',
     area: '2.0 Acres',
     stageBadge: 'Vegetative (Day 32/110)',
     stageName: 'Vegetative Stage',
     dayCount: 'Day 32',
+    plantingDate: new Date(now - 32 * 86400000).toISOString().split('T')[0],
     progressBar: '29%',
     health: 'Excellent (ઉત્કૃષ્ટ)',
     moisture: '72% (Adequate / યોગ્ય)',
@@ -144,6 +147,21 @@ export const farmService = {
     if (!cached || Object.keys(cached).length === 0) {
       cached = { ...DEFAULT_PLOTS };
       storageService.set(STORAGE_KEYS.PLOTS, cached);
+    } else {
+      let modified = false;
+      Object.keys(cached).forEach((pk) => {
+        const p = cached[pk];
+        if (!p.plantingDate) {
+          const parsedDay = parseInt((p.dayCount || '').replace(/\D/g, ''), 10) || 30;
+          p.plantingDate = new Date(Date.now() - parsedDay * 86400000).toISOString().split('T')[0];
+          modified = true;
+        }
+        const age = Math.max(0, Math.floor((Date.now() - new Date(p.plantingDate).getTime()) / 86400000));
+        p.dayCount = `Day ${age}`;
+      });
+      if (modified) {
+        storageService.set(STORAGE_KEYS.PLOTS, cached);
+      }
     }
 
     if (isSupabaseConfigured() && supabase && syncEngine.isOnline()) {

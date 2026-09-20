@@ -39,6 +39,9 @@ yarn-error.log*
 # Python / General
 __pycache__/
 *.py[cod]
+
+# Scratch
+scratch/
 .venv/
 env/
 venv/

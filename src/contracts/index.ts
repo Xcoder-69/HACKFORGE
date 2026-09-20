@@ -7,3 +7,4 @@ export * from './market.contract';
 export * from './ai.contract';
 export * from './alert.contract';
 export * from './sync.contract';
+export * from './recommendation.contract';

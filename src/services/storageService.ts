@@ -14,6 +14,7 @@ export const STORAGE_KEYS = {
   WEATHER_CACHE: 'agromind_weather_cache',
   ADMIN_FARMERS: 'agromind_admin_farmers',
   LOCATION: 'agromind_saved_location',
+  SOIL_REPORT: 'agromind_soil_report',
   INITIALIZED: 'agromind_initialized_v2',
 } as const;
 

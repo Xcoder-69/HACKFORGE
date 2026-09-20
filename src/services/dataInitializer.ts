@@ -133,54 +133,8 @@ export const initializeDefaultData = (): void => {
   ];
   storageService.set(STORAGE_KEYS.REVENUE, defaultRevenue);
 
-  // 6. Default Alerts
-  const defaultAlerts: AlertItem[] = [
-    {
-      id: 'alert-1',
-      category: 'urgent',
-      categoryLabel: 'Pest Outbreak / જીવાત',
-      titleEn: 'Pink Bollworm Infestation in Kamrej Cluster',
-      titleGu: 'કામરેજ વિસ્તારમાં ગુલાબી ઈયળનો ઉપદ્રવ',
-      severity: 'Critical',
-      severityColor: 'bg-red-100 text-red-800 border-red-300',
-      time: '25 mins ago',
-      descriptionEn: 'Cluster telemetry detected >8 adult moths per trap in neighboring cotton fields. Immediate pheromone trap installation required.',
-      descriptionGu: 'નજીકના કપાસના ખેતરોમાં ટ્રેપ દીઠ ૮ થી વધુ પુખ્ત ફૂદાં નોંધાયા છે. તાત્કાલિક ફેરોમોન ટ્રેપ લગાવો.',
-      actionText: 'Scan Field with AI Camera',
-      actionRoute: '/ai-camera',
-      isRead: false,
-    },
-    {
-      id: 'alert-2',
-      category: 'weather',
-      categoryLabel: 'Weather Advisory / હવામાન',
-      titleEn: 'Heavy Convective Rain Forecast (28mm)',
-      titleGu: 'સોમવારે બપોરે ભારે વરસાદની શક્યતા (૨૮ મીમી)',
-      severity: 'High',
-      severityColor: 'bg-amber-100 text-amber-800 border-amber-300',
-      time: '2 hours ago',
-      descriptionEn: 'IMD Surat warns of strong convective thunderstorms on Monday afternoon. Delay pesticide spray and clear field drainage furrows.',
-      descriptionGu: 'દવા છંટકાવ મુલતવી રાખો અને પાળા સાફ કરો જેથી પાણી ભરાઈ ન રહે.',
-      actionText: 'Check Weather & Spray Window',
-      actionRoute: '/weather-soil',
-      isRead: false,
-    },
-    {
-      id: 'alert-3',
-      category: 'irrigation',
-      categoryLabel: 'Soil & Nutrition / ખાતર',
-      titleEn: 'Phosphorus Deficit in Block A Root Zone',
-      titleGu: 'બ્લોક A માં ફોસ્ફરસની અછત નોંધાઈ',
-      severity: 'Medium',
-      severityColor: 'bg-blue-100 text-blue-800 border-blue-300',
-      time: 'Yesterday',
-      descriptionEn: 'Soil sensor readings indicate available P is below 24 kg/ha. Apply 25kg Single Super Phosphate (SSP) with next irrigation cycle.',
-      descriptionGu: 'જમીન વિશ્લેષણ મુજબ ૨૫ કિગ્રા એસએસપી ખાતર આપવાની ભલામણ છે.',
-      actionText: 'Track Fertilizer in Expenses',
-      actionRoute: '/expenses',
-      isRead: false,
-    },
-  ];
+  // 6. Alerts — initialized empty. Real alerts are dynamically evaluated from live data.
+  const defaultAlerts: AlertItem[] = [];
   storageService.set(STORAGE_KEYS.ALERTS, defaultAlerts);
 
   // 7. Scan History — starts empty (populated only by real AI diagnosis)

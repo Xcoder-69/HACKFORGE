@@ -60,6 +60,7 @@ export interface PlotInfo {
   stageBadge: string;
   stageName: string;
   dayCount: string;
+  plantingDate?: string;
   progressBar: string;
   health: string;
   moisture: string;
@@ -260,21 +261,66 @@ export interface ChatMessage {
   isOfflineFallback?: boolean;
 }
 
+export type AlertType = 'weather' | 'crop' | 'market' | 'soil' | 'diagnosis' | 'recommendation' | 'irrigation';
+export type AlertStatus = 'NEW' | 'READ' | 'RESOLVED' | 'EXPIRED';
+export type AlertPriority = 'Critical' | 'High' | 'Medium' | 'Low';
+export type AlertSource = 'Open-Meteo' | 'Mandi/market data' | 'Uploaded laboratory report' | 'AI crop analysis' | 'Agronomic Engine';
+
+export interface AlertAction {
+  label: string;
+  route: string;
+}
+
 export interface AlertItem {
   id: string;
-  category: 'urgent' | 'weather' | 'irrigation';
-  categoryLabel: string;
+  key: string;
+  type: AlertType;
+  title: string;
   titleEn: string;
-  titleGu: string;
-  severity: 'Critical' | 'High' | 'Medium';
-  severityColor: string;
-  time: string;
+  titleGu?: string;
+  titleHi?: string;
+  message: string;
   descriptionEn: string;
-  descriptionGu: string;
+  descriptionGu?: string;
+  descriptionHi?: string;
+  priority: AlertPriority;
+  severity: AlertPriority;
+  severityColor?: string;
+  createdAt: string;
+  expiresAt?: string;
+  status: AlertStatus;
+  read: boolean;
+  isRead: boolean; // Backwards-compatible alias
+  isCompleted?: boolean;
+  relatedCropId?: string;
+  relatedFarmId?: string;
+  plotId?: string;
+  source: AlertSource;
+  action?: AlertAction;
   actionText: string;
   actionRoute: string;
-  isRead: boolean;
-  isCompleted?: boolean;
+  category: 'urgent' | 'weather' | 'irrigation' | 'market' | 'soil' | 'crop';
+  categoryLabel: string;
+  time: string;
+  dataValues?: Record<string, any>;
+}
+
+export interface SoilReportRecord {
+  id: string;
+  uploadedAt: string;
+  labName?: string;
+  sampleDate?: string;
+  ph?: number;
+  nitrogenKgHa?: number; // N
+  phosphorusKgHa?: number; // P
+  potassiumKgHa?: number; // K
+  organicCarbonPercent?: number; // OC
+  micronutrients?: {
+    zincPpm?: number;
+    ironPpm?: number;
+    manganesePpm?: number;
+  };
+  notes?: string;
 }
 
 export interface FarmerRecord {

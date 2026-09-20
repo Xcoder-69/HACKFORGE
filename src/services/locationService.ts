@@ -8,7 +8,7 @@ export interface GeoCoordinates {
   latitude: number;
   longitude: number;
   accuracy?: number; // In meters as provided by browser Geolocation API
-  source: 'gps' | 'saved_farm' | 'manual' | 'fallback';
+  source: 'gps' | 'saved_farm' | 'profile' | 'manual' | 'none' | 'fallback';
   sourceLabel: string;
   sourceLabelGu: string;
   locationName: string;
@@ -55,20 +55,35 @@ export const GUJARAT_DISTRICT_PRESETS: GujaratDistrictPreset[] = [
   { district: 'Sabarkantha', districtGu: 'સાબરકાંઠા', name: 'Sabarkantha (Himmatnagar)', nameGu: 'સાબરકાંઠા (હિંમતનગર)', lat: 23.5977, lng: 72.9698 },
 ];
 
-export const FALLBACK_DEMO_COORDINATES: GeoCoordinates = {
-  latitude: 21.2721,
-  longitude: 72.9546,
-  accuracy: undefined,
-  source: 'fallback',
-  sourceLabel: 'Default Demo Fallback (Surat)',
-  sourceLabelGu: 'ડિફોલ્ટ ડેમો સ્થળ (સુરત)',
-  locationName: 'Kamrej, Surat District (Demo Fallback)',
-  locationNameGu: 'કામરેજ, સુરત જિલ્લો (ડેમો સ્થળ)',
-  district: 'Surat',
-  timestamp: Date.now(),
+export const NO_LOCATION_STATE: GeoCoordinates = {
+  latitude: 0,
+  longitude: 0,
+  source: 'none',
+  sourceLabel: 'Location needed for weather',
+  sourceLabelGu: 'હવામાન માટે સ્થાન જરૂરી છે',
+  locationName: 'Location needed for weather',
+  locationNameGu: 'હવામાન માટે સ્થાન જરૂરી છે',
+  district: '',
+  timestamp: 0,
 };
 
 export const locationService = {
+  /**
+   * Helper to verify whether coordinates represent an actual, active location
+   */
+  hasValidLocation(coords?: GeoCoordinates | null): boolean {
+    return (
+      !!coords &&
+      coords.source !== 'none' &&
+      typeof coords.latitude === 'number' &&
+      typeof coords.longitude === 'number' &&
+      coords.latitude !== 0 &&
+      coords.longitude !== 0 &&
+      !isNaN(coords.latitude) &&
+      !isNaN(coords.longitude)
+    );
+  },
+
   /**
    * Calculates the nearest Gujarat agricultural hub using Euclidean approximation
    */
@@ -90,18 +105,25 @@ export const locationService = {
   },
 
   /**
-   * Retrieves the current saved location from offline storage or fallback hierarchy
+   * Retrieves active location strictly following the 3-tier hierarchy:
+   * Priority 1: Current browser/device GPS if permission was granted
+   * Priority 2: Saved farmer location from existing onboarding/profile or farm parcel
+   * Priority 3: User-selected location (manual preset)
+   * If none available: returns NO_LOCATION_STATE ("Location needed for weather")
+   * Does NOT silently substitute Surat.
    */
   getSavedLocation(): GeoCoordinates {
-    // 1. Check explicitly saved location in storageService
+    // Check explicitly saved location in storage
     const stored = storageService.get<GeoCoordinates | null>(STORAGE_KEYS.LOCATION, null);
-    if (stored && stored.latitude && stored.longitude) {
+
+    // Priority 1: Previously granted Live GPS location
+    if (stored && stored.source === 'gps' && stored.latitude && stored.longitude) {
       return stored;
     }
 
-    // 2. Check registered farm parcel coordinates
+    // Priority 2: Saved farmer location from registered farm parcel
     const farm = farmService.getFarmParcel();
-    if (farm && farm.coordinates?.lat && farm.coordinates?.lng) {
+    if (farm && farm.coordinates?.lat && farm.coordinates?.lng && farm.coordinates.lat !== 0) {
       const nearest = this.getNearestDistrict(farm.coordinates.lat, farm.coordinates.lng);
       return {
         latitude: farm.coordinates.lat,
@@ -117,8 +139,40 @@ export const locationService = {
       };
     }
 
-    // 3. Transparent demo fallback (clearly labeled)
-    return FALLBACK_DEMO_COORDINATES;
+    // Priority 2 (cont): Saved farmer location from User Profile (onboarding)
+    const user = storageService.get<{ district?: string; village?: string } | null>(STORAGE_KEYS.USER, null);
+    if (user?.district) {
+      const matchedPreset = GUJARAT_DISTRICT_PRESETS.find(
+        (p) => p.district.toLowerCase() === user.district?.toLowerCase() ||
+               p.name.toLowerCase().includes(user.district?.toLowerCase() || '')
+      );
+      if (matchedPreset) {
+        return {
+          latitude: matchedPreset.lat,
+          longitude: matchedPreset.lng,
+          source: 'profile',
+          sourceLabel: `Profile: ${matchedPreset.district}`,
+          sourceLabelGu: `પ્રોફાઇલ: ${matchedPreset.districtGu}`,
+          locationName: user.village ? `${user.village}, ${matchedPreset.district}` : matchedPreset.name,
+          locationNameGu: user.village ? `${user.village}, ${matchedPreset.districtGu}` : matchedPreset.nameGu,
+          district: matchedPreset.district,
+          timestamp: Date.now(),
+        };
+      }
+    }
+
+    // Priority 3: User-selected location (manual)
+    if (stored && stored.source === 'manual' && stored.latitude && stored.longitude) {
+      return stored;
+    }
+
+    // If previous storage had stale 'fallback' label, clear it so we don't silently substitute Surat
+    if (stored?.source === 'fallback') {
+      storageService.remove(STORAGE_KEYS.LOCATION);
+    }
+
+    // No location available - requires explicit selection or GPS
+    return NO_LOCATION_STATE;
   },
 
   /**

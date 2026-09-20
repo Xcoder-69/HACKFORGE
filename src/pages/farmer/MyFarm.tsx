@@ -4,6 +4,9 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { farmService } from '../../services/farmService';
 import { alertService } from '../../services/alertService';
+import { notificationService } from '../../services/notificationService';
+import { weatherService, type WeatherData } from '../../services/weatherService';
+import { locationService } from '../../services/locationService';
 import type { PlotKey, PlotInfo, FarmParcel, AlertItem } from '../../types';
 
 interface AiRecData {
@@ -98,107 +101,20 @@ const AI_RECOMMENDATIONS: AiRecData[] = [
   },
 ];
 
-interface AiAlertDisplay {
-  id: string;
-  category: string;
-  severity: 'Critical' | 'High' | 'Medium';
-  severityColor: string;
-  badgeGu: string;
-  badgeEn: string;
-  badgeHi: string;
-  titleGu: string;
-  titleEn: string;
-  titleHi: string;
-  timeGu: string;
-  timeEn: string;
-  timeHi: string;
-  actionSnippetGu: string;
-  actionSnippetEn: string;
-  actionSnippetHi: string;
-  ctaGu: string;
-  ctaEn: string;
-  ctaHi: string;
-  route: string;
-}
-
-const AI_ALERTS: AiAlertDisplay[] = [
-  {
-    id: 'ai-alert-1',
-    category: 'urgent',
-    severity: 'Critical',
-    severityColor: 'bg-red-500 text-white',
-    badgeGu: 'તાત્કાલિક જીવાત જોખમ',
-    badgeEn: 'Critical Pest Outbreak',
-    badgeHi: 'Zaroori Pest Alert',
-    titleGu: 'કામરેજ વિસ્તારમાં ગુલાબી ઈયળ (Pink Bollworm) નો ઉપદ્રવ',
-    titleEn: 'Pink Bollworm Infestation in Kamrej Cluster',
-    titleHi: 'Kamrej Area mein Gulabi Eeyal / Pink Bollworm Outbreak',
-    timeGu: '૧૮ મિનિટ પહેલાં • સેન્સર ટ્રેપ રિપોર્ટ',
-    timeEn: '18m ago • IoT Trap Cluster Report',
-    timeHi: '18 min pehle • IoT Trap Report',
-    actionSnippetGu: 'ટ્રેપ દીઠ ૮ થી વધુ પુખ્ત ફૂદાં નોંધાયા છે. તાત્કાલિક ફેરોમોન ટ્રેપ લગાવો અને AI કેમેરાથી પાન તપાસો.',
-    actionSnippetEn: 'Cluster telemetry detected >8 adult moths/trap. Deploy pheromone traps & scan leaves with AI Camera.',
-    actionSnippetHi: 'Trap mein 8 se zyada kide detect hue hain. Turant pheromone trap lagayein aur AI camera se scan karein.',
-    ctaGu: 'AI કેમેરાથી તપાસ કરો',
-    ctaEn: 'Scan Field with AI Camera',
-    ctaHi: 'AI Camera se Jaanch Karein',
-    route: '/ai-camera',
-  },
-  {
-    id: 'ai-alert-2',
-    category: 'weather',
-    severity: 'High',
-    severityColor: 'bg-amber-500 text-white',
-    badgeGu: 'હવામાન ચેતવણી (ડોપ્લર રડાર)',
-    badgeEn: 'Weather Warning (Doppler Radar)',
-    badgeHi: 'Mausam Warning (Doppler Radar)',
-    titleGu: 'સોમવારે બપોરે ભારે વરસાદ (૨૮ મીમી) ની શક્યતા',
-    titleEn: 'Heavy Convective Rain Forecast (28mm)',
-    titleHi: 'Somwar Dopahar Bhaari Baarish (28mm) ka Anuman',
-    timeGu: '૪૫ મિનિટ પહેલાં • IMD સુરત રડાર',
-    timeEn: '45m ago • IMD Surat Radar',
-    timeHi: '45 min pehle • IMD Surat Radar',
-    actionSnippetGu: 'કીટનાશક છંટકાવ મોકૂફ રાખો અને ખેતરના પાળા સાફ કરો જેથી પાણી ભરાઈ ન રહે.',
-    actionSnippetEn: 'Postpone pesticide spraying and clear field furrows to prevent waterlogging.',
-    actionSnippetHi: 'Dawa chhidkaw rokein aur khet ke dhalan saaf karein taaki pani jama na ho.',
-    ctaGu: 'હવામાન અને સ્પ્રે વિગત જુઓ',
-    ctaEn: 'Check Weather & Spray Window',
-    ctaHi: 'Mausam aur Spray Timing Dekhein',
-    route: '/weather-soil',
-  },
-  {
-    id: 'ai-alert-3',
-    category: 'soil',
-    severity: 'Medium',
-    severityColor: 'bg-blue-600 text-white',
-    badgeGu: 'જમીન પોષક તત્વ ચેતવણી',
-    badgeEn: 'Soil Nutrient Telemetry',
-    badgeHi: 'Mitti Poshan Alert',
-    titleGu: 'બ્લોક A ના મૂળ વિસ્તારમાં ફોસ્ફરસની અછત નોંધાઈ',
-    titleEn: 'Phosphorus Deficit in Block A Root Zone',
-    titleHi: 'Block A mein Phosphorus ki kami detect hui',
-    timeGu: '૨ કલાક પહેલાં • IoT જમીન સેન્સર',
-    timeEn: '2h ago • IoT Soil Probe Feed',
-    timeHi: '2 ghante pehle • IoT Soil Sensor',
-    actionSnippetGu: 'ફોસ્ફરસ ૨૪ કિગ્રા/હેક્ટરથી ઓછું છે. આગામી પિયત વખતે ૨૫ કિગ્રા SSP ખાતર આપો.',
-    actionSnippetEn: 'Available P is below 24 kg/ha. Apply 25kg SSP fertilizer with next irrigation.',
-    actionSnippetHi: 'Phosphorus 24 kg/ha se kam hai. Agle piyat ke sath 25kg SSP khad dein.',
-    ctaGu: 'ખાતર ખર્ચ ટ્રેક કરો',
-    ctaEn: 'Track Fertilizer in Expenses',
-    ctaHi: 'Khad Kharach Track Karein',
-    route: '/expenses',
-  },
-];
-
+const nowPlots = Date.now();
 const INITIAL_PLOT_DATA: Record<string, PlotInfo> = {
   A: {
+    id: 'plot_A',
+    key: 'A',
     title: 'Plot Details: Block A (બ્લોક એ - કપાસ)',
     crop: 'Shankar-6 Cotton',
-    subCrop: 'કપાસ (Day 54)',
+    subCrop: 'કપાસ',
+    variety: 'Gujarat Cotton Hybrid-16',
     area: '2.5 Acres',
     stageBadge: 'Flowering (Day 54/150)',
     stageName: 'Flowering Stage',
     dayCount: 'Day 54',
+    plantingDate: new Date(nowPlots - 54 * 86400000).toISOString().split('T')[0],
     progressBar: '36%',
     health: 'Good (તંદુરસ્ત)',
     moisture: '68% (Optimal / ઉત્તમ)',
@@ -208,13 +124,17 @@ const INITIAL_PLOT_DATA: Record<string, PlotInfo> = {
     provenance: 'Measured • IoT Probes',
   },
   B: {
+    id: 'plot_B',
+    key: 'B',
     title: 'Plot Details: Block B (બ્લોક બી - મગફળી)',
     crop: 'GG-20 Groundnut',
-    subCrop: 'મગફળી (Day 32)',
+    subCrop: 'મગફળી',
+    variety: 'Gujarat Groundnut-20',
     area: '2.0 Acres',
     stageBadge: 'Vegetative (Day 32/110)',
     stageName: 'Vegetative Stage',
     dayCount: 'Day 32',
+    plantingDate: new Date(nowPlots - 32 * 86400000).toISOString().split('T')[0],
     progressBar: '29%',
     health: 'Excellent (ઉત્કૃષ્ટ)',
     moisture: '72% (Adequate / યોગ્ય)',
@@ -254,28 +174,109 @@ export const MyFarm: React.FC = () => {
 
   // AI Real-time Decision Hub State
   const [recIndex, setRecIndex] = useState(0);
-  const [alertIndex, setAlertIndex] = useState(0);
   const [isAiUpdating, setIsAiUpdating] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [secondsSinceUpdate, setSecondsSinceUpdate] = useState(4);
-  const [alerts, setAlerts] = useState<AlertItem[]>(() => alertService.getAlerts());
+  const [activeAlerts, setActiveAlerts] = useState<AlertItem[]>(() => alertService.getActiveAlerts());
+  const [alertSummary, setAlertSummary] = useState(() => alertService.getAlertSummary());
+
+  // Real Open-Meteo Weather State for Home Dashboard (Section 10)
+  const [homeWeather, setHomeWeather] = useState<WeatherData | null>(null);
+  const [isWeatherLoading, setIsWeatherLoading] = useState<boolean>(true);
+  const [weatherError, setWeatherError] = useState<string | null>(null);
+
+  const loadHomeWeather = async () => {
+    try {
+      setIsWeatherLoading(true);
+      setWeatherError(null);
+      let loc = locationService.getSavedLocation();
+      if (!locationService.hasValidLocation(loc)) {
+        const res = await locationService.resolveLocation();
+        loc = res.coords;
+      }
+      if (!locationService.hasValidLocation(loc)) {
+        setWeatherError('Location needed for weather');
+        setIsWeatherLoading(false);
+        return;
+      }
+      const data = await weatherService.getWeather(loc.latitude, loc.longitude);
+      setHomeWeather(data);
+      setIsWeatherLoading(false);
+
+      // Re-evaluate alerts with live weather data
+      alertService.evaluateAllAlerts().then(() => {
+        setActiveAlerts(alertService.getActiveAlerts());
+        setAlertSummary(alertService.getAlertSummary());
+      });
+
+      if (data.locationName) {
+        notificationService.notifyWeatherUpdated(data.locationName);
+      }
+    } catch (err: any) {
+      console.warn('[MyFarm] Weather load error:', err);
+      setWeatherError(err?.message || 'Weather data temporarily unavailable.');
+      setIsWeatherLoading(false);
+    }
+  };
+
+  const handleEnableGps = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      setIsWeatherLoading(true);
+      const res = await locationService.getCurrentLocation();
+      if (res.success && locationService.hasValidLocation(res.coords)) {
+        const data = await weatherService.getWeather(res.coords.latitude, res.coords.longitude);
+        setHomeWeather(data);
+        setWeatherError(null);
+        alertService.evaluateAllAlerts().then(() => {
+          setActiveAlerts(alertService.getActiveAlerts());
+          setAlertSummary(alertService.getAlertSummary());
+        });
+      } else {
+        setWeatherError(res.error || 'Location needed for weather');
+      }
+    } catch (err: any) {
+      setWeatherError(err?.message || 'Failed to detect location');
+    } finally {
+      setIsWeatherLoading(false);
+    }
+  };
 
   useEffect(() => {
-    setAlerts(alertService.getAlerts());
-    const unsub = alertService.subscribeToAlerts((updated) => {
-      if (updated && updated.length > 0) setAlerts(updated);
+    let isMounted = true;
+    loadHomeWeather();
+    const unsubLoc = locationService.subscribeToLocation(() => {
+      if (isMounted) {
+        loadHomeWeather();
+      }
     });
-    return unsub;
+    return () => {
+      isMounted = false;
+      unsubLoc();
+    };
   }, []);
 
-  // AI Model Auto-update interval: updates information apparently every 9s
+  // Evaluate and subscribe to real alerts
+  useEffect(() => {
+    alertService.evaluateAllAlerts().then(() => {
+      setActiveAlerts(alertService.getActiveAlerts());
+      setAlertSummary(alertService.getAlertSummary());
+    });
+
+    const unsubAlerts = alertService.subscribeToAlerts(() => {
+      setActiveAlerts(alertService.getActiveAlerts());
+      setAlertSummary(alertService.getAlertSummary());
+    });
+    return unsubAlerts;
+  }, []);
+
+  // AI Recommendation Auto-update interval: rotates recommendation every 9s
   useEffect(() => {
     if (isPaused) return;
     const interval = setInterval(() => {
       setIsAiUpdating(true);
       setTimeout(() => {
         setRecIndex((prev) => (prev + 1) % AI_RECOMMENDATIONS.length);
-        setAlertIndex((prev) => (prev + 1) % AI_ALERTS.length);
         setIsAiUpdating(false);
         setSecondsSinceUpdate(0);
       }, 500);
@@ -293,9 +294,12 @@ export const MyFarm: React.FC = () => {
   const handleManualAiRefresh = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsAiUpdating(true);
+    alertService.evaluateAllAlerts().then(() => {
+      setActiveAlerts(alertService.getActiveAlerts());
+      setAlertSummary(alertService.getAlertSummary());
+    });
     setTimeout(() => {
       setRecIndex((prev) => (prev + 1) % AI_RECOMMENDATIONS.length);
-      setAlertIndex((prev) => (prev + 1) % AI_ALERTS.length);
       setIsAiUpdating(false);
       setSecondsSinceUpdate(0);
       showToast(
@@ -411,7 +415,6 @@ export const MyFarm: React.FC = () => {
     INITIAL_PLOT_DATA.A;
 
   const currentRec = AI_RECOMMENDATIONS[recIndex] || AI_RECOMMENDATIONS[0];
-  const currentAlert = AI_ALERTS[alertIndex % AI_ALERTS.length] || AI_ALERTS[0];
 
   const totalCalculatedAcres = Object.values(plots).reduce((acc, p) => {
     const match = p.area.match(/([0-9.]+)/);
@@ -639,6 +642,220 @@ export const MyFarm: React.FC = () => {
         </div>
 
         {/* ========================================================================= */}
+        {/* SECTION 10: REAL-TIME OPEN-METEO WEATHER CARD                             */}
+        {/* ========================================================================= */}
+        {isWeatherLoading ? (
+          <div className="w-full bg-surface-container-lowest rounded-3xl p-5 sm:p-6 shadow-sm border border-outline-variant/30 animate-pulse space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-surface-container-high" />
+                <div className="space-y-2">
+                  <div className="h-4 w-44 bg-surface-container-high rounded" />
+                  <div className="h-3 w-28 bg-surface-container-high rounded" />
+                </div>
+              </div>
+              <div className="h-7 w-28 bg-surface-container-high rounded-full" />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+              <div className="h-16 bg-surface-container-high rounded-2xl" />
+              <div className="h-16 bg-surface-container-high rounded-2xl" />
+              <div className="h-16 bg-surface-container-high rounded-2xl" />
+              <div className="h-16 bg-surface-container-high rounded-2xl" />
+            </div>
+          </div>
+        ) : weatherError || !homeWeather ? (
+          <div className="w-full bg-amber-500/10 border border-amber-500/30 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-900 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-[26px]">location_off</span>
+              </div>
+              <div>
+                <h3 className="text-base font-extrabold text-amber-950">
+                  {bi('હવામાન માટે સ્થાન જરૂરી છે', 'Location needed for weather', 'Mausam ke liye sthan zaroori hai').primary}
+                </h3>
+                <p className="text-xs text-amber-900/80 mt-0.5">
+                  {bi(
+                    'ઓપન-મેટિઓ રીઅલ-ટાઇમ હવામાન જોવા માટે જીપીએસ ચાલુ કરો અથવા પ્રોફાઇલમાં જિલ્લો પસંદ કરો.',
+                    'Enable live GPS or select your district in profile to view live Open-Meteo weather forecasts.',
+                    'Live Open-Meteo mausam dekhne ke liye GPS chalu karein ya profile me jila chunein.'
+                  ).primary}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={handleEnableGps}
+                className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+              >
+                <span className="material-symbols-outlined text-[16px]">my_location</span>
+                <span>{bi('જીપીએસ સક્રિય કરો', 'Enable GPS', 'GPS Chalu Karein').primary}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/profile')}
+                className="px-3.5 py-2 rounded-xl bg-white text-amber-950 hover:bg-amber-100 text-xs font-bold transition-all border border-amber-500/30 shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+              >
+                <span className="material-symbols-outlined text-[16px]">tune</span>
+                <span>{bi('પ્રોફાઇલ સુધારો', 'Set District', 'Jila Chunein').primary}</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div
+            onClick={() => navigate('/weather-soil')}
+            className="w-full bg-surface-container-lowest rounded-3xl p-5 sm:p-6 shadow-sm border border-outline-variant/30 hover:border-secondary transition-all cursor-pointer group space-y-4"
+          >
+            {/* Top Weather Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-outline-variant/20">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-blue-600 text-white flex items-center justify-center shadow-md shadow-sky-500/20 group-hover:scale-105 transition-transform shrink-0">
+                  <span className="material-symbols-outlined text-[28px]">
+                    {homeWeather.current?.icon || 'wb_sunny'}
+                  </span>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-2xl sm:text-3xl font-black text-primary tracking-tight">
+                      {Math.round(homeWeather.current?.temp ?? 28)}°C
+                    </span>
+                    <span className="text-sm sm:text-base font-bold text-secondary">
+                      {bi(
+                        homeWeather.current?.conditionGu || 'ચોખ્ખું આકાશ',
+                        homeWeather.current?.condition || 'Clear Sky',
+                        homeWeather.current?.condition || 'Clear Sky'
+                      ).primary}
+                    </span>
+                    <span className="text-xs text-on-surface-variant font-medium">
+                      ({bi('અનુભવાય છે', 'Feels like', 'Lagta hai').primary}{' '}
+                      {Math.round(homeWeather.current?.apparentTemp ?? homeWeather.current?.temp ?? 28)}°C)
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-on-surface-variant font-medium flex items-center gap-1 mt-0.5">
+                    <span className="material-symbols-outlined text-[14px] text-primary">location_on</span>
+                    <span className="font-bold text-primary">
+                      {homeWeather.normalized?.location?.district || homeWeather.locationName || 'Gujarat Farm'}
+                    </span>
+                    <span>•</span>
+                    <span className="text-emerald-700 font-semibold">{homeWeather.stationId || 'Live Open-Meteo'}</span>
+                  </p>
+                </div>
+              </div>
+
+              {/* Verified Source & Link Badge */}
+              <div className="flex items-center gap-2 self-end sm:self-center">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 text-[11px] font-bold border border-emerald-200">
+                  <span className="w-2 h-2 rounded-full bg-emerald-600 animate-ping" />
+                  <span>Open-Meteo Live</span>
+                </span>
+                <span className="px-3 py-1 rounded-xl bg-surface-container group-hover:bg-secondary group-hover:text-white text-primary text-xs font-bold transition-colors flex items-center gap-1">
+                  <span>{bi('વિગતવાર આગાહી', 'Full Forecast', 'Poora Forecast').primary}</span>
+                  <span className="material-symbols-outlined text-[15px]">arrow_forward</span>
+                </span>
+              </div>
+            </div>
+
+            {/* 4 Micro Weather Agricultural Telemetry Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {/* Metric 1: Humidity */}
+              <div className="bg-surface-container-low/70 rounded-2xl p-3 border border-outline-variant/20 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-sky-100 text-sky-800 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-[18px]">humidity_percentage</span>
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block truncate">
+                    {bi('ભેજ / Humidity', 'Humidity', 'Nami').primary}
+                  </span>
+                  <span className="text-sm font-black text-primary block truncate">
+                    {homeWeather.current?.humidity ?? 65}%
+                  </span>
+                  <span className="text-[10px] text-sky-700 font-bold block truncate">
+                    {(homeWeather.current?.humidity ?? 65) > 70
+                      ? 'High / ઊંચો'
+                      : (homeWeather.current?.humidity ?? 65) < 40
+                      ? 'Low / ઓછો'
+                      : 'Optimal / અનુકૂળ'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Metric 2: Rain & Chance */}
+              <div className="bg-surface-container-low/70 rounded-2xl p-3 border border-outline-variant/20 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-[18px]">rainy</span>
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block truncate">
+                    {bi('વરસાદ / Rain', 'Precipitation', 'Barish').primary}
+                  </span>
+                  <span className="text-sm font-black text-primary block truncate">
+                    {homeWeather.current?.rain ?? 0} mm
+                  </span>
+                  <span className="text-[10px] text-blue-700 font-bold block truncate">
+                    {bi('સંભાવના', 'Chance', 'Sambhavna').primary}: {homeWeather.current?.rainProb ?? 0}%
+                  </span>
+                </div>
+              </div>
+
+              {/* Metric 3: Wind Speed & Direction */}
+              <div className="bg-surface-container-low/70 rounded-2xl p-3 border border-outline-variant/20 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-teal-100 text-teal-800 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-[18px]">air</span>
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block truncate">
+                    {bi('પવન / Wind', 'Wind Speed', 'Hawa').primary}
+                  </span>
+                  <span className="text-sm font-black text-primary block truncate">
+                    {Math.round(homeWeather.current?.windSpeed ?? 10)} km/h
+                  </span>
+                  <span className="text-[10px] text-teal-700 font-bold block truncate">
+                    {homeWeather.current?.windDirection ? `${homeWeather.current.windDirection}°` : 'NW'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Metric 4: Daily Range / Spray Safety */}
+              <div className="bg-surface-container-low/70 rounded-2xl p-3 border border-outline-variant/20 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-[18px]">thermostat</span>
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block truncate">
+                    {bi('દિવસ રેન્જ / Range', 'Daily Temp', 'Tapman Range').primary}
+                  </span>
+                  <span className="text-sm font-black text-primary block truncate">
+                    {homeWeather.daily?.[0]
+                      ? `${Math.round(homeWeather.daily[0].tempMax)}° / ${Math.round(homeWeather.daily[0].tempMin)}°`
+                      : `${Math.round(homeWeather.current?.temp ?? 28)}°C`}
+                  </span>
+                  <span className="text-[10px] text-emerald-700 font-bold block truncate">
+                    {(homeWeather.current?.windSpeed ?? 0) <= 15 && (homeWeather.current?.rain ?? 0) === 0
+                      ? 'Spray Safe / છંટકાવ યોગ્ય'
+                      : 'Spray Caution / સાવચેત'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Micro Footer Bar */}
+            <div className="flex items-center justify-between pt-1 text-[11px] text-on-surface-variant">
+              <span className="flex items-center gap-1">
+                <span className="material-symbols-outlined text-[13px] text-secondary">update</span>
+                <span>
+                  {bi('અપડેટ:', 'Updated:', 'Update:').primary}{' '}
+                  {homeWeather.current?.lastUpdated || 'Live'}
+                </span>
+              </span>
+              <span className="font-bold text-secondary flex items-center gap-0.5 group-hover:underline">
+                <span>{bi('જમીન અને હવામાન બુદ્ધિમત્તા જુઓ', 'View Weather & Soil Intelligence', 'Mausam aur Mitti Jankari Dekhein').primary}</span>
+                <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================================= */}
         {/* SECTION HEADER: MY FARM / મારું ખેતર                                      */}
         {/* ========================================================================= */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-1">
@@ -827,7 +1044,7 @@ export const MyFarm: React.FC = () => {
             </div>
 
             {/* ------------------------------------------------------------------- */}
-            {/* BLOCK 2: AI ACTIONABLE ALERT BLOCK (REDIRECTS TO /alerts)           */}
+            {/* BLOCK 2: ACTIVE ALERTS WIDGET (REDIRECTS TO /alerts)                */}
             {/* ------------------------------------------------------------------- */}
             <div
               role="button"
@@ -840,80 +1057,121 @@ export const MyFarm: React.FC = () => {
               {/* Header Badges */}
               <div className="flex items-center justify-between gap-2 mb-3">
                 <div className="flex items-center gap-1.5">
-                  <span className="w-7 h-7 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 shadow-xs">
-                    <span className="material-symbols-outlined text-[17px] text-amber-700">warning</span>
+                  <span className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 shadow-xs ${
+                    alertSummary.criticalCount > 0 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-800'
+                  }`}>
+                    <span className="material-symbols-outlined text-[17px]">
+                      {alertSummary.criticalCount > 0 ? 'crisis_alert' : 'notifications_active'}
+                    </span>
                   </span>
                   <div>
                     <span className="text-xs font-black text-amber-950 tracking-tight block">
-                      {bi('AI તાત્કાલિક ચેતવણી (AI Priority Alert)', 'AI Priority Field Alert', 'AI Turant Alert (AI Priority Alert)').primary}
+                      {bi('સક્રિય ચેતવણીઓ (Active Alerts)', 'Active Field Alerts', 'Active Alerts (સક્રિય ચેતવણીઓ)').primary}
                     </span>
                     <span className="text-[10px] text-amber-800 font-bold block">
-                      {language === 'gu' ? currentAlert.badgeGu : language === 'hi' ? currentAlert.badgeHi : currentAlert.badgeEn}
+                      {alertSummary.activeCount > 0
+                        ? `${alertSummary.activeCount} ${bi('સક્રિય ચેતવણી', 'Active Alerts', 'Active Alerts').primary}${alertSummary.criticalCount > 0 ? ` • ${alertSummary.criticalCount} ${bi('તાત્કાલિક', 'Critical', 'Critical').primary}` : ''}`
+                        : bi('બધું સામાન્ય છે', 'All Parameters Normal', 'Sab Normal Hai').primary}
                     </span>
                   </div>
                 </div>
 
-                {/* Severity Pill & Carousel Dots */}
-                <div className="flex flex-col items-end gap-1">
-                  <span className={`px-2.5 py-0.5 rounded-full text-white text-[11px] font-extrabold shadow-xs flex items-center gap-1 ${
-                    currentAlert.severity === 'Critical' ? 'bg-red-600 animate-pulse' : 'bg-amber-600'
-                  }`}>
-                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
-                    {currentAlert.severity}
-                  </span>
-                  <div className="flex items-center gap-1 pt-0.5">
-                    {AI_ALERTS.map((_, idx) => (
-                      <span
-                        key={idx}
-                        className={`h-1.5 rounded-full transition-all duration-300 ${
-                          alertIndex === idx ? 'w-4 bg-amber-600' : 'w-1.5 bg-amber-200'
-                        }`}
-                      />
-                    ))}
-                  </div>
+                {/* Counter Pill */}
+                <div className="flex items-center gap-1.5">
+                  {alertSummary.activeCount > 0 ? (
+                    <span className="px-2.5 py-0.5 rounded-full text-white text-[11px] font-extrabold shadow-xs flex items-center gap-1.5 bg-amber-600">
+                      <span>{alertSummary.activeCount} Active</span>
+                      {alertSummary.criticalCount > 0 && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-300 animate-ping" />
+                      )}
+                    </span>
+                  ) : (
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-extrabold flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[14px]">check</span>
+                      <span>{bi('ક્લિયર', 'Clear', 'Clear').primary}</span>
+                    </span>
+                  )}
                 </div>
               </div>
 
-              {/* Alert Title & Source */}
+              {/* Active Alerts List (Top 2-3 items) or Clean Empty State */}
               <div className="space-y-2 mb-3">
-                <div>
-                  <h3 className="text-base sm:text-lg font-black text-primary group-hover:text-amber-900 transition-colors">
-                    {language === 'gu' ? currentAlert.titleGu : language === 'hi' ? currentAlert.titleHi : currentAlert.titleEn}
-                  </h3>
-                  <p className="text-[11px] text-on-surface-variant font-medium flex items-center gap-1 mt-0.5">
-                    <span className="material-symbols-outlined text-[13px] text-amber-700">schedule</span>
-                    <span>{language === 'gu' ? currentAlert.timeGu : language === 'hi' ? currentAlert.timeHi : currentAlert.timeEn}</span>
-                  </p>
-                </div>
+                {activeAlerts.length > 0 ? (
+                  activeAlerts.slice(0, 3).map((alert) => {
+                    const alertTitle =
+                      language === 'gu' && alert.titleGu
+                        ? alert.titleGu
+                        : language === 'hi' && alert.titleHi
+                        ? alert.titleHi
+                        : alert.titleEn || alert.title;
+                    const alertMsg =
+                      language === 'gu' && alert.descriptionGu
+                        ? alert.descriptionGu
+                        : language === 'hi' && alert.descriptionHi
+                        ? alert.descriptionHi
+                        : alert.descriptionEn || alert.message;
 
-                {/* AI Hazard Advice Box */}
-                <div className="bg-amber-50/90 rounded-xl p-2.5 border border-amber-200/60 text-[11px] text-amber-950 flex items-start gap-2">
-                  <span className="material-symbols-outlined text-[16px] text-amber-700 shrink-0 mt-0.5">
-                    crisis_alert
-                  </span>
-                  <p className="leading-snug">
-                    {language === 'gu' ? currentAlert.actionSnippetGu : language === 'hi' ? currentAlert.actionSnippetHi : currentAlert.actionSnippetEn}
-                  </p>
-                </div>
+                    const isCrit = alert.priority === 'Critical';
+                    const isHigh = alert.priority === 'High';
 
-                <div className="flex items-center gap-2 text-[10px] text-on-surface-variant font-semibold">
-                  <span className="flex items-center gap-1 text-red-700 font-bold">
-                    <span className="material-symbols-outlined text-[13px]">notification_important</span>
-                    {bi('તાત્કાલિક પગલું જરૂરી', 'Immediate Action Required', 'Turant Action Zaroori').primary}
-                  </span>
-                </div>
+                    return (
+                      <div
+                        key={alert.id}
+                        className="bg-white/80 rounded-xl p-2.5 border border-outline-variant/30 hover:border-amber-500/50 transition-all flex items-start gap-2 shadow-xs"
+                      >
+                        <span
+                          className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${
+                            isCrit ? 'bg-red-600 animate-pulse' : isHigh ? 'bg-amber-500' : 'bg-blue-500'
+                          }`}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-1">
+                            <h4 className="text-xs font-black text-primary truncate">{alertTitle}</h4>
+                            <span className="text-[9px] px-1.5 py-0.2 rounded bg-surface-container text-on-surface-variant font-bold shrink-0">
+                              {alert.source}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-on-surface-variant line-clamp-2 mt-0.5 leading-snug">
+                            {alertMsg}
+                          </p>
+                          <div className="mt-1.5 flex justify-end">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (alert.actionRoute) navigate(alert.actionRoute);
+                                else navigate('/alerts');
+                              }}
+                              className="text-[10px] font-bold text-secondary hover:underline flex items-center gap-0.5"
+                            >
+                              <span>{bi('[ચેતવણી જુઓ]', '[View Alert]', '[Alert Dekhein]').primary}</span>
+                              <span className="material-symbols-outlined text-[12px]">chevron_right</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="py-4 px-3 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-center flex flex-col items-center justify-center gap-1">
+                    <span className="material-symbols-outlined text-[24px] text-emerald-600">verified</span>
+                    <p className="text-xs font-extrabold text-emerald-900">
+                      {bi('કોઈ સક્રિય ચેતવણી નથી', 'No active alerts', 'Koi active alert nahi').primary}
+                    </p>
+                    <p className="text-[10px] text-emerald-700/80">
+                      {bi('હવામાન, પાક અને જમીન સ્થિતિ સુરક્ષિત છે', 'Weather, crop milestones, and soil parameters are optimal', 'Mausam, fasal aur mitti anukool hai').primary}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Redirect Action Footer */}
               <div className="pt-2 border-t border-amber-500/20 flex items-center justify-between">
                 <span className="text-[11px] font-bold text-amber-800 group-hover:text-amber-900 flex items-center gap-1">
-                  <span>{bi('ચેતવણી કેન્દ્રમાં પગલાં લો', 'Take Action in Alert Center', 'Alerts Center mein Action Lein').primary}</span>
-                  <span className="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">
-                    arrow_forward
-                  </span>
+                  <span>{bi('બધી ચેતવણીઓ જુઓ →', 'View All Alerts →', 'Sabhi Alerts Dekhein →').primary}</span>
                 </span>
                 <span className="text-[10px] text-on-surface-variant font-medium">
-                  {bi('ટેપ કરો → /alerts', 'Tap to open /alerts', 'Tap karein → /alerts').primary}
+                  /alerts
                 </span>
               </div>
             </div>

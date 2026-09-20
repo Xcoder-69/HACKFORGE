@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
+import { ToastNotificationContainer } from '../components/ui/ToastNotificationContainer';
 import type { Language } from '../i18n/translations';
 
 interface NavItemDef {
@@ -647,6 +648,9 @@ export const FarmerLayout: React.FC = () => {
           })}
         </div>
       </nav>
+
+      {/* Global Toast Notification Container for Temporary Events */}
+      <ToastNotificationContainer />
     </div>
   );
 };

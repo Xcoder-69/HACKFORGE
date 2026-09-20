@@ -11,6 +11,14 @@ import {
   type GujaratDistrictPreset,
 } from '../../services/locationService';
 
+export type WeatherLoadingStage =
+  | 'getting_location'
+  | 'fetching_weather'
+  | 'processing_response'
+  | 'weather_ready'
+  | 'no_location'
+  | 'error';
+
 export const WeatherSoilIntelligence: React.FC = () => {
   const navigate = useNavigate();
   const { language, bi } = useLanguage();
@@ -46,46 +54,81 @@ export const WeatherSoilIntelligence: React.FC = () => {
     language
   );
 
+  const [loadingStage, setLoadingStage] = useState<WeatherLoadingStage>('getting_location');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const fetchWeather = async (
     lat?: number,
     lng?: number,
     force: boolean = false
   ) => {
-    if (force) setIsRefreshing(true);
-    const targetLat = typeof lat === 'number' ? lat : currentLocation.latitude;
-    const targetLng = typeof lng === 'number' ? lng : currentLocation.longitude;
+    try {
+      setErrorMessage(null);
+      if (force) setIsRefreshing(true);
 
-    const data = await weatherService.getWeather(
-      targetLat,
-      targetLng,
-      force,
-      currentLocation.locationName
-    );
-    setWeatherData(data);
-    setIsLoading(false);
-    setIsRefreshing(false);
+      let targetLat = lat;
+      let targetLng = lng;
+      let locName = currentLocation.locationName;
+
+      // Stage 1: Location Resolution
+      if (typeof targetLat !== 'number' || typeof targetLng !== 'number' || targetLat === 0) {
+        setLoadingStage('getting_location');
+        const active = locationService.getSavedLocation();
+        if (!locationService.hasValidLocation(active)) {
+          setLoadingStage('no_location');
+          setIsLoading(false);
+          setIsRefreshing(false);
+          return;
+        }
+        targetLat = active.latitude;
+        targetLng = active.longitude;
+        locName = active.locationName;
+        setCurrentLocation(active);
+      }
+
+      // Stage 2: Fetching live weather from Open-Meteo
+      setLoadingStage('fetching_weather');
+
+      // Stage 3: Processing response
+      const dataPromise = weatherService.getWeather(
+        targetLat,
+        targetLng,
+        force,
+        locName
+      );
+
+      setLoadingStage('processing_response');
+      const data = await dataPromise;
+
+      // Stage 4: Weather Ready
+      setWeatherData(data);
+      setLoadingStage('weather_ready');
+    } catch (err: any) {
+      console.error('[WeatherSoilIntelligence] Error fetching Open-Meteo weather:', err);
+      setLoadingStage('error');
+      setErrorMessage(err?.message || 'Weather data temporarily unavailable.');
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
   };
 
   useEffect(() => {
     const saved = locationService.getSavedLocation();
     setCurrentLocation(saved);
-    fetchWeather(saved.latitude, saved.longitude);
-
-    // If source is fallback, attempt an automatic geolocation check
-    if (saved.source === 'fallback') {
-      setIsDetectingLocation(true);
-      locationService.getCurrentLocation().then((result) => {
-        setIsDetectingLocation(false);
-        if (result.success) {
-          setCurrentLocation(result.coords);
-          fetchWeather(result.coords.latitude, result.coords.longitude, true);
-        }
-      });
+    if (locationService.hasValidLocation(saved)) {
+      fetchWeather(saved.latitude, saved.longitude);
+    } else {
+      setLoadingStage('no_location');
+      setIsLoading(false);
     }
 
     // Subscribe to external location updates
     const unsub = locationService.subscribeToLocation((coords) => {
       setCurrentLocation(coords);
+      if (locationService.hasValidLocation(coords)) {
+        fetchWeather(coords.latitude, coords.longitude, true);
+      }
     });
     return unsub;
   }, []);
@@ -93,12 +136,13 @@ export const WeatherSoilIntelligence: React.FC = () => {
   const handleDetectLocation = async () => {
     setIsDetectingLocation(true);
     setLocationNotice(null);
+    setLoadingStage('getting_location');
 
     const result = await locationService.getCurrentLocation();
     setIsDetectingLocation(false);
     setCurrentLocation(result.coords);
 
-    if (result.success) {
+    if (result.success && locationService.hasValidLocation(result.coords)) {
       setLocationNotice({
         message:
           language === 'gu'
@@ -117,9 +161,14 @@ export const WeatherSoilIntelligence: React.FC = () => {
               'Location permission denied. Please select district manually.',
         type: 'warning',
       });
-      fetchWeather(result.coords.latitude, result.coords.longitude, true);
-      if (result.errorType === 'denied') {
-        setShowDistrictModal(true);
+      if (locationService.hasValidLocation(result.coords)) {
+        fetchWeather(result.coords.latitude, result.coords.longitude, true);
+      } else {
+        setLoadingStage('no_location');
+        setIsLoading(false);
+        if (result.errorType === 'denied') {
+          setShowDistrictModal(true);
+        }
       }
     }
   };
@@ -138,15 +187,7 @@ export const WeatherSoilIntelligence: React.FC = () => {
     fetchWeather(preset.lat, preset.lng, true);
   };
 
-  const weeklyForecast = weatherData?.daily || [
-    { day: 'Today', dayGu: 'આજે', tempMax: 33, tempMin: 24, condition: 'Partly Cloudy', icon: 'partly_cloudy_day', rainProb: 20, rainMm: '0.0 mm', sprayScore: 'Safe' },
-    { day: 'Sun', dayGu: 'રવિ', tempMax: 34, tempMin: 25, condition: 'Sunny & Clear', icon: 'wb_sunny', rainProb: 5, rainMm: '0.0 mm', sprayScore: 'Optimal' },
-    { day: 'Mon', dayGu: 'સોમ', tempMax: 32, tempMin: 24, condition: 'Isolated Showers', icon: 'rainy', rainProb: 65, rainMm: '14.2 mm', sprayScore: 'Unsafe' },
-    { day: 'Tue', dayGu: 'મંગળ', tempMax: 30, tempMin: 23, condition: 'Moderate Rain', icon: 'thunderstorm', rainProb: 80, rainMm: '26.5 mm', sprayScore: 'Unsafe' },
-    { day: 'Wed', dayGu: 'બુધ', tempMax: 31, tempMin: 23, condition: 'Passing Clouds', icon: 'cloud', rainProb: 30, rainMm: '2.1 mm', sprayScore: 'Moderate' },
-    { day: 'Thu', dayGu: 'ગુરુ', tempMax: 33, tempMin: 24, condition: 'Warm & Humid', icon: 'wb_sunny', rainProb: 10, rainMm: '0.0 mm', sprayScore: 'Optimal' },
-    { day: 'Fri', dayGu: 'શુક્ર', tempMax: 34, tempMin: 25, condition: 'Clear Sky', icon: 'sunny', rainProb: 5, rainMm: '0.0 mm', sprayScore: 'Optimal' },
-  ];
+  const weeklyForecast = weatherData?.daily || [];
 
   return (
     <div className="w-full min-h-screen bg-[#FCF9F0] text-[#1C1C17] pb-24 md:pb-12">
@@ -319,32 +360,51 @@ export const WeatherSoilIntelligence: React.FC = () => {
           </div>
         )}
 
-        {/* Extreme Weather Advisory Banner */}
-        <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-200 text-amber-900 flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined text-[24px]">thunderstorm</span>
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded bg-amber-600 text-white text-[11px] font-bold uppercase">
-                  IMD Rain Advisory
+        {/* Extreme / Live Weather Advisory Banner */}
+        {weatherData && (
+          <div className={`border rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-sm ${
+            weatherData.daily.some((d) => d.rainProb >= 50)
+              ? 'bg-amber-50 border-amber-300'
+              : 'bg-emerald-50 border-emerald-300'
+          }`}>
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                weatherData.daily.some((d) => d.rainProb >= 50)
+                  ? 'bg-amber-200 text-amber-900'
+                  : 'bg-emerald-200 text-emerald-900'
+              }`}>
+                <span className="material-symbols-outlined text-[24px]">
+                  {weatherData.daily.some((d) => d.rainProb >= 50) ? 'thunderstorm' : 'wb_sunny'}
                 </span>
-                <span className="text-xs text-amber-800 font-semibold">Forecast for Monday & Tuesday</span>
               </div>
-              <p className="text-sm font-bold text-[#163A2D] mt-0.5">
-                {weatherData?.advisory.message ||
-                  `Convective weather advisory active for ${currentLocation.district}. Postpone foliar pesticide sprays.`}
-              </p>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className={`px-2 py-0.5 rounded text-white text-[11px] font-bold uppercase ${
+                    weatherData.daily.some((d) => d.rainProb >= 50) ? 'bg-amber-600' : 'bg-emerald-600'
+                  }`}>
+                    {language === 'gu' ? weatherData.advisory.titleGu : weatherData.advisory.title}
+                  </span>
+                  <span className="text-xs text-[#717974] font-semibold">
+                    Telemetry: {weatherData.current.lastUpdated}
+                  </span>
+                </div>
+                <p className="text-sm font-bold text-[#163A2D] mt-0.5">
+                  {language === 'gu' ? weatherData.advisory.messageGu : weatherData.advisory.message}
+                </p>
+              </div>
             </div>
+            <button
+              onClick={() => setActiveTab('spray')}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold shrink-0 transition-colors ${
+                weatherData.daily.some((d) => d.rainProb >= 50)
+                  ? 'bg-amber-200 hover:bg-amber-300 text-amber-900'
+                  : 'bg-emerald-200 hover:bg-emerald-300 text-emerald-900'
+              }`}
+            >
+              {bi('સ્પ્રે સમય તપાસો', 'Check Spray Window', 'Spray Time Dekhein').primary}
+            </button>
           </div>
-          <button
-            onClick={() => setActiveTab('spray')}
-            className="px-3.5 py-1.5 bg-amber-200 hover:bg-amber-300 text-amber-900 rounded-lg text-xs font-bold shrink-0 transition-colors"
-          >
-            Check Spray Window
-          </button>
-        </div>
+        )}
 
         {/* Tab Selection */}
         <div className="flex items-center gap-2 border-b border-[#E5E2DA] pb-2">
@@ -386,103 +446,310 @@ export const WeatherSoilIntelligence: React.FC = () => {
         {/* TAB 1: Weather Forecast */}
         {activeTab === 'weather' && (
           <div className="space-y-6">
-            {/* Current Real-time Condition Card */}
-            <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-[#E5E2DA] relative overflow-hidden">
-              <div className="absolute right-0 top-0 w-80 h-80 bg-emerald-50 rounded-full blur-3xl -z-0 pointer-events-none" />
-
-              <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-                {/* Main Gauge / Temp */}
-                <div className="md:col-span-6 flex items-center gap-6">
-                  <div className="w-24 h-24 rounded-3xl bg-amber-100 text-amber-700 flex items-center justify-center shadow-inner shrink-0">
-                    <span className="material-symbols-outlined text-[54px]">{weatherData?.current.icon || 'partly_cloudy_day'}</span>
-                  </div>
-                  <div>
-                    <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider bg-emerald-100 px-2.5 py-1 rounded-full">
-                      Kamrej Micro-Station • {weatherData?.isOffline ? 'Cached' : 'Live Open-Meteo'}
+            {/* Real Stage Loading Indicator (Section 7) */}
+            {(isLoading || isRefreshing) && (
+              <div className="bg-white rounded-3xl p-5 shadow-sm border border-[#E5E2DA] space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-emerald-700 animate-spin text-[20px]">
+                      progress_activity
                     </span>
-                    <div className="flex items-baseline gap-2 mt-1">
-                      <span className="text-5xl md:text-6xl font-black text-[#163A2D]">{weatherData?.current.temp ?? 31}°C</span>
-                      <span className="text-base font-semibold text-[#717974]">Feels like {Math.round((weatherData?.current.temp ?? 31) + 2)}°C</span>
-                    </div>
-                    <p className="text-sm font-bold text-[#414844] mt-0.5">
-                      {weatherData?.current.condition ?? 'Partly Cloudy'} • પવન: {weatherData?.current.windSpeed ?? 14} km/h
-                    </p>
+                    <h3 className="font-extrabold text-sm text-[#163A2D]">
+                      {bi('ઓપન-મેટિઓ જીવંત હવામાન ડેટા લોડ થઈ રહ્યો છે...', 'Fetching Live Open-Meteo Weather Data...', 'Live Open-Meteo Mausam Data Load Ho Raha Hai...').primary}
+                    </h3>
                   </div>
+                  <span className="text-[11px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                    Source: Open-Meteo
+                  </span>
                 </div>
 
-                {/* Micro-metrics Grid */}
-                <div className="md:col-span-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="bg-[#F6F3EA] p-3 rounded-2xl border border-[#E5E2DA]">
-                    <span className="text-xs text-[#717974] block">Humidity</span>
-                    <span className="text-base font-extrabold text-[#163A2D] flex items-center gap-1 mt-0.5">
-                      <span className="material-symbols-outlined text-blue-600 text-sm">humidity_mid</span>
-                      {weatherData?.current.humidity ?? 68}%
+                {/* Sequential Real Stages (NO fake timer / NO fake percentage) */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+                  {/* Stage 1: Location */}
+                  <div className={`p-3 rounded-2xl border flex items-center gap-2.5 ${
+                    loadingStage === 'getting_location'
+                      ? 'bg-amber-50 border-amber-300 text-amber-900'
+                      : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                  }`}>
+                    <span className="material-symbols-outlined text-[18px]">
+                      {loadingStage === 'getting_location' ? 'near_me' : 'check_circle'}
                     </span>
+                    <div className="min-w-0">
+                      <span className="text-[10px] uppercase font-bold tracking-wider opacity-70 block">Stage 1</span>
+                      <span className="text-xs font-bold truncate block">
+                        {loadingStage === 'getting_location' ? 'Getting location...' : '✓ Location verified'}
+                      </span>
+                    </div>
                   </div>
-                  <div className="bg-[#F6F3EA] p-3 rounded-2xl border border-[#E5E2DA]">
-                    <span className="text-xs text-[#717974] block">Wind Velocity</span>
-                    <span className="text-base font-extrabold text-[#163A2D] flex items-center gap-1 mt-0.5">
-                      <span className="material-symbols-outlined text-teal-600 text-sm">air</span>
-                      {weatherData?.current.windSpeed ?? 14} km/h
+
+                  {/* Stage 2: Fetching weather */}
+                  <div className={`p-3 rounded-2xl border flex items-center gap-2.5 ${
+                    loadingStage === 'fetching_weather'
+                      ? 'bg-amber-50 border-amber-300 text-amber-900'
+                      : loadingStage === 'processing_response' || loadingStage === 'weather_ready'
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                      : 'bg-[#F6F3EA] border-[#E5E2DA] text-[#717974]'
+                  }`}>
+                    <span className="material-symbols-outlined text-[18px]">
+                      {loadingStage === 'fetching_weather'
+                        ? 'cloud_sync'
+                        : loadingStage === 'processing_response' || loadingStage === 'weather_ready'
+                        ? 'check_circle'
+                        : 'hourglass_empty'}
                     </span>
+                    <div className="min-w-0">
+                      <span className="text-[10px] uppercase font-bold tracking-wider opacity-70 block">Stage 2</span>
+                      <span className="text-xs font-bold truncate block">
+                        {loadingStage === 'fetching_weather'
+                          ? 'Fetching weather...'
+                          : loadingStage === 'processing_response' || loadingStage === 'weather_ready'
+                          ? '✓ Weather received'
+                          : 'Waiting for network'}
+                      </span>
+                    </div>
                   </div>
-                  <div className="bg-[#F6F3EA] p-3 rounded-2xl border border-[#E5E2DA]">
-                    <span className="text-xs text-[#717974] block">Evapotransp.</span>
-                    <span className="text-base font-extrabold text-[#163A2D] flex items-center gap-1 mt-0.5">
-                      <span className="material-symbols-outlined text-amber-600 text-sm">water</span>
-                      4.8 mm/d
+
+                  {/* Stage 3: Processing forecast */}
+                  <div className={`p-3 rounded-2xl border flex items-center gap-2.5 ${
+                    loadingStage === 'processing_response'
+                      ? 'bg-amber-50 border-amber-300 text-amber-900'
+                      : loadingStage === 'weather_ready'
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                      : 'bg-[#F6F3EA] border-[#E5E2DA] text-[#717974]'
+                  }`}>
+                    <span className="material-symbols-outlined text-[18px]">
+                      {loadingStage === 'processing_response'
+                        ? 'tune'
+                        : loadingStage === 'weather_ready'
+                        ? 'check_circle'
+                        : 'hourglass_empty'}
                     </span>
-                  </div>
-                  <div className="bg-[#F6F3EA] p-3 rounded-2xl border border-[#E5E2DA]">
-                    <span className="text-xs text-[#717974] block">UV Index</span>
-                    <span className="text-base font-extrabold text-[#163A2D] flex items-center gap-1 mt-0.5">
-                      <span className="material-symbols-outlined text-amber-500 text-sm">wb_sunny</span>
-                      7 (High)
-                    </span>
+                    <div className="min-w-0">
+                      <span className="text-[10px] uppercase font-bold tracking-wider opacity-70 block">Stage 3</span>
+                      <span className="text-xs font-bold truncate block">
+                        {loadingStage === 'processing_response'
+                          ? 'Preparing forecast...'
+                          : loadingStage === 'weather_ready'
+                          ? '✓ Telemetry ready'
+                          : 'Waiting'}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* 7-Day Precision Forecast */}
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E2DA]">
-              <h2 className="text-lg font-extrabold text-[#163A2D] mb-4 flex items-center gap-2">
-                <span className="material-symbols-outlined text-emerald-700">calendar_month</span>
-                <span>7-Day Agricultural Forecast (સાપ્તાહિક અનુમાન)</span>
-              </h2>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3">
-                {weeklyForecast.map((item, idx) => (
-                  <div
-                    key={idx}
-                    onClick={() => setSelectedDay(idx)}
-                    className={`cursor-pointer p-3.5 rounded-2xl border text-center transition-all ${
-                      selectedDay === idx
-                        ? 'border-emerald-600 bg-emerald-50/70 shadow-sm ring-1 ring-emerald-500'
-                        : 'border-[#E5E2DA] bg-[#F6F3EA] hover:border-emerald-300'
-                    }`}
+            {/* Location Needed Prompt State */}
+            {loadingStage === 'no_location' && !weatherData && (
+              <div className="bg-white rounded-3xl p-8 text-center space-y-4 border border-amber-300 shadow-sm">
+                <div className="w-16 h-16 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center mx-auto">
+                  <span className="material-symbols-outlined text-[36px]">location_off</span>
+                </div>
+                <div className="space-y-1">
+                  <h2 className="text-xl font-extrabold text-[#163A2D]">
+                    {bi('હવામાન માટે સ્થાન જરૂરી છે', 'Location needed for weather', 'Mausam ke liye sthan zaroori hai').primary}
+                  </h2>
+                  <p className="text-xs sm:text-sm text-[#717974] max-w-md mx-auto">
+                    {bi(
+                      'ઓપન-મેટિઓ દ્વારા વાસ્તવિક હવામાન જોવા માટે કૃપા કરીને ઉપકરણનું GPS સક્રિય કરો અથવા જિલ્લો પસંદ કરો.',
+                      'Open-Meteo forecasts require your coordinates. Please enable device GPS or choose your agricultural district.',
+                      'Open-Meteo mausam dekhne ke liye device GPS on karein ya jila chunein.'
+                    ).primary}
+                  </p>
+                </div>
+                <div className="flex items-center justify-center gap-3 pt-2">
+                  <button
+                    onClick={handleDetectLocation}
+                    className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all"
                   >
-                    <span className="text-xs font-bold text-[#163A2D] block">{item.day}</span>
-                    <span className="text-[11px] text-[#717974]">{item.dayGu}</span>
-
-                    <div className="my-2 flex justify-center text-emerald-800">
-                      <span className="material-symbols-outlined text-[32px]">{item.icon}</span>
-                    </div>
-
-                    <div className="text-xs font-extrabold text-[#1C1C17]">
-                      {item.tempMax}° / <span className="text-[#717974] font-normal">{item.tempMin}°</span>
-                    </div>
-
-                    <div className="mt-2 text-[11px] font-semibold text-blue-600 flex items-center justify-center gap-0.5">
-                      <span className="material-symbols-outlined text-[13px]">water_drop</span>
-                      {item.rainProb}%
-                    </div>
-
-                    <div className="mt-1 text-[10px] text-[#717974]">{item.rainMm}</div>
-                  </div>
-                ))}
+                    <span className="material-symbols-outlined text-[18px]">my_location</span>
+                    <span>{bi('GPS શોધો', 'Detect GPS', 'GPS Pata Karein').primary}</span>
+                  </button>
+                  <button
+                    onClick={() => setShowDistrictModal(true)}
+                    className="px-4 py-2.5 bg-[#163A2D] hover:bg-[#0f281f] text-white font-bold rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">pin_drop</span>
+                    <span>{bi('જિલ્લો પસંદ કરો', 'Select District', 'Jila Chunein').primary}</span>
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Weather Error State (Zero Fake Weather) */}
+            {loadingStage === 'error' && !weatherData && (
+              <div className="bg-white rounded-3xl p-8 text-center space-y-4 border border-red-300 shadow-sm">
+                <div className="w-16 h-16 rounded-2xl bg-red-100 text-red-800 flex items-center justify-center mx-auto">
+                  <span className="material-symbols-outlined text-[36px]">cloud_off</span>
+                </div>
+                <div className="space-y-1">
+                  <h2 className="text-xl font-extrabold text-[#163A2D]">
+                    {errorMessage || 'Weather data temporarily unavailable.'}
+                  </h2>
+                  <p className="text-xs sm:text-sm text-[#717974] max-w-md mx-auto">
+                    {bi(
+                      'ઓપન-મેટિઓ હવામાન સર્વર સાથે સંપર્ક થઈ શક્યો નથી. કૃપા કરીને થોડીવાર પછી ફરી પ્રયાસ કરો.',
+                      'Could not retrieve weather from Open-Meteo. Please check your network connection and retry.',
+                      'Open-Meteo mausam prapt nahi ho saka. Kripya network check karein aur dobara koshish karein.'
+                    ).primary}
+                  </p>
+                </div>
+                <div className="pt-2">
+                  <button
+                    onClick={() => fetchWeather(currentLocation.latitude, currentLocation.longitude, true)}
+                    className="px-5 py-2.5 bg-[#163A2D] hover:bg-[#0f281f] text-white font-bold rounded-xl text-sm inline-flex items-center gap-2 shadow-sm transition-all"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">sync</span>
+                    <span>Retry Weather Sync</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Current Real-time Condition Card (Rendered only with real data) */}
+            {weatherData && (
+              <>
+                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-[#E5E2DA] relative overflow-hidden">
+                  <div className="absolute right-0 top-0 w-80 h-80 bg-emerald-50 rounded-full blur-3xl -z-0 pointer-events-none" />
+
+                  <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                    {/* Main Gauge / Temp */}
+                    <div className="md:col-span-6 flex items-center gap-6">
+                      <div className="w-24 h-24 rounded-3xl bg-amber-100 text-amber-700 flex items-center justify-center shadow-inner shrink-0">
+                        <span className="material-symbols-outlined text-[54px]">{weatherData.current.icon}</span>
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider bg-emerald-100 px-2.5 py-1 rounded-full">
+                          {currentLocation.locationName} • {weatherData.isOffline ? 'Offline Cache' : 'Live Open-Meteo'}
+                        </span>
+                        <div className="flex items-baseline gap-2 mt-1">
+                          <span className="text-5xl md:text-6xl font-black text-[#163A2D]">{weatherData.current.temp}°C</span>
+                          <span className="text-base font-semibold text-[#717974]">Feels like {weatherData.current.apparentTemp}°C</span>
+                        </div>
+                        <p className="text-sm font-bold text-[#414844] mt-0.5">
+                          {language === 'gu' ? weatherData.current.conditionGu : weatherData.current.condition} • પવન: {weatherData.current.windSpeed} km/h
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Micro-metrics Grid */}
+                    <div className="md:col-span-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <div className="bg-[#F6F3EA] p-3 rounded-2xl border border-[#E5E2DA]">
+                        <span className="text-xs text-[#717974] block">Humidity</span>
+                        <span className="text-base font-extrabold text-[#163A2D] flex items-center gap-1 mt-0.5">
+                          <span className="material-symbols-outlined text-blue-600 text-sm">humidity_mid</span>
+                          {weatherData.current.humidity}%
+                        </span>
+                      </div>
+                      <div className="bg-[#F6F3EA] p-3 rounded-2xl border border-[#E5E2DA]">
+                        <span className="text-xs text-[#717974] block">Wind Velocity</span>
+                        <span className="text-base font-extrabold text-[#163A2D] flex items-center gap-1 mt-0.5">
+                          <span className="material-symbols-outlined text-teal-600 text-sm">air</span>
+                          {weatherData.current.windSpeed} km/h
+                        </span>
+                      </div>
+                      <div className="bg-[#F6F3EA] p-3 rounded-2xl border border-[#E5E2DA]">
+                        <span className="text-xs text-[#717974] block">Precipitation</span>
+                        <span className="text-base font-extrabold text-[#163A2D] flex items-center gap-1 mt-0.5">
+                          <span className="material-symbols-outlined text-blue-500 text-sm">water_drop</span>
+                          {weatherData.current.precipitation} mm
+                        </span>
+                      </div>
+                      <div className="bg-[#F6F3EA] p-3 rounded-2xl border border-[#E5E2DA]">
+                        <span className="text-xs text-[#717974] block">Rain Chance</span>
+                        <span className="text-base font-extrabold text-[#163A2D] flex items-center gap-1 mt-0.5">
+                          <span className="material-symbols-outlined text-amber-500 text-sm">rainy</span>
+                          {weatherData.current.rainProb}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Real Attribution Bar */}
+                  <div className="mt-5 pt-3 border-t border-[#E5E2DA] flex flex-wrap items-center justify-between text-[11px] text-[#717974] gap-2">
+                    <span className="flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[14px] text-emerald-700">info</span>
+                      <span>Source: Open-Meteo (15-min weather model telemetry)</span>
+                    </span>
+                    <span>Updated: {weatherData.current.lastUpdated}</span>
+                  </div>
+                </div>
+
+                {/* 24-Hour Real Hourly Telemetry Carousel */}
+                {weatherData.hourly && weatherData.hourly.length > 0 && (
+                  <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E2DA]">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-base font-extrabold text-[#163A2D] flex items-center gap-2">
+                        <span className="material-symbols-outlined text-emerald-700">schedule</span>
+                        <span>24-Hour Real-Time Telemetry (કલાકવાર આગાહી)</span>
+                      </h3>
+                      <span className="text-[11px] font-bold text-[#717974]">Open-Meteo Hourly</span>
+                    </div>
+                    <div className="flex items-center gap-3 overflow-x-auto pb-2 no-scrollbar">
+                      {weatherData.hourly.slice(0, 16).map((hr, idx) => (
+                        <div
+                          key={idx}
+                          className="shrink-0 p-3.5 rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA] text-center min-w-[92px] space-y-1 hover:border-emerald-300 transition-colors"
+                        >
+                          <span className="text-[11px] font-bold text-[#717974] block">{hr.time}</span>
+                          <span className="material-symbols-outlined text-[28px] text-emerald-800 block">
+                            {hr.icon}
+                          </span>
+                          <span className="text-xs font-black text-[#163A2D] block">{hr.temperature}°C</span>
+                          <span className="text-[10px] text-blue-600 font-bold block flex items-center justify-center gap-0.5">
+                            <span className="material-symbols-outlined text-[11px]">water_drop</span>
+                            {hr.precipitationProbability}%
+                          </span>
+                          <span className="text-[10px] text-[#717974] block">
+                            {hr.windSpeed} km/h
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 7-Day Precision Forecast */}
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E2DA]">
+                  <h2 className="text-lg font-extrabold text-[#163A2D] mb-4 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-emerald-700">calendar_month</span>
+                    <span>7-Day Agricultural Forecast (સાપ્તાહિક અનુમાન)</span>
+                  </h2>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3">
+                    {weeklyForecast.map((item, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => setSelectedDay(idx)}
+                        className={`cursor-pointer p-3.5 rounded-2xl border text-center transition-all ${
+                          selectedDay === idx
+                            ? 'border-emerald-600 bg-emerald-50/70 shadow-sm ring-1 ring-emerald-500'
+                            : 'border-[#E5E2DA] bg-[#F6F3EA] hover:border-emerald-300'
+                        }`}
+                      >
+                        <span className="text-xs font-bold text-[#163A2D] block">{item.day}</span>
+                        <span className="text-[11px] text-[#717974]">{item.dayGu}</span>
+
+                        <div className="my-2 flex justify-center text-emerald-800">
+                          <span className="material-symbols-outlined text-[32px]">{item.icon}</span>
+                        </div>
+
+                        <div className="text-xs font-extrabold text-[#1C1C17]">
+                          {item.tempMax}° / <span className="text-[#717974] font-normal">{item.tempMin}°</span>
+                        </div>
+
+                        <div className="mt-2 text-[11px] font-semibold text-blue-600 flex items-center justify-center gap-0.5">
+                          <span className="material-symbols-outlined text-[13px]">water_drop</span>
+                          {item.rainProb}%
+                        </div>
+
+                        <div className="mt-1 text-[10px] text-[#717974]">{item.rainMm}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         )}
 
@@ -634,43 +901,55 @@ export const WeatherSoilIntelligence: React.FC = () => {
                     AI synthesized from Wind Velocity, Temperature, Relative Humidity, and 6-hour Precipitation Probability
                   </p>
                 </div>
-                <span className="px-3 py-1 bg-emerald-600 text-white rounded-full text-xs font-bold">
-                  Current: SAFE FOR SPRAYING
+                <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                  (weatherData?.hourly?.[0]?.sprayScore === 'Optimal' || weatherData?.hourly?.[0]?.sprayScore === 'Safe')
+                    ? 'bg-emerald-600 text-white'
+                    : weatherData?.hourly?.[0]?.sprayScore === 'Moderate'
+                    ? 'bg-amber-500 text-white'
+                    : 'bg-red-600 text-white'
+                }`}>
+                  {weatherData?.hourly?.[0]?.sprayScore
+                    ? `Current: ${weatherData.hourly[0].sprayScore.toUpperCase()} FOR SPRAYING`
+                    : 'Awaiting Weather Telemetry'}
                 </span>
               </div>
 
-              {/* Hours Grid */}
+              {/* Dynamic Real Hours Grid from Open-Meteo */}
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mt-6">
-                <div className="bg-emerald-50 border-2 border-emerald-500 rounded-2xl p-4 text-center">
-                  <span className="text-xs font-bold text-emerald-900">06:00 - 09:00 AM</span>
-                  <div className="my-1.5 font-black text-emerald-700 text-lg">OPTIMAL</div>
-                  <span className="text-[11px] text-[#717974]">Wind: 8 km/h • 26°C</span>
-                </div>
-                <div className="bg-emerald-50 border-2 border-emerald-500 rounded-2xl p-4 text-center">
-                  <span className="text-xs font-bold text-emerald-900">09:00 - 11:00 AM</span>
-                  <div className="my-1.5 font-black text-emerald-700 text-lg">SAFE</div>
-                  <span className="text-[11px] text-[#717974]">Wind: 12 km/h • 29°C</span>
-                </div>
-                <div className="bg-amber-50 border-2 border-amber-400 rounded-2xl p-4 text-center">
-                  <span className="text-xs font-bold text-amber-900">11:00 AM - 03:00 PM</span>
-                  <div className="my-1.5 font-black text-amber-700 text-lg">CAUTION</div>
-                  <span className="text-[11px] text-[#717974]">High Heat (34°C) Evap</span>
-                </div>
-                <div className="bg-emerald-50 border-2 border-emerald-500 rounded-2xl p-4 text-center">
-                  <span className="text-xs font-bold text-emerald-900">03:00 - 06:00 PM</span>
-                  <div className="my-1.5 font-black text-emerald-700 text-lg">OPTIMAL</div>
-                  <span className="text-[11px] text-[#717974]">Wind: 10 km/h • 30°C</span>
-                </div>
-                <div className="bg-red-50 border-2 border-red-400 rounded-2xl p-4 text-center">
-                  <span className="text-xs font-bold text-red-900">Monday Morning</span>
-                  <div className="my-1.5 font-black text-red-700 text-lg">NO SPRAY</div>
-                  <span className="text-[11px] text-[#717974]">Heavy Rain Risk (65%)</span>
-                </div>
-                <div className="bg-red-50 border-2 border-red-400 rounded-2xl p-4 text-center">
-                  <span className="text-xs font-bold text-red-900">Tuesday All Day</span>
-                  <div className="my-1.5 font-black text-red-700 text-lg">NO SPRAY</div>
-                  <span className="text-[11px] text-[#717974]">Showers Expected</span>
-                </div>
+                {(weatherData?.hourly?.slice(0, 6) || []).map((hour, idx) => {
+                  const isSafeOrOptimal = hour.sprayScore === 'Optimal' || hour.sprayScore === 'Safe';
+                  const isModerate = hour.sprayScore === 'Moderate';
+
+                  return (
+                    <div
+                      key={idx}
+                      className={`border-2 rounded-2xl p-4 text-center transition-all ${
+                        isSafeOrOptimal
+                          ? 'bg-emerald-50 border-emerald-500'
+                          : isModerate
+                          ? 'bg-amber-50 border-amber-400'
+                          : 'bg-red-50 border-red-400'
+                      }`}
+                    >
+                      <span className="text-xs font-bold text-[#1C1C17] block">{hour.time}</span>
+                      <div className={`my-1.5 font-black text-base ${
+                        isSafeOrOptimal
+                          ? 'text-emerald-700'
+                          : isModerate
+                          ? 'text-amber-700'
+                          : 'text-red-700'
+                      }`}>
+                        {hour.sprayScore.toUpperCase()}
+                      </div>
+                      <span className="text-[11px] text-[#717974] block">
+                        Wind: {hour.windSpeed} km/h • {hour.temperature}°C
+                      </span>
+                      <span className="text-[10px] text-blue-600 font-semibold block mt-0.5">
+                        Rain: {hour.precipitationProbability}% ({hour.rain.toFixed(1)} mm)
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Recommended Irrigation Schedule */}

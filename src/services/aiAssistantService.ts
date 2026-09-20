@@ -106,8 +106,12 @@ export const aiAssistantService: IAiAssistantService = {
               village: user?.village || 'Kamrej',
               district: user?.district || 'Surat',
               crops: cropSummary || 'Cotton, Groundnut',
-              weatherCondition: weather?.condition || 'Partly Cloudy, 32°C',
-              spraySuitability: weather?.spraySuitability || 'Favorable',
+              weatherCondition: weather
+                ? `${weather.current.condition}, ${Math.round(weather.current.temp)}°C`
+                : 'Real-time weather pending',
+              spraySuitability: weather
+                ? (weather.current.windSpeed <= 15 && weather.current.rain === 0 ? 'Favorable' : 'Caution')
+                : 'Favorable',
               netProfit: finance?.projectedNetProfit,
             },
           },
@@ -244,10 +248,17 @@ export const aiAssistantService: IAiAssistantService = {
       lower.includes('હવામાન') ||
       lower.includes('rain')
     ) {
-      textEn =
-        'Current weather in Surat is 32°C with 64% humidity. Winds are 11 km/h NW. Today between 2:00 PM and 6:00 PM is an optimal spray window before weekend overcast.';
-      textGu =
-        'સુરતમાં હાલ ૩૨°C તાપમાન અને ૬૪% ભેજ છે. પવનની ગતિ ૧૧ કિમી/કલાક છે. બપોરે ૨ થી ૬ વાગ્યાનો સમય દવાનો છંટકાવ કરવા માટે ઉત્તમ છે.';
+      const storedW = weatherService.getStoredWeather();
+      if (storedW) {
+        const dist = storedW.normalized?.location?.district || storedW.locationName;
+        textEn = `Current weather in ${dist} is ${Math.round(storedW.current.temp)}°C (${storedW.current.condition}) with ${storedW.current.humidity}% humidity. Winds are ${Math.round(storedW.current.windSpeed)} km/h. Today's forecast: High ${Math.round(storedW.daily?.[0]?.tempMax ?? storedW.current.temp)}°C, Low ${Math.round(storedW.daily?.[0]?.tempMin ?? storedW.current.temp)}°C.`;
+        textGu = `${dist}માં હાલ ${Math.round(storedW.current.temp)}°C તાપમાન (${storedW.current.conditionGu}) અને ${storedW.current.humidity}% ભેજ છે. પવનની ગતિ ${Math.round(storedW.current.windSpeed)} કિમી/કલાક છે. આજના તાપમાન રેન્જ: મહત્તમ ${Math.round(storedW.daily?.[0]?.tempMax ?? storedW.current.temp)}°C, લઘુત્તમ ${Math.round(storedW.daily?.[0]?.tempMin ?? storedW.current.temp)}°C.`;
+      } else {
+        textEn =
+          'Weather telemetry is actively syncing from Open-Meteo. Please check the Weather & Soil dashboard for live conditions.';
+        textGu =
+          'ઓપન-મેટિઓ તરફથી હવામાન ડેટા સક્રિય રીતે મેળવવામાં આવી રહ્યો છે. લાઇવ વિગતો માટે હવામાન ડેશબોર્ડ જુઓ.';
+      }
       suggestions = ['Weather & Soil Dashboard', 'Spray Window Rating'];
     }
 
