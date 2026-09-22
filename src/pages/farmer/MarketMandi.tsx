@@ -55,59 +55,59 @@ export const MarketMandi: React.FC = () => {
   return (
     <div className="w-full min-h-screen bg-[#FCF9F0] text-[#1C1C17] pb-24 md:pb-12">
       {/* Top Header */}
-      <div className="bg-[#163A2D] text-white py-6 px-4 md:px-8 shadow-sm">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="bg-[#163A2D] text-white py-4 sm:py-6 px-3 sm:px-6 md:px-8 shadow-sm">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-3 sm:gap-4">
           <div>
-            <div className="flex items-center gap-2 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-1">
-              <span className="material-symbols-outlined text-[18px]">storefront</span>
-              <span>{bi('ગુજરાત APMC નેટવર્ક • માર્કેટ યાર્ડ ભાવ અને વેચાણ સલાહ', 'Gujarat APMC Network • Mandi Market Intelligence', 'गुजरात APMC नेटवर्क • मंडी भाव व बिक्री सलाह').primary}</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-emerald-300 text-[11px] sm:text-xs font-bold uppercase tracking-wider mb-0.5 sm:mb-1">
+              <span className="material-symbols-outlined text-[16px] sm:text-[18px]">storefront</span>
+              <span className="truncate">{bi('ગુજરાત APMC નેટવર્ક • માર્કેટ યાર્ડ ભાવ', 'Gujarat APMC Network • Mandi Intelligence', 'गुजरात APMC नेटवर्क • मंडी भाव').primary}</span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight">
               {bi('લાઇવ મંડી બજાર ભાવ', 'Mandi Market Intelligence', 'लाइव मंडी बाजार भाव').primary}
             </h1>
-            <p className="text-emerald-300/90 text-xs font-semibold mt-0.5">
-              {bi('Live Modal Prices, Arrival Volumes & Advisories', 'લાઇવ મંડી ભાવ, આવક જથ્થો અને વેચાણ સલાહ', 'Live Modal Prices & Advisories').primary}
+            <p className="text-emerald-300/90 text-[11px] sm:text-xs font-semibold mt-0.5">
+              {bi('લાઇવ મંડી ભાવ, આવક જથ્થો અને વેચાણ સલાહ', 'Live Modal Prices, Arrival Volumes & Advisories', 'लाइव मंडी भाव व एडवाइजरी').primary}
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="grid grid-cols-2 sm:flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => navigate('/profit')}
-              className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-sm flex items-center gap-1.5 shadow-md transition-all active:scale-95"
+              className="px-3 sm:px-4 py-2 sm:py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition-all active:scale-95"
             >
-              <span className="material-symbols-outlined text-[18px]">trending_up</span>
-              <span>{bi('આવક અને નફો / Revenue & Profit', 'Revenue & Profit Overview / આવક અને નફો', 'आय व लाभ / Revenue & Profit').primary}</span>
+              <span className="material-symbols-outlined text-[16px] sm:text-[18px]">trending_up</span>
+              <span className="truncate">{bi('આવક અને નફો', 'Revenue & Profit', 'आय व लाभ').primary}</span>
             </button>
             <button
               onClick={() => navigate('/expenses')}
-              className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold text-sm flex items-center gap-1.5 transition-colors border border-white/20"
+              className="px-3 sm:px-4 py-2 sm:py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-colors border border-white/20"
             >
-              <span className="material-symbols-outlined text-[18px]">receipt_long</span>
-              <span>{bi('ખેતી ખર્ચ / Input Costs', 'Input Costs / ખેતી ખર્ચ', 'लागत खर्च / Input Costs').primary}</span>
+              <span className="material-symbols-outlined text-[16px] sm:text-[18px]">receipt_long</span>
+              <span className="truncate">{bi('ખેતી ખર્ચ', 'Input Costs', 'लागत खर्च').primary}</span>
             </button>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 pt-6 space-y-6">
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 md:px-8 pt-3 sm:pt-6 space-y-4 sm:space-y-6">
         {/* Sell Advice Highlight Banner */}
-        <div className="bg-emerald-50 border border-emerald-300 rounded-3xl p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
-              <span className="material-symbols-outlined text-[26px]">lightbulb</span>
+        <div className="bg-emerald-50 border border-emerald-300 rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-start gap-2.5 sm:gap-3">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+              <span className="material-symbols-outlined text-[20px] sm:text-[26px]">lightbulb</span>
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-xs font-bold uppercase">
-                  AgroMind Market Forecast
+                <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] sm:text-xs font-bold uppercase tracking-wide">
+                  AgroMind AI
                 </span>
-                <span className="text-xs font-semibold text-emerald-800">Updated 10m ago</span>
+                <span className="text-[10px] sm:text-xs font-semibold text-emerald-800">Updated 10m ago</span>
               </div>
-              <h3 className="text-base md:text-lg font-black text-[#163A2D] mt-1">
+              <h3 className="text-sm sm:text-base md:text-lg font-black text-[#163A2D] mt-1 leading-snug">
                 Cotton Price Rally: Hold for 7-10 Days for +₹250/Qtl Margin
               </h3>
-              <p className="text-xs md:text-sm text-[#414844] mt-0.5">
+              <p className="text-xs sm:text-sm text-[#414844] mt-0.5 line-clamp-2 sm:line-clamp-none">
                 Surat APMC arrival volumes are currently high, depressing spot rates. Demand from export mills in Rajkot is picking up for Grade-A Shankar-6.
               </p>
             </div>
@@ -115,28 +115,28 @@ export const MarketMandi: React.FC = () => {
 
           <button
             onClick={() => setSelectedCropFilter('Cotton')}
-            className="px-4 py-2.5 bg-[#163A2D] text-white rounded-xl text-xs font-bold shrink-0 hover:bg-emerald-950 transition-colors shadow"
+            className="w-full md:w-auto px-3.5 sm:px-4 py-2 sm:py-2.5 bg-[#163A2D] text-white rounded-xl text-xs font-bold shrink-0 hover:bg-emerald-950 transition-colors shadow text-center"
           >
-            View Cotton Trends
+            {bi('કપાસ ટ્રેન્ડ જુઓ', 'View Cotton Trends', 'कपास ट्रेंड देखें').primary}
           </button>
         </div>
 
         {/* Search & Commodity Filter Bar */}
-        <div className="bg-white rounded-3xl p-5 shadow-sm border border-[#E5E2DA] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-5 shadow-sm border border-[#E5E2DA] flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div className="relative flex-1">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#717974] text-[20px]">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#717974] text-[18px] sm:text-[20px]">
               search
             </span>
             <input
               type="text"
               placeholder={bi(
-                'પાક અથવા મંડી શોધો (દા.ત. Cotton, કપાસ, સુરત, Rajkot)...',
-                'Search commodity or mandi (e.g. Cotton, Surat, Rajkot)...',
-                'फसल या मंडी खोजें (उदा. Cotton, कपास, सूरत)...'
+                'પાક અથવા મંડી શોધો (કપાસ, સુરત, Rajkot)...',
+                'Search commodity or mandi (e.g. Cotton, Surat)...',
+                'फसल या मंडी खोजें (कपास, सूरत, Rajkot)...'
               ).primary}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-11 pl-10 pr-10 rounded-xl border border-[#C1C8C3] text-sm font-semibold focus:border-emerald-600 focus:outline-none"
+              className="w-full h-10 sm:h-11 pl-9 sm:pl-10 pr-9 sm:pr-10 rounded-xl border border-[#C1C8C3] text-xs sm:text-sm font-semibold focus:border-emerald-600 focus:outline-none"
             />
             {search && (
               <button
@@ -150,18 +150,18 @@ export const MarketMandi: React.FC = () => {
             )}
           </div>
 
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 no-scrollbar">
             {[
-              { id: 'All', gu: 'બધા પાક (All)', en: 'All Crops', hi: 'सभी फसलें' },
-              { id: 'Cotton', gu: 'કપાસ (Cotton)', en: 'Cotton (કપાસ)', hi: 'कपास (Cotton)' },
-              { id: 'Groundnut', gu: 'મગફળી (Groundnut)', en: 'Groundnut (મગફળી)', hi: 'मूंगफली (Groundnut)' },
-              { id: 'Sugarcane', gu: 'શેરડી (Sugarcane)', en: 'Sugarcane (શેરડી)', hi: 'गन्ना (Sugarcane)' },
-              { id: 'Cumin', gu: 'જીરું (Cumin)', en: 'Cumin (જીરું)', hi: 'जीरा (Cumin)' },
+              { id: 'All', gu: 'બધા પાક', en: 'All Crops', hi: 'सभी फसलें' },
+              { id: 'Cotton', gu: 'કપાસ', en: 'Cotton', hi: 'कपास' },
+              { id: 'Groundnut', gu: 'મગફળી', en: 'Groundnut', hi: 'मूंगफली' },
+              { id: 'Sugarcane', gu: 'શેરડી', en: 'Sugarcane', hi: 'गन्ना' },
+              { id: 'Cumin', gu: 'જીરું', en: 'Cumin', hi: 'जीरा' },
             ].map((chip) => (
               <button
                 key={chip.id}
                 onClick={() => setSelectedCropFilter(chip.id)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
                   selectedCropFilter === chip.id
                     ? 'bg-[#163A2D] text-white shadow'
                     : 'bg-[#F6F3EA] text-[#414844] hover:bg-[#E5E2DA]'
@@ -175,11 +175,11 @@ export const MarketMandi: React.FC = () => {
 
         {/* Mandi Rate Cards Grid or Empty State */}
         {filteredMandi.length === 0 ? (
-          <div className="bg-white rounded-3xl p-10 text-center border border-[#E5E2DA] space-y-4 shadow-sm max-w-xl mx-auto">
-            <div className="w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-700">
-              <span className="material-symbols-outlined text-3xl">storefront</span>
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-10 text-center border border-[#E5E2DA] space-y-3 sm:space-y-4 shadow-sm max-w-xl mx-auto">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-700">
+              <span className="material-symbols-outlined text-2xl sm:text-3xl">storefront</span>
             </div>
-            <h3 className="font-extrabold text-xl text-[#163A2D]">
+            <h3 className="font-extrabold text-lg sm:text-xl text-[#163A2D]">
               {bi(
                 `"${search}" માટે કોઈ મંડી ભાવ મળ્યા નથી`,
                 `No mandi rates found for "${search}"`,
@@ -188,43 +188,43 @@ export const MarketMandi: React.FC = () => {
             </h3>
             <p className="text-xs text-[#717974] leading-relaxed">
               {bi(
-                'કૃપા કરીને અન્ય પાક અથવા મંડીનું નામ (દા.ત. કપાસ, સુરત, Cotton, Rajkot) લખીને પ્રયત્ન કરો.',
-                'Try searching with alternative crop or mandi names (e.g. Cotton, Kapas, Surat, Rajkot).',
-                'कृपया अन्य फसल या मंडी नाम (उदा. कपास, सूरत, cotton, rajkot) लिखकर खोजें।'
+                'કૃપા કરીને અન્ય પાક અથવા મંડીનું નામ લખીને પ્રયત્ન કરો.',
+                'Try searching with alternative crop or mandi names.',
+                'कृपया अन्य फसल या मंडी नाम लिखकर खोजें।'
               ).primary}
             </p>
             <button
               onClick={() => setSearch('')}
-              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm inline-flex items-center gap-1.5"
+              className="px-4 sm:px-5 py-2 sm:py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm inline-flex items-center gap-1.5"
             >
               <span className="material-symbols-outlined text-base">refresh</span>
-              <span>{bi('શોધ સાફ કરો (Clear Search)', 'Clear Search (શોધ સાફ કરો)', 'खोज साफ़ करें (Clear Search)').primary}</span>
+              <span>{bi('શોધ સાફ કરો', 'Clear Search', 'खोज साफ़ करें').primary}</span>
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-6">
             {filteredMandi.map((item) => (
               <div
                 key={item.id}
-                className="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E2DA] hover:border-emerald-400 transition-all flex flex-col justify-between space-y-4"
+                className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm border border-[#E5E2DA] hover:border-emerald-400 transition-all flex flex-col justify-between space-y-3 sm:space-y-4"
               >
                 <div>
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-start justify-between gap-2">
                     <div>
-                      <span className="text-xs font-bold text-[#717974] flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[16px] text-emerald-700">location_on</span>
+                      <span className="text-[11px] sm:text-xs font-bold text-[#717974] flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[15px] sm:text-[16px] text-emerald-700">location_on</span>
                         {item.mandi} • {item.distance}
                       </span>
-                      <h3 className="text-xl font-black text-[#163A2D] mt-1">
+                      <h3 className="text-lg sm:text-xl font-black text-[#163A2D] mt-0.5 sm:mt-1">
                         {bi(item.cropGu, item.crop, item.cropHi || item.crop).primary}
                       </h3>
-                      <p className="text-xs font-semibold text-emerald-800">
+                      <p className="text-[11px] sm:text-xs font-semibold text-emerald-800">
                         {bi(item.cropGu, item.crop, item.cropHi || item.crop).secondary}
                       </p>
                     </div>
 
                     <span
-                      className={`px-2.5 py-1 rounded-full text-xs font-black ${
+                      className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[11px] sm:text-xs font-black shrink-0 ${
                         item.recommendation === 'SELL NOW'
                           ? 'bg-emerald-100 text-emerald-800'
                           : item.recommendation === 'HOLD'
@@ -241,12 +241,12 @@ export const MarketMandi: React.FC = () => {
                   </div>
 
                   {/* Price Display */}
-                  <div className="mt-4 p-4 rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA] flex items-baseline justify-between">
+                  <div className="mt-3 sm:mt-4 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA] flex items-baseline justify-between">
                     <div>
                       <span className="text-[10px] font-bold text-[#717974] uppercase block">
-                        {bi('મોડલ ભાવ (Modal Rate)', 'Modal Rate (મોડલ ભાવ)', 'मॉडल भाव (Modal Rate)').primary}
+                        {bi('મોડલ ભાવ', 'Modal Rate', 'मॉडल भाव').primary}
                       </span>
-                      <div className="text-3xl font-black text-[#163A2D] mt-0.5">
+                      <div className="text-2xl sm:text-3xl font-black text-[#163A2D] mt-0.5">
                         ₹{item.modalPrice.toLocaleString('en-IN')}
                       </div>
                     </div>
@@ -269,25 +269,25 @@ export const MarketMandi: React.FC = () => {
                   </div>
 
                   {/* Range and volume */}
-                  <div className="grid grid-cols-2 gap-2 mt-3 text-xs">
-                    <div className="p-2.5 rounded-xl bg-white border border-[#E5E2DA]">
+                  <div className="grid grid-cols-2 gap-2 mt-2.5 sm:mt-3 text-xs">
+                    <div className="p-2 sm:p-2.5 rounded-xl bg-white border border-[#E5E2DA]">
                       <span className="text-[#717974] block text-[10px] uppercase font-semibold">
-                        {bi('ભાવ રેન્જ (Min - Max)', 'Min - Max Range', 'भाव दायरा').primary}
+                        {bi('ભાવ રેન્જ', 'Price Range', 'भाव दायरा').primary}
                       </span>
-                      <span className="font-bold text-[#163A2D]">
+                      <span className="font-bold text-[#163A2D] text-xs sm:text-sm">
                         ₹{item.minPrice} - ₹{item.maxPrice}
                       </span>
                     </div>
-                    <div className="p-2.5 rounded-xl bg-white border border-[#E5E2DA]">
+                    <div className="p-2 sm:p-2.5 rounded-xl bg-white border border-[#E5E2DA]">
                       <span className="text-[#717974] block text-[10px] uppercase font-semibold">
                         {bi('દૈનિક આવક', 'Daily Arrival', 'दैनिक आवक').primary}
                       </span>
-                      <span className="font-bold text-[#163A2D]">{item.arrivals}</span>
+                      <span className="font-bold text-[#163A2D] text-xs sm:text-sm">{item.arrivals}</span>
                     </div>
                   </div>
 
-                  <p className="text-xs text-[#414844] mt-2 bg-[#FCF9F0] p-2.5 rounded-xl border border-[#E5E2DA]">
-                    💡 <strong>{bi('સલાહ:', 'Advice:', 'Salah:').primary}</strong>{' '}
+                  <p className="text-[11px] sm:text-xs text-[#414844] mt-2 bg-[#FCF9F0] p-2 sm:p-2.5 rounded-xl border border-[#E5E2DA] leading-snug">
+                    💡 <strong>{bi('સલાહ:', 'Advice:', 'सलाह:').primary}</strong>{' '}
                     {bi(item.recGu, item.recommendation, item.recHi || item.recommendation).primary}
                   </p>
                 </div>
@@ -295,10 +295,10 @@ export const MarketMandi: React.FC = () => {
                 {/* Action Button */}
                 <button
                   onClick={() => setShowGatePassModal(item)}
-                  className="w-full py-3 bg-[#163A2D] hover:bg-emerald-950 text-white rounded-2xl text-xs md:text-sm font-bold shadow-sm transition-all flex items-center justify-center gap-2 active:scale-95"
+                  className="w-full py-2.5 sm:py-3 bg-[#163A2D] hover:bg-emerald-950 text-white rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold shadow-sm transition-all flex items-center justify-center gap-1.5 sm:gap-2 active:scale-95"
                 >
-                  <span className="material-symbols-outlined text-[18px]">confirmation_number</span>
-                  <span>{bi('મંડી સ્લોટ અને ગેટ પાસ બુક કરો', 'Book Mandi Slot & Gate Pass', 'मंडी स्लॉट व गेट पास बुक करें').primary}</span>
+                  <span className="material-symbols-outlined text-[17px] sm:text-[18px]">confirmation_number</span>
+                  <span>{bi('ગેટ પાસ બુક કરો', 'Book Gate Pass', 'गेट पास बुक करें').primary}</span>
                 </button>
               </div>
             ))}

@@ -420,39 +420,79 @@ export const MyFarm: React.FC = () => {
     const match = p.area.match(/([0-9.]+)/);
     return acc + (match ? parseFloat(match[1]) : 0);
   }, 0);
-  const totalLandStr = totalCalculatedAcres > 0 ? `${totalCalculatedAcres.toFixed(1)} Acres` : `${farmParcel?.totalArea || 4.5} Acres`;
-  const uniqueCrops = Array.from(new Set(Object.values(plots).map((p) => p.crop.split('(')[0].trim()))).join(' + ') || 'Cotton';
-  const uniqueCropsGu = Array.from(new Set(Object.values(plots).map((p) => p.subCrop.split('(')[0].trim()))).join(' + ') || 'કપાસ';
+  const totalLandStr = totalCalculatedAcres > 0
+    ? `${totalCalculatedAcres.toFixed(1)} Acres`
+    : farmParcel?.totalArea
+    ? `${farmParcel.totalArea} ${farmParcel.unit?.includes('Vigha') ? 'Vigha' : 'Acres'}`
+    : 'Land not added';
+  const hasPlots = Object.keys(plots).length > 0;
+  const uniqueCrops = hasPlots
+    ? Array.from(new Set(Object.values(plots).map((p) => p.crop.split('(')[0].trim()))).join(' + ')
+    : 'No crops added';
+  const uniqueCropsGu = hasPlots
+    ? Array.from(new Set(Object.values(plots).map((p) => p.subCrop.split('(')[0].trim()))).join(' + ')
+    : 'કોઈ પાક ઉમેરેલ નથી';
 
   return (
-    <div className="w-full min-h-screen bg-surface font-sans text-on-surface antialiased pt-4 pb-12 px-4 sm:px-6 lg:px-10">
+    <div className="w-full min-h-screen bg-surface font-sans text-on-surface antialiased pt-2 sm:pt-4 pb-10 sm:pb-12 px-2.5 sm:px-6 lg:px-10">
       {/* Toast Alert */}
       {toastMessage && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-secondary text-white px-5 py-2.5 rounded-full shadow-2xl text-xs font-bold flex items-center gap-2 animate-in fade-in slide-in-from-top-4 duration-200">
-          <span className="material-symbols-outlined text-[18px]">verified</span>
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-secondary text-white px-4 py-2 rounded-full shadow-2xl text-xs font-bold flex items-center gap-1.5 animate-in fade-in slide-in-from-top-4 duration-200">
+          <span className="material-symbols-outlined text-[16px]">verified</span>
           <span>{toastMessage}</span>
         </div>
       )}
 
       {/* Main Responsive Container */}
-      <div className="max-w-6xl mx-auto space-y-5">
+      <div className="max-w-6xl mx-auto space-y-3.5 sm:space-y-5">
+
+        {/* Real User Action Banner when farm registration is pending */}
+        {!farmParcel && !user?.isDemo && (
+          <div className="bg-gradient-to-r from-emerald-900 to-[#163A2D] text-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-md border border-emerald-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-in fade-in duration-200">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-2xl bg-secondary text-white flex items-center justify-center shrink-0 shadow-sm">
+                <span className="material-symbols-outlined text-[24px]">add_home_work</span>
+              </div>
+              <div>
+                <h3 className="text-sm sm:text-base font-extrabold text-white">
+                  {bi('તમારા ખેતરની નોંધણી કરો', 'Complete Your Farm Setup', 'Apne Khet Ka Registration Karein').primary}
+                </h3>
+                <p className="text-xs text-emerald-200/90 mt-0.5">
+                  {bi(
+                    'વાસ્તવિક હવામાન, ઉપગ્રહ દેખરેખ અને પાક ભલામણો સક્રિય કરવા તમારી જમીનનું ક્ષેત્રફળ અને સ્થાન ઉમેરો.',
+                    'Add your land acreage and location to activate personalized weather, satellite NDVI, and crop recommendations.',
+                    'Mausam, satellite dekhrekh aur fasal salah ke liye khet ki jankari jodein.'
+                  ).primary}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate('/onboarding')}
+              className="px-4 py-2 bg-secondary hover:bg-secondary-dark text-white rounded-xl text-xs font-bold shadow-md shrink-0 flex items-center gap-1.5 active:scale-95 transition-all"
+            >
+              <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+              <span>{bi('ખેતર ઉમેરો', 'Add Farm Parcel', 'Khet Jodein').primary}</span>
+            </button>
+          </div>
+        )}
 
         {/* ========================================================================= */}
         {/* COMPREHENSIVE FARM IDENTITY & VITAL TELEMETRY BANNER CARD                 */}
         {/* ========================================================================= */}
-        <div className="w-full bg-surface-container-lowest p-5 sm:p-6 rounded-3xl shadow-sm border border-outline-variant/30 space-y-5">
+        <div className="w-full bg-surface-container-lowest p-3.5 sm:p-5 md:p-6 rounded-2xl sm:rounded-3xl shadow-sm border border-outline-variant/30 space-y-3 sm:space-y-5">
           {/* Top Row: Farmer Profile, Status Badges & Quick Action Buttons */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-start sm:items-center gap-4 min-w-0">
-              {/* Farmer Avatar / Photo (Properly constrained & styled) */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+              {/* Farmer Avatar / Photo */}
               <div className="relative shrink-0">
                 <img
                   src="/farmer-hero.jpg"
                   alt="Farmer avatar"
-                  className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl object-cover shadow-sm border-2 border-secondary/40"
+                  className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl object-cover shadow-sm border-2 border-secondary/40"
                 />
                 <span
-                  className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-secondary text-white flex items-center justify-center text-[10px] font-bold border-2 border-white shadow-xs"
+                  className="absolute -bottom-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-secondary text-white flex items-center justify-center text-[9px] sm:text-[10px] font-bold border-2 border-white shadow-xs"
                   title="Verified Kisan"
                 >
                   ✓
@@ -460,63 +500,55 @@ export const MyFarm: React.FC = () => {
               </div>
 
               {/* Profile Name, Status Badges & Detailed Geolocation */}
-              <div className="flex flex-col min-w-0 space-y-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h2 className="text-lg sm:text-xl font-black text-primary truncate">
-                    {user?.name || 'Rameshbhai Patel'}
+              <div className="flex flex-col min-w-0 space-y-0.5 sm:space-y-1">
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                  <h2 className="text-base sm:text-xl font-black text-primary truncate">
+                    {user?.name || (user?.isDemo ? 'Rameshbhai Patel' : 'Kisan')}
                   </h2>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-secondary-container text-secondary text-[11px] font-extrabold shadow-xs">
-                    <span className="material-symbols-outlined text-[13px]">verified</span>
-                    100% KYC Verified
+                  <span className="inline-flex items-center gap-0.5 sm:gap-1 px-2 py-0.5 rounded-full bg-secondary-container text-secondary text-[10px] sm:text-[11px] font-extrabold shadow-xs">
+                    <span className="material-symbols-outlined text-[12px] sm:text-[13px]">verified</span>
+                    KYC ✓
                   </span>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container-high text-primary text-[11px] font-bold border border-outline-variant/30">
-                    <span className="material-symbols-outlined text-[13px] text-tertiary">badge</span>
-                    PM-KISAN: {user?.pmKisanId || 'GJ-SUR-88412'}
-                  </span>
-                  <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200">
-                    Kharif 2026
+                  <span className="hidden xs:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container-high text-primary text-[10px] sm:text-[11px] font-bold border border-outline-variant/30">
+                    <span className="material-symbols-outlined text-[12px] sm:text-[13px] text-tertiary">badge</span>
+                    {user?.pmKisanId || (user?.isDemo ? 'GJ-SUR-88412' : 'KYC Registered')}
                   </span>
                 </div>
 
                 {/* Location Breadcrumb & Survey Identification */}
-                <div className="flex items-center gap-1.5 text-xs text-on-surface-variant font-medium flex-wrap">
+                <div className="flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs text-on-surface-variant font-medium flex-wrap">
                   <span className="flex items-center gap-0.5 text-secondary font-semibold">
-                    <span className="material-symbols-outlined text-[15px]">location_on</span>
-                    {user?.village || 'Kamrej Gam'}, {user?.city || user?.taluka || 'Kamrej'}, {user?.district || 'Surat'}, Gujarat
-                  </span>
-                  <span className="opacity-40">•</span>
-                  <span className="bg-surface-container px-2 py-0.5 rounded-md text-[11px] font-semibold text-primary">
-                    Khata / Survey: {farmParcel?.surveyNo || 'Block 142/A'}
-                  </span>
-                  {farmParcel?.landmark && (
-                    <span className="text-[11px] text-on-surface-variant/80 hidden md:inline">
-                      ({farmParcel.landmark})
+                    <span className="material-symbols-outlined text-[14px] sm:text-[15px]">location_on</span>
+                    <span>
+                      {farmParcel?.landmark || `${user?.village || 'Kamrej'}, ${user?.district || 'Surat'}`}
                     </span>
-                  )}
+                  </span>
+                  <span>•</span>
+                  <span>{farmParcel?.surveyNo || (user?.isDemo ? 'Block 142/A' : 'Survey No. Pending')}</span>
                 </div>
               </div>
             </div>
 
             {/* Quick Action Navigation Buttons */}
-            <div className="flex items-center gap-2.5 shrink-0 self-end md:self-center">
+            <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
               <button
                 type="button"
-                onClick={openEditModal}
-                className="px-3.5 py-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-primary text-xs font-bold transition-all active:scale-95 shadow-xs flex items-center gap-1.5 border border-outline-variant/30"
-                title="Configure plots and crop details"
+                onClick={() => navigate('/onboarding')}
+                className="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-primary text-xs font-bold transition-all active:scale-95 border border-outline-variant/30 flex items-center gap-1 sm:gap-1.5 shadow-xs"
+                title="Update farm parcels, coordinates and acreage"
               >
-                <span className="material-symbols-outlined text-[17px] text-secondary">tune</span>
-                <span>{bi('સુધારો / Edit Farm', 'Edit Farm / સુધારો', 'Khet Sudharein / Edit Farm').primary}</span>
+                <span className="material-symbols-outlined text-[15px] sm:text-[17px] text-secondary">tune</span>
+                <span>{bi('સુધારો', 'Edit Farm', 'Sudharein').primary}</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => navigate('/profile')}
-                className="px-3.5 py-2 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs font-bold transition-all active:scale-95 shadow-xs flex items-center gap-1.5"
+                className="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs font-bold transition-all active:scale-95 shadow-xs flex items-center gap-1 sm:gap-1.5"
                 title="View full account and KYC profile"
               >
-                <span className="material-symbols-outlined text-[17px]">account_circle</span>
-                <span>KYC Profile</span>
+                <span className="material-symbols-outlined text-[15px] sm:text-[17px]">account_circle</span>
+                <span>{bi('પ્રોફાઇલ', 'Profile', 'Profile').primary}</span>
               </button>
             </div>
           </div>
@@ -525,75 +557,75 @@ export const MyFarm: React.FC = () => {
           <div className="border-t border-outline-variant/20" />
 
           {/* Bottom Row: 4 Critical Agricultural Telemetry Chips */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
             {/* Metric 1: Total & Cultivable Land */}
-            <div className="bg-surface-container-low/70 rounded-2xl p-3.5 border border-outline-variant/20 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 shadow-xs">
-                <span className="material-symbols-outlined text-[20px]">landscape</span>
+            <div className="bg-surface-container-low/70 rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 border border-outline-variant/20 flex items-center gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 shadow-xs">
+                <span className="material-symbols-outlined text-[17px] sm:text-[20px]">landscape</span>
               </div>
               <div className="min-w-0">
-                <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block truncate">
-                  Total Land / જમીન
+                <span className="text-[9px] sm:text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block truncate">
+                  {bi('કુલ જમીન', 'Total Land', 'Kul Zameen').primary}
                 </span>
-                <span className="text-sm sm:text-base font-black text-primary block truncate">
-                  {farmParcel?.totalArea || 4.5} {farmParcel?.unit?.includes('Vigha') ? 'Vigha' : 'Acres'}
+                <span className="text-xs sm:text-base font-black text-primary block truncate">
+                  {farmParcel ? `${farmParcel.totalArea} ${farmParcel.unit?.includes('Vigha') ? 'Vigha' : 'Acres'}` : 'Land not added'}
                 </span>
-                <span className="text-[10px] text-secondary font-bold truncate block">
-                  {farmParcel?.cultivableArea || 4.0} Ac Cultivable
+                <span className="text-[9px] sm:text-[10px] text-secondary font-bold truncate block">
+                  {farmParcel ? `${farmParcel.cultivableArea} Ac Cultivable` : 'Registration pending'}
                 </span>
               </div>
             </div>
 
             {/* Metric 2: Soil Classification */}
-            <div className="bg-surface-container-low/70 rounded-2xl p-3.5 border border-outline-variant/20 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center shrink-0 shadow-xs">
-                <span className="material-symbols-outlined text-[20px]">terrain</span>
+            <div className="bg-surface-container-low/70 rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 border border-outline-variant/20 flex items-center gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center shrink-0 shadow-xs">
+                <span className="material-symbols-outlined text-[17px] sm:text-[20px]">terrain</span>
               </div>
               <div className="min-w-0">
-                <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block truncate">
-                  Soil Type / માટી
+                <span className="text-[9px] sm:text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block truncate">
+                  {bi('માટી પ્રકાર', 'Soil Type', 'Mitti Prakar').primary}
                 </span>
-                <span className="text-sm sm:text-base font-black text-primary block truncate">
-                  {farmParcel?.soilType ? farmParcel.soilType.split('(')[0].trim() : 'Black Cotton Soil'}
+                <span className="text-xs sm:text-base font-black text-primary block truncate">
+                  {farmParcel?.soilType ? farmParcel.soilType.split('(')[0].trim() : 'Soil unverified'}
                 </span>
-                <span className="text-[10px] text-amber-800 font-bold truncate block">
-                  કાળી કાંપવાળી • pH 7.2
+                <span className="text-[9px] sm:text-[10px] text-amber-800 font-bold truncate block">
+                  {farmParcel?.soilType ? (user?.isDemo ? 'pH 7.4 • Black Cotton' : 'Tested Profile') : 'Upload soil report'}
                 </span>
               </div>
             </div>
 
             {/* Metric 3: Water & Irrigation Source */}
-            <div className="bg-surface-container-low/70 rounded-2xl p-3.5 border border-outline-variant/20 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-800 flex items-center justify-center shrink-0 shadow-xs">
-                <span className="material-symbols-outlined text-[20px]">water_drop</span>
+            <div className="bg-surface-container-low/70 rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 border border-outline-variant/20 flex items-center gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-sky-100 text-sky-800 flex items-center justify-center shrink-0 shadow-xs">
+                <span className="material-symbols-outlined text-[17px] sm:text-[20px]">water_drop</span>
               </div>
               <div className="min-w-0">
-                <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block truncate">
-                  Irrigation / પિયત
+                <span className="text-[9px] sm:text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block truncate">
+                  {bi('પિયત પદ્ધતિ', 'Irrigation', 'Piyat').primary}
                 </span>
-                <span className="text-sm sm:text-base font-black text-primary block truncate">
-                  {farmParcel?.irrigationTechnique ? farmParcel.irrigationTechnique.split('(')[0].trim() : 'Micro-Drip (90%)'}
+                <span className="text-xs sm:text-base font-black text-primary block truncate">
+                  {farmParcel?.irrigationTechnique ? farmParcel.irrigationTechnique.split('(')[0].trim() : 'Not recorded'}
                 </span>
-                <span className="text-[10px] text-sky-700 font-bold truncate block">
-                  {farmParcel?.waterSources?.length ? farmParcel.waterSources.join(' & ') : 'Canal & Tube Well'}
+                <span className="text-[9px] sm:text-[10px] text-sky-700 font-bold truncate block">
+                  {farmParcel?.waterSources?.length ? farmParcel.waterSources.join(' & ') : 'Source pending'}
                 </span>
               </div>
             </div>
 
             {/* Metric 4: Satellite Vigour & NDVI */}
-            <div className="bg-surface-container-low/70 rounded-2xl p-3.5 border border-outline-variant/20 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 shadow-xs">
-                <span className="material-symbols-outlined text-[20px]">satellite_alt</span>
+            <div className="bg-surface-container-low/70 rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 border border-outline-variant/20 flex items-center gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 shadow-xs">
+                <span className="material-symbols-outlined text-[17px] sm:text-[20px]">satellite_alt</span>
               </div>
               <div className="min-w-0">
-                <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block truncate">
-                  Satellite NDVI / ઉપગ્રહ
+                <span className="text-[9px] sm:text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block truncate">
+                  {bi('ઉપગ્રહ NDVI', 'Satellite NDVI', 'Satellite NDVI').primary}
                 </span>
-                <span className="text-sm sm:text-base font-black text-emerald-800 block truncate">
-                  NDVI 0.76 (Healthy)
+                <span className="text-xs sm:text-base font-black text-emerald-800 block truncate">
+                  NDVI 0.76 (Good)
                 </span>
-                <span className="text-[10px] text-on-surface-variant font-bold truncate block">
-                  Sentinel-2 Live Optical
+                <span className="text-[9px] sm:text-[10px] text-on-surface-variant font-bold truncate block">
+                  Sentinel-2 Live
                 </span>
               </div>
             </div>
@@ -860,23 +892,23 @@ export const MyFarm: React.FC = () => {
         {/* ========================================================================= */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-1">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-primary tracking-tight">
-              My Farm <span className="text-secondary">/ મારું ખેતર</span>
+            <h1 className="text-xl sm:text-3xl font-extrabold text-primary tracking-tight">
+              My Farm <span className="text-secondary text-base sm:text-2xl">/ મારું ખેતર</span>
             </h1>
-            <p className="text-xs sm:text-sm text-on-surface-variant mt-0.5">
-              Real-time field monitoring, plot telemetry & crop stages
+            <p className="text-[11px] sm:text-xs text-on-surface-variant mt-0.5">
+              Real-time field monitoring & crop stage telemetry
             </p>
           </div>
 
           {/* Quick Telemetry Sync Badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-primary-container text-primary-fixed text-xs font-semibold w-fit">
-            <span className="relative flex h-2.5 w-2.5">
+          <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-primary-container text-primary-fixed text-[11px] sm:text-xs font-semibold w-fit">
+            <span className="relative flex h-2 w-2 sm:h-2.5 sm:w-2.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary-fixed opacity-75" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-secondary-fixed" />
+              <span className="relative inline-flex rounded-full h-2 w-2 sm:h-2.5 sm:w-2.5 bg-secondary-fixed" />
             </span>
-            <span>Sentinel-2 Live Link</span>
-            <span className="text-[10px] px-2 py-0.5 rounded bg-white/10 text-white font-bold ml-1">
-              NDVI 0.76 (Healthy)
+            <span>Sentinel-2 Live</span>
+            <span className="text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded bg-white/10 text-white font-bold ml-0.5">
+              NDVI 0.76 (Good)
             </span>
           </div>
         </div>
@@ -885,31 +917,31 @@ export const MyFarm: React.FC = () => {
         {/* AGROMIND AI REAL-TIME DECISION HUB (RECOMMENDATION & ALERT BLOCKS)        */}
         {/* ========================================================================= */}
         <div 
-          className="w-full bg-surface-container-lowest rounded-3xl p-5 sm:p-6 shadow-sm border border-outline-variant/30 space-y-4"
+          className="w-full bg-surface-container-lowest rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 md:p-6 shadow-sm border border-outline-variant/30 space-y-3 sm:space-y-4"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
         >
           {/* AI Decision Hub Header Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-outline-variant/20">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center shadow-md shadow-emerald-600/20">
-                <span className="material-symbols-outlined text-[22px] animate-pulse">psychology</span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-outline-variant/20">
+            <div className="flex items-center gap-2.5 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center shadow-md shadow-emerald-600/20 shrink-0">
+                <span className="material-symbols-outlined text-[18px] sm:text-[22px] animate-pulse">psychology</span>
               </div>
               <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h2 className="text-sm sm:text-base font-black text-primary flex items-center gap-1.5">
-                    {bi('AI રિયલ-ટાઇમ સ્માર્ટ નિર્ણય કેન્દ્ર', 'AgroMind AI Real-Time Decision Hub', 'AgroMind AI Real-Time Decision Hub').primary}
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                  <h2 className="text-xs sm:text-base font-black text-primary flex items-center gap-1.5">
+                    {bi('AI નિર્ણય કેન્દ્ર', 'AgroMind AI Decision Hub', 'AgroMind AI Decision Hub').primary}
                   </h2>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-extrabold border border-emerald-200">
-                    <span className="w-2 h-2 rounded-full bg-emerald-600 animate-ping" />
-                    {bi('AI મોડલ સક્રિય (Live Model)', 'AI Model Active (Live)', 'AI Model Active (Live)').primary}
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[9px] sm:text-[10px] font-extrabold border border-emerald-200">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-ping" />
+                    <span>Live AI</span>
                   </span>
                 </div>
-                <p className="text-[11px] text-on-surface-variant font-medium">
+                <p className="text-[10px] sm:text-[11px] text-on-surface-variant font-medium">
                   {bi(
-                    `સેટેલાઇટ NDVI અને જમીન સેન્સર્સ આધારે સતત અપડેટ (${secondsSinceUpdate}s પહેલાં અપડેટ)`,
-                    `Continuous telemetry analysis via Sentinel-2 & IoT Probes (updated ${secondsSinceUpdate}s ago)`,
-                    `Satellite NDVI aur IoT probes se live update (${secondsSinceUpdate}s pehle update)`
+                    `સેટેલાઇટ અને સેન્સર્સ આધારે સતત અપડેટ (${secondsSinceUpdate}s પહેલાં)`,
+                    `Continuous telemetry analysis (updated ${secondsSinceUpdate}s ago)`,
+                    `Satellite aur sensors se live update (${secondsSinceUpdate}s pehle)`
                   ).primary}
                 </p>
               </div>
@@ -917,31 +949,28 @@ export const MyFarm: React.FC = () => {
 
             {/* Quick AI Action: Re-run Inference */}
             <div className="flex items-center gap-2 self-end sm:self-center">
-              <span className="text-[11px] text-on-surface-variant/80 hidden md:inline font-medium">
-                {isPaused ? '⏸️ Rotation paused' : '🔄 Auto-updating'}
-              </span>
               <button
                 type="button"
                 onClick={handleManualAiRefresh}
                 disabled={isAiUpdating}
-                className="px-3 py-1.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-primary text-xs font-bold transition-all active:scale-95 border border-outline-variant/30 flex items-center gap-1.5 shadow-xs disabled:opacity-50"
+                className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-primary text-[11px] sm:text-xs font-bold transition-all active:scale-95 border border-outline-variant/30 flex items-center gap-1.5 shadow-xs disabled:opacity-50"
                 title="Force AI model recalculation"
               >
-                <span className={`material-symbols-outlined text-[16px] text-secondary ${isAiUpdating ? 'animate-spin' : ''}`}>
+                <span className={`material-symbols-outlined text-[14px] sm:text-[16px] text-secondary ${isAiUpdating ? 'animate-spin' : ''}`}>
                   refresh
                 </span>
-                <span>{bi('AI પુનઃ ગણતરી (Re-analyze)', 'AI Re-analyze', 'AI Re-analyze Karein').primary}</span>
+                <span>{bi('AI રીફ્રેશ', 'AI Re-analyze', 'AI Re-analyze').primary}</span>
               </button>
             </div>
           </div>
 
           {/* AI Model Recalculating Shimmer Banner */}
           {isAiUpdating && (
-            <div className="w-full bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-3.5 py-1.5 flex items-center justify-between text-xs text-emerald-800 font-bold animate-in fade-in duration-200">
+            <div className="w-full bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-3 py-1.5 flex items-center justify-between text-xs text-emerald-800 font-bold animate-in fade-in duration-200">
               <span className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-[16px] animate-spin text-emerald-700">sync</span>
                 <span>
-                  {bi('AI મોડલ ખેતરના ડેટાનું ફરીથી વિશ્લેષણ કરી રહ્યું છે...', 'AgroMind AI is recalculating soil, weather & crop telemetry...', 'AI Model khet data ka re-analysis kar raha hai...').primary}
+                  {bi('AI મોડલ વિશ્લેષણ કરી રહ્યું છે...', 'AgroMind AI is recalculating...', 'AI Model analysis kar raha hai...').primary}
                 </span>
               </span>
               <span className="text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded-md font-mono">Neural 3.4</span>
@@ -949,7 +978,7 @@ export const MyFarm: React.FC = () => {
           )}
 
           {/* Responsive 2-Block Interactive Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 items-stretch">
 
             {/* ------------------------------------------------------------------- */}
             {/* BLOCK 1: AI CROP RECOMMENDATION BLOCK (REDIRECTS TO /recommendations) */}
@@ -959,20 +988,20 @@ export const MyFarm: React.FC = () => {
               tabIndex={0}
               onClick={() => navigate('/recommendations')}
               onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && navigate('/recommendations')}
-              className="group relative flex flex-col justify-between p-5 rounded-2xl bg-gradient-to-br from-emerald-500/5 via-surface-container-lowest to-surface-container-lowest border-2 border-emerald-500/25 hover:border-emerald-600 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="group relative flex flex-col justify-between p-3.5 sm:p-5 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-500/5 via-surface-container-lowest to-surface-container-lowest border-2 border-emerald-500/25 hover:border-emerald-600 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-emerald-500"
               title="Click to view full AI crop recommendations and cultivation calendar"
             >
               {/* Header Badges */}
-              <div className="flex items-center justify-between gap-2 mb-3">
+              <div className="flex items-center justify-between gap-2 mb-2.5">
                 <div className="flex items-center gap-1.5">
-                  <span className="w-7 h-7 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 shadow-xs">
-                    <span className="material-symbols-outlined text-[17px]">eco</span>
+                  <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg sm:rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 shadow-xs">
+                    <span className="material-symbols-outlined text-[15px] sm:text-[17px]">eco</span>
                   </span>
                   <div>
                     <span className="text-xs font-black text-emerald-900 tracking-tight block">
-                      {bi('AI પાક ભલામણ (AI Crop Recommendation)', 'AI Crop Recommendation', 'AI Fasal Sifarish (AI Crop Recommendation)').primary}
+                      {bi('AI પાક ભલામણ', 'AI Crop Advisory', 'AI Fasal Sifarish').primary}
                     </span>
-                    <span className="text-[10px] text-emerald-700 font-bold block">
+                    <span className="text-[9px] sm:text-[10px] text-emerald-700 font-bold block truncate max-w-[150px] sm:max-w-none">
                       {language === 'gu' ? currentRec.badgeGu : language === 'hi' ? currentRec.badgeHi : currentRec.badgeEn}
                     </span>
                   </div>
@@ -980,16 +1009,16 @@ export const MyFarm: React.FC = () => {
 
                 {/* Score Pill & Carousel Dots */}
                 <div className="flex flex-col items-end gap-1">
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[11px] font-extrabold shadow-xs flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[13px]">auto_awesome</span>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] sm:text-[11px] font-extrabold shadow-xs flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[12px] sm:text-[13px]">auto_awesome</span>
                     {currentRec.score}% {bi('અનુકૂળ', 'Match', 'Fit').primary}
                   </span>
                   <div className="flex items-center gap-1 pt-0.5">
                     {AI_RECOMMENDATIONS.map((_, idx) => (
                       <span
                         key={idx}
-                        className={`h-1.5 rounded-full transition-all duration-300 ${
-                          recIndex === idx ? 'w-4 bg-emerald-600' : 'w-1.5 bg-emerald-200'
+                        className={`h-1 sm:h-1.5 rounded-full transition-all duration-300 ${
+                          recIndex === idx ? 'w-3 sm:w-4 bg-emerald-600' : 'w-1 sm:w-1.5 bg-emerald-200'
                         }`}
                       />
                     ))}
@@ -998,32 +1027,32 @@ export const MyFarm: React.FC = () => {
               </div>
 
               {/* Crop Identity & Telemetry Metrics */}
-              <div className="space-y-2 mb-3">
+              <div className="space-y-1.5 sm:space-y-2 mb-2.5">
                 <div>
-                  <h3 className="text-base sm:text-lg font-black text-primary group-hover:text-emerald-800 transition-colors flex items-center justify-between">
+                  <h3 className="text-sm sm:text-lg font-black text-primary group-hover:text-emerald-800 transition-colors flex items-center justify-between">
                     <span>{language === 'gu' ? currentRec.cropGu : language === 'hi' ? currentRec.cropHi : currentRec.cropEn}</span>
-                    <span className="text-xs font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60">
+                    <span className="text-[11px] sm:text-xs font-black text-emerald-700 bg-emerald-50 px-1.5 sm:px-2 py-0.5 rounded-md border border-emerald-200/60">
                       {language === 'gu' ? currentRec.profitGu : language === 'hi' ? currentRec.profitHi : currentRec.profitEn}
                     </span>
                   </h3>
-                  <p className="text-xs text-on-surface-variant font-medium">
+                  <p className="text-[10px] sm:text-xs text-on-surface-variant font-medium truncate">
                     {language === 'gu' ? currentRec.varietyGu : language === 'hi' ? currentRec.varietyHi : currentRec.varietyEn}
                   </p>
                 </div>
 
                 {/* AI Rationale Snippet Box */}
-                <div className="bg-emerald-50/80 rounded-xl p-2.5 border border-emerald-200/50 text-[11px] text-emerald-950 flex items-start gap-2">
-                  <span className="material-symbols-outlined text-[16px] text-emerald-700 shrink-0 mt-0.5">
+                <div className="bg-emerald-50/80 rounded-lg sm:rounded-xl p-2 sm:p-2.5 border border-emerald-200/50 text-[10px] sm:text-[11px] text-emerald-950 flex items-start gap-1.5 sm:gap-2">
+                  <span className="material-symbols-outlined text-[15px] sm:text-[16px] text-emerald-700 shrink-0 mt-0.5">
                     insights
                   </span>
-                  <p className="leading-snug">
+                  <p className="leading-snug line-clamp-2 sm:line-clamp-none">
                     {language === 'gu' ? currentRec.reasonGu : language === 'hi' ? currentRec.reasonHi : currentRec.reasonEn}
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 text-[10px] text-on-surface-variant font-semibold">
-                  <span className="flex items-center gap-1 text-emerald-800">
-                    <span className="material-symbols-outlined text-[13px]">calendar_today</span>
+                <div className="flex items-center gap-2 text-[9px] sm:text-[10px] text-on-surface-variant font-semibold">
+                  <span className="flex items-center gap-1 text-emerald-800 truncate">
+                    <span className="material-symbols-outlined text-[12px] sm:text-[13px]">calendar_today</span>
                     {language === 'gu' ? currentRec.windowGu : language === 'hi' ? currentRec.windowHi : currentRec.windowEn}
                   </span>
                 </div>
@@ -1031,13 +1060,13 @@ export const MyFarm: React.FC = () => {
 
               {/* Redirect Action Footer */}
               <div className="pt-2 border-t border-emerald-500/20 flex items-center justify-between">
-                <span className="text-[11px] font-bold text-emerald-800 group-hover:text-emerald-900 flex items-center gap-1">
-                  <span>{bi('સંપૂર્ણ AI ખેતી યોજના જુઓ', 'View Full Cultivation Plan', 'Poori Kheti Plan Dekhein').primary}</span>
-                  <span className="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">
+                <span className="text-[10px] sm:text-[11px] font-bold text-emerald-800 group-hover:text-emerald-900 flex items-center gap-1">
+                  <span>{bi('ખેતી યોજના જુઓ', 'View Cultivation Plan', 'Kheti Plan Dekhein').primary}</span>
+                  <span className="material-symbols-outlined text-[15px] sm:text-[16px] group-hover:translate-x-1 transition-transform">
                     arrow_forward
                   </span>
                 </span>
-                <span className="text-[10px] text-on-surface-variant font-medium">
+                <span className="hidden sm:inline text-[10px] text-on-surface-variant font-medium">
                   {bi('ટેપ કરો → /recommendations', 'Tap to open /recommendations', 'Tap karein → /recommendations').primary}
                 </span>
               </div>
@@ -1051,27 +1080,27 @@ export const MyFarm: React.FC = () => {
               tabIndex={0}
               onClick={() => navigate('/alerts')}
               onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && navigate('/alerts')}
-              className="group relative flex flex-col justify-between p-5 rounded-2xl bg-gradient-to-br from-amber-500/5 via-surface-container-lowest to-surface-container-lowest border-2 border-amber-500/30 hover:border-amber-600 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="group relative flex flex-col justify-between p-3.5 sm:p-5 rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-500/5 via-surface-container-lowest to-surface-container-lowest border-2 border-amber-500/30 hover:border-amber-600 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-amber-500"
               title="Click to view all actionable farm alerts and emergency spray advisories"
             >
               {/* Header Badges */}
-              <div className="flex items-center justify-between gap-2 mb-3">
+              <div className="flex items-center justify-between gap-2 mb-2.5">
                 <div className="flex items-center gap-1.5">
-                  <span className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 shadow-xs ${
+                  <span className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 shadow-xs ${
                     alertSummary.criticalCount > 0 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-800'
                   }`}>
-                    <span className="material-symbols-outlined text-[17px]">
+                    <span className="material-symbols-outlined text-[15px] sm:text-[17px]">
                       {alertSummary.criticalCount > 0 ? 'crisis_alert' : 'notifications_active'}
                     </span>
                   </span>
                   <div>
                     <span className="text-xs font-black text-amber-950 tracking-tight block">
-                      {bi('સક્રિય ચેતવણીઓ (Active Alerts)', 'Active Field Alerts', 'Active Alerts (સક્રિય ચેતવણીઓ)').primary}
+                      {bi('સક્રિય ચેતવણીઓ', 'Active Field Alerts', 'Active Alerts').primary}
                     </span>
-                    <span className="text-[10px] text-amber-800 font-bold block">
+                    <span className="text-[9px] sm:text-[10px] text-amber-800 font-bold block truncate max-w-[150px] sm:max-w-none">
                       {alertSummary.activeCount > 0
-                        ? `${alertSummary.activeCount} ${bi('સક્રિય ચેતવણી', 'Active Alerts', 'Active Alerts').primary}${alertSummary.criticalCount > 0 ? ` • ${alertSummary.criticalCount} ${bi('તાત્કાલિક', 'Critical', 'Critical').primary}` : ''}`
-                        : bi('બધું સામાન્ય છે', 'All Parameters Normal', 'Sab Normal Hai').primary}
+                        ? `${alertSummary.activeCount} ${bi('સક્રિય', 'Active', 'Active').primary}${alertSummary.criticalCount > 0 ? ` • ${alertSummary.criticalCount} ${bi('તાત્કાલિક', 'Critical', 'Critical').primary}` : ''}`
+                        : bi('બધું સામાન્ય છે', 'All Normal', 'Sab Normal').primary}
                     </span>
                   </div>
                 </div>
@@ -1079,15 +1108,15 @@ export const MyFarm: React.FC = () => {
                 {/* Counter Pill */}
                 <div className="flex items-center gap-1.5">
                   {alertSummary.activeCount > 0 ? (
-                    <span className="px-2.5 py-0.5 rounded-full text-white text-[11px] font-extrabold shadow-xs flex items-center gap-1.5 bg-amber-600">
+                    <span className="px-2 py-0.5 rounded-full text-white text-[10px] sm:text-[11px] font-extrabold shadow-xs flex items-center gap-1 bg-amber-600">
                       <span>{alertSummary.activeCount} Active</span>
                       {alertSummary.criticalCount > 0 && (
                         <span className="w-1.5 h-1.5 rounded-full bg-red-300 animate-ping" />
                       )}
                     </span>
                   ) : (
-                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-extrabold flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[14px]">check</span>
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] sm:text-[11px] font-extrabold flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[12px] sm:text-[14px]">check</span>
                       <span>{bi('ક્લિયર', 'Clear', 'Clear').primary}</span>
                     </span>
                   )}
@@ -1095,7 +1124,7 @@ export const MyFarm: React.FC = () => {
               </div>
 
               {/* Active Alerts List (Top 2-3 items) or Clean Empty State */}
-              <div className="space-y-2 mb-3">
+              <div className="space-y-1.5 sm:space-y-2 mb-2.5">
                 {activeAlerts.length > 0 ? (
                   activeAlerts.slice(0, 3).map((alert) => {
                     const alertTitle =
@@ -1117,7 +1146,7 @@ export const MyFarm: React.FC = () => {
                     return (
                       <div
                         key={alert.id}
-                        className="bg-white/80 rounded-xl p-2.5 border border-outline-variant/30 hover:border-amber-500/50 transition-all flex items-start gap-2 shadow-xs"
+                        className="bg-white/80 rounded-lg sm:rounded-xl p-2 sm:p-2.5 border border-outline-variant/30 hover:border-amber-500/50 transition-all flex items-start gap-2 shadow-xs"
                       >
                         <span
                           className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${
@@ -1126,15 +1155,15 @@ export const MyFarm: React.FC = () => {
                         />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center justify-between gap-1">
-                            <h4 className="text-xs font-black text-primary truncate">{alertTitle}</h4>
-                            <span className="text-[9px] px-1.5 py-0.2 rounded bg-surface-container text-on-surface-variant font-bold shrink-0">
+                            <h4 className="text-[11px] sm:text-xs font-black text-primary truncate">{alertTitle}</h4>
+                            <span className="text-[8px] sm:text-[9px] px-1.5 py-0.2 rounded bg-surface-container text-on-surface-variant font-bold shrink-0">
                               {alert.source}
                             </span>
                           </div>
-                          <p className="text-[11px] text-on-surface-variant line-clamp-2 mt-0.5 leading-snug">
+                          <p className="text-[10px] sm:text-[11px] text-on-surface-variant line-clamp-1 sm:line-clamp-2 mt-0.5 leading-snug">
                             {alertMsg}
                           </p>
-                          <div className="mt-1.5 flex justify-end">
+                          <div className="mt-1 flex justify-end">
                             <button
                               type="button"
                               onClick={(e) => {
@@ -1142,10 +1171,10 @@ export const MyFarm: React.FC = () => {
                                 if (alert.actionRoute) navigate(alert.actionRoute);
                                 else navigate('/alerts');
                               }}
-                              className="text-[10px] font-bold text-secondary hover:underline flex items-center gap-0.5"
+                              className="text-[9px] sm:text-[10px] font-bold text-secondary hover:underline flex items-center gap-0.5"
                             >
-                              <span>{bi('[ચેતવણી જુઓ]', '[View Alert]', '[Alert Dekhein]').primary}</span>
-                              <span className="material-symbols-outlined text-[12px]">chevron_right</span>
+                              <span>{bi('ચેતવણી જુઓ', 'View Alert', 'Alert Dekhein').primary}</span>
+                              <span className="material-symbols-outlined text-[11px] sm:text-[12px]">chevron_right</span>
                             </button>
                           </div>
                         </div>
@@ -1153,13 +1182,13 @@ export const MyFarm: React.FC = () => {
                     );
                   })
                 ) : (
-                  <div className="py-4 px-3 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-center flex flex-col items-center justify-center gap-1">
-                    <span className="material-symbols-outlined text-[24px] text-emerald-600">verified</span>
-                    <p className="text-xs font-extrabold text-emerald-900">
+                  <div className="py-3 sm:py-4 px-2.5 sm:px-3 rounded-lg sm:rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-center flex flex-col items-center justify-center gap-0.5">
+                    <span className="material-symbols-outlined text-[20px] sm:text-[24px] text-emerald-600">verified</span>
+                    <p className="text-[11px] sm:text-xs font-extrabold text-emerald-900">
                       {bi('કોઈ સક્રિય ચેતવણી નથી', 'No active alerts', 'Koi active alert nahi').primary}
                     </p>
-                    <p className="text-[10px] text-emerald-700/80">
-                      {bi('હવામાન, પાક અને જમીન સ્થિતિ સુરક્ષિત છે', 'Weather, crop milestones, and soil parameters are optimal', 'Mausam, fasal aur mitti anukool hai').primary}
+                    <p className="text-[9px] sm:text-[10px] text-emerald-700/80">
+                      {bi('હવામાન, પાક અને જમીન સુરક્ષિત છે', 'Field conditions optimal', 'Sab anukool hai').primary}
                     </p>
                   </div>
                 )}
@@ -1167,7 +1196,7 @@ export const MyFarm: React.FC = () => {
 
               {/* Redirect Action Footer */}
               <div className="pt-2 border-t border-amber-500/20 flex items-center justify-between">
-                <span className="text-[11px] font-bold text-amber-800 group-hover:text-amber-900 flex items-center gap-1">
+                <span className="text-[10px] sm:text-[11px] font-bold text-amber-800 group-hover:text-amber-900 flex items-center gap-1">
                   <span>{bi('બધી ચેતવણીઓ જુઓ →', 'View All Alerts →', 'Sabhi Alerts Dekhein →').primary}</span>
                 </span>
                 <span className="text-[10px] text-on-surface-variant font-medium">
@@ -1182,80 +1211,82 @@ export const MyFarm: React.FC = () => {
         {/* ========================================================================= */}
         {/* RESPONSIVE 2-COLUMN GRID (Mobile: Single Stack | Desktop: 2 Columns)      */}
         {/* ========================================================================= */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-5 items-start">
 
           {/* ----------------------------------------------------------------------- */}
           {/* LEFT COLUMN (lg:col-span-7): Metrics & Interactive Parcel Map           */}
           {/* ----------------------------------------------------------------------- */}
-          <div className="lg:col-span-7 space-y-5">
+          <div className="lg:col-span-7 space-y-3.5 sm:space-y-5">
 
             {/* 4 Key Agricultural Metrics Grid */}
-            <div className="bg-surface-container-lowest rounded-2xl p-4 sm:p-5 shadow-sm border border-outline-variant/30">
-              <div className="flex items-center justify-between mb-3.5">
-                <h3 className="text-xs font-extrabold uppercase tracking-wider text-secondary flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[16px]">analytics</span>
-                  Farm Summary • સર્વગ્રાહી સ્થિતિ
+            <div className="bg-surface-container-lowest rounded-xl sm:rounded-2xl p-3.5 sm:p-5 shadow-sm border border-outline-variant/30">
+              <div className="flex items-center justify-between mb-2.5 sm:mb-3.5">
+                <h3 className="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-secondary flex items-center gap-1 sm:gap-1.5">
+                  <span className="material-symbols-outlined text-[15px] sm:text-[16px]">analytics</span>
+                  <span>{bi('ખેતર વિગત', 'Farm Summary', 'Khet Vivran').primary}</span>
                 </h3>
-                <span className="text-[11px] text-outline font-medium">Kharif 2026 Cycle</span>
+                <span className="text-[10px] sm:text-[11px] text-outline font-medium">Kharif 2026</span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5">
                 {/* Metric 1: Total Land */}
-                <div className="bg-surface-container-low p-3 rounded-xl flex flex-col justify-between border border-outline-variant/20">
-                  <div className="flex items-center gap-1 text-on-surface-variant mb-1">
-                    <span className="material-symbols-outlined text-[17px] text-secondary">crop_free</span>
-                    <span className="text-[11px] font-semibold">Total Land</span>
+                <div className="bg-surface-container-low p-2 sm:p-3 rounded-lg sm:rounded-xl flex flex-col justify-between border border-outline-variant/20">
+                  <div className="flex items-center gap-1 text-on-surface-variant mb-0.5">
+                    <span className="material-symbols-outlined text-[15px] sm:text-[17px] text-secondary">crop_free</span>
+                    <span className="text-[10px] sm:text-[11px] font-semibold">{bi('જમીન', 'Total Land', 'Zameen').primary}</span>
                   </div>
                   <div>
-                    <span className="text-base font-extrabold text-primary block leading-tight">{totalLandStr}</span>
-                    <span className="text-[10px] text-on-surface-variant">કુલ જમીન</span>
+                    <span className="text-sm sm:text-base font-extrabold text-primary block leading-tight">{totalLandStr}</span>
+                    <span className="text-[9px] sm:text-[10px] text-on-surface-variant">
+                      {farmParcel ? `${farmParcel.cultivableArea} Ac Cultivable` : 'Registration pending'}
+                    </span>
                   </div>
                 </div>
 
                 {/* Metric 2: Active Plots */}
-                <div className="bg-surface-container-low p-3 rounded-xl flex flex-col justify-between border border-outline-variant/20">
-                  <div className="flex items-center gap-1 text-on-surface-variant mb-1">
-                    <span className="material-symbols-outlined text-[17px] text-secondary">grid_view</span>
-                    <span className="text-[11px] font-semibold">Active Plots</span>
+                <div className="bg-surface-container-low p-2 sm:p-3 rounded-lg sm:rounded-xl flex flex-col justify-between border border-outline-variant/20">
+                  <div className="flex items-center gap-1 text-on-surface-variant mb-0.5">
+                    <span className="material-symbols-outlined text-[15px] sm:text-[17px] text-secondary">grid_view</span>
+                    <span className="text-[10px] sm:text-[11px] font-semibold">{bi('પ્લોટ', 'Plots', 'Plots').primary}</span>
                   </div>
                   <div>
-                    <span className="text-base font-extrabold text-primary block leading-tight">
+                    <span className="text-sm sm:text-base font-extrabold text-primary block leading-tight">
                       {Object.keys(plots).length} {Object.keys(plots).length === 1 ? 'Plot' : 'Plots'}
                     </span>
-                    <span className="text-[10px] text-on-surface-variant truncate block">
+                    <span className="text-[9px] sm:text-[10px] text-on-surface-variant truncate block">
                       {Object.keys(plots).map((k) => `Block ${k}`).join(', ')}
                     </span>
                   </div>
                 </div>
 
                 {/* Metric 3: Crops Planted */}
-                <div className="bg-surface-container-low p-3 rounded-xl flex flex-col justify-between border border-outline-variant/20">
-                  <div className="flex items-center gap-1 text-on-surface-variant mb-1">
-                    <span className="material-symbols-outlined text-[17px] text-secondary">psychiatry</span>
-                    <span className="text-[11px] font-semibold">Crops Planted</span>
+                <div className="bg-surface-container-low p-2 sm:p-3 rounded-lg sm:rounded-xl flex flex-col justify-between border border-outline-variant/20">
+                  <div className="flex items-center gap-1 text-on-surface-variant mb-0.5">
+                    <span className="material-symbols-outlined text-[15px] sm:text-[17px] text-secondary">psychiatry</span>
+                    <span className="text-[10px] sm:text-[11px] font-semibold">{bi('પાક', 'Crops', 'Fasal').primary}</span>
                   </div>
                   <div>
-                    <span className="text-xs font-extrabold text-primary block truncate leading-tight" title={uniqueCrops}>
+                    <span className="text-xs sm:text-sm font-extrabold text-primary block truncate leading-tight" title={uniqueCrops}>
                       {uniqueCrops}
                     </span>
-                    <span className="text-[10px] text-on-surface-variant truncate block" title={uniqueCropsGu}>
+                    <span className="text-[9px] sm:text-[10px] text-on-surface-variant truncate block" title={uniqueCropsGu}>
                       {uniqueCropsGu}
                     </span>
                   </div>
                 </div>
 
                 {/* Metric 4: Irrigation */}
-                <div className="bg-surface-container-low p-3 rounded-xl flex flex-col justify-between border border-outline-variant/20">
-                  <div className="flex items-center gap-1 text-on-surface-variant mb-1">
-                    <span className="material-symbols-outlined text-[17px] text-secondary">water_drop</span>
-                    <span className="text-[11px] font-semibold">Irrigation</span>
+                <div className="bg-surface-container-low p-2 sm:p-3 rounded-lg sm:rounded-xl flex flex-col justify-between border border-outline-variant/20">
+                  <div className="flex items-center gap-1 text-on-surface-variant mb-0.5">
+                    <span className="material-symbols-outlined text-[15px] sm:text-[17px] text-secondary">water_drop</span>
+                    <span className="text-[10px] sm:text-[11px] font-semibold">{bi('પિયત', 'Irrigation', 'Piyat').primary}</span>
                   </div>
                   <div>
                     <span className="text-xs sm:text-sm font-extrabold text-primary block leading-tight truncate">
                       {currentPlot.irrigation ? currentPlot.irrigation.split('(')[0].trim() : 'Drip'}
                     </span>
-                    <span className="text-[10px] text-on-surface-variant truncate block">
-                      {currentPlot.irrigation ? (currentPlot.irrigation.includes('(') ? currentPlot.irrigation.split('(')[1].replace(')', '') : 'ટપક પદ્ધતિ') : 'ટપક પદ્ધતિ'}
+                    <span className="text-[9px] sm:text-[10px] text-on-surface-variant truncate block">
+                      Drip System
                     </span>
                   </div>
                 </div>
@@ -1263,77 +1294,107 @@ export const MyFarm: React.FC = () => {
             </div>
 
             {/* Interactive Visual Parcel Map Card */}
-            <div className="bg-surface-container-lowest rounded-2xl p-4 sm:p-5 shadow-sm border border-outline-variant/30 space-y-3">
+            <div className="bg-surface-container-lowest rounded-xl sm:rounded-2xl p-3.5 sm:p-5 shadow-sm border border-outline-variant/30 space-y-2.5 sm:space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-secondary text-[22px]">map</span>
-                  <h2 className="text-sm sm:text-base font-bold text-primary">
-                    {bi('ખેતર નકશો / Parcel Map', 'Parcel Map / ખેતર નકશો', 'Khet Naksha / Parcel Map').primary}
+                  <span className="material-symbols-outlined text-secondary text-[18px] sm:text-[22px]">map</span>
+                  <h2 className="text-xs sm:text-base font-bold text-primary">
+                    {bi('ખેતર નકશો', 'Parcel Map', 'Khet Naksha').primary}
                   </h2>
                 </div>
-                <span className="text-[11px] text-on-surface-variant font-medium">
-                  {bi('પ્લોટ બદલવા ટેપ કરો', 'Tap to switch plot', 'Plot badalne ke liye tap karein').primary}
+                <span className="text-[10px] sm:text-[11px] text-on-surface-variant font-medium">
+                  {bi('ટેપ કરી પ્લોટ બદલો', 'Tap to switch plot', 'Tap to switch').primary}
                 </span>
               </div>
 
               {/* Stylized Visual Field Graphic */}
-              <div className="relative w-full rounded-2xl bg-surface-container p-3 overflow-hidden border border-outline-variant/30">
-                <div className={`grid ${
-                  Object.keys(plots).length === 1 
-                    ? 'grid-cols-1' 
-                    : Object.keys(plots).length === 2 
+              <div className="relative w-full rounded-xl sm:rounded-2xl bg-surface-container p-2.5 sm:p-3 overflow-hidden border border-outline-variant/30">
+                {!hasPlots ? (
+                  <div className="py-8 px-4 text-center bg-surface-container-lowest/80 rounded-xl border border-dashed border-outline-variant/50 space-y-2.5">
+                    <div className="w-11 h-11 rounded-2xl bg-secondary-container text-secondary flex items-center justify-center mx-auto shadow-xs">
+                      <span className="material-symbols-outlined text-[26px]">add_location_alt</span>
+                    </div>
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-bold text-primary">
+                        {bi('કોઈ પ્લોટ ઉમેરેલ નથી', 'No Plots Added Yet', 'Koi Plot Nahi Joda Gaya').primary}
+                      </h4>
+                      <p className="text-[10px] sm:text-[11px] text-on-surface-variant max-w-xs mx-auto mt-0.5">
+                        {bi(
+                          'તમારા ખેતરના પ્લોટ (Block A, Block B) ઉમેરીને પાક વૃદ્ધિ અને સેટેલાઇટ વિશ્લેષણ શરૂ કરો.',
+                          'Add micro-plots (Block A, Block B) to track crops, growth stages, and satellite vigour.',
+                          'Fasal aur satellite dekhrekh ke liye micro-plots jodein.'
+                        ).primary}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={openAddModal}
+                      className="px-3.5 py-1.5 bg-secondary text-white rounded-xl text-xs font-bold shadow-xs hover:bg-primary transition-all inline-flex items-center gap-1 cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-[15px]">add</span>
+                      <span>{bi('પ્લોટ ઉમેરો', 'Add Plot', 'Plot Jodein').primary}</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className={`grid ${
+                    Object.keys(plots).length === 1 
+                      ? 'grid-cols-1' 
+                      : Object.keys(plots).length === 2 
                       ? 'grid-cols-2' 
                       : 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3'
-                } gap-3 relative z-10`}>
-                  {Object.entries(plots).map(([key, p]) => {
-                    const isSelected = activePlot === key;
-                    return (
-                      <button
-                        key={key}
-                        type="button"
-                        onClick={() => setActivePlot(key as PlotKey)}
-                        className={`flex flex-col text-left p-4 rounded-xl transition-all duration-200 border-2 cursor-pointer ${
-                          isSelected
-                            ? 'bg-secondary-container/50 border-secondary shadow-md'
-                            : 'bg-surface-container-lowest/90 hover:bg-surface-container-lowest border-transparent shadow-sm'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between w-full mb-2">
-                          <span
-                            className={`px-2 py-0.5 rounded text-[11px] font-extrabold ${
-                              isSelected
-                                ? 'bg-secondary text-white'
-                                : 'bg-surface-container-high text-on-surface-variant'
-                            }`}
-                          >
-                            BLOCK {key}
-                          </span>
-                          {isSelected && (
-                            <span className="flex h-2.5 w-2.5 relative">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75" />
-                              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-secondary" />
+                  } gap-2 sm:gap-3 relative z-10`}>
+                    {Object.entries(plots).map(([key, p]) => {
+                      const isSelected = activePlot === key;
+                      return (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => setActivePlot(key as PlotKey)}
+                          className={`flex flex-col text-left p-2.5 sm:p-4 rounded-lg sm:rounded-xl transition-all duration-200 border-2 cursor-pointer ${
+                            isSelected
+                              ? 'bg-secondary-container/50 border-secondary shadow-md'
+                              : 'bg-surface-container-lowest/90 hover:bg-surface-container-lowest border-transparent shadow-sm'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between w-full mb-1 sm:mb-2">
+                            <span
+                              className={`px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-extrabold ${
+                                isSelected
+                                  ? 'bg-secondary text-white'
+                                  : 'bg-surface-container-high text-on-surface-variant'
+                              }`}
+                            >
+                              BLOCK {key}
                             </span>
-                          )}
-                        </div>
-                        <p className="text-base font-extrabold text-primary leading-tight">{p.area}</p>
-                        <p className="text-xs text-secondary font-bold mt-0.5 truncate">{p.crop}</p>
-                        <p className="text-[11px] text-on-surface-variant truncate">{p.subCrop}</p>
-                        <div className="mt-3 flex items-center gap-1 text-secondary text-xs font-semibold">
-                          <span className="material-symbols-outlined text-[16px]">eco</span>
-                          <span className="truncate">{p.stageName}</span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
+                            {isSelected && (
+                              <span className="flex h-2 w-2 sm:h-2.5 sm:w-2.5 relative">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75" />
+                                <span className="relative inline-flex rounded-full h-2 w-2 sm:h-2.5 sm:w-2.5 bg-secondary" />
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm sm:text-base font-extrabold text-primary leading-tight">{p.area}</p>
+                          <p className="text-[11px] sm:text-xs text-secondary font-bold mt-0.5 truncate">{p.crop}</p>
+                          <p className="text-[10px] sm:text-[11px] text-on-surface-variant truncate">{p.subCrop}</p>
+                          <div className="mt-2 sm:mt-3 flex items-center gap-1 text-secondary text-[11px] sm:text-xs font-semibold">
+                            <span className="material-symbols-outlined text-[14px] sm:text-[16px]">eco</span>
+                            <span className="truncate">{p.stageName}</span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
 
-                <div className="mt-2.5 pt-2 flex items-center justify-between text-on-surface-variant text-[11px] px-1 font-medium">
-                  <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-secondary" />
-                    {bi('દક્ષિણ ઢાળ (South slope)', 'South-facing slope (દક્ષિણ ઢાળ)', 'Dakshin Dhalan (South slope)').primary}
-                  </span>
-                  <span>{bi('બોરવેલ લાઇન: ઉત્તર કોરિડોર', 'Borewell Line: North Corridor', 'Borewell Line: Uttar Corridor').primary}</span>
-                </div>
+                {hasPlots && (
+                  <div className="mt-2 pt-1.5 flex items-center justify-between text-on-surface-variant text-[10px] sm:text-[11px] px-1 font-medium">
+                    <span className="flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-secondary" />
+                      <span>{bi('દક્ષિણ ઢાળ', 'South slope', 'South slope').primary}</span>
+                    </span>
+                    <span>{bi('બોરવેલ: ઉત્તર લાઇન', 'Borewell North', 'Borewell North').primary}</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1341,10 +1402,10 @@ export const MyFarm: React.FC = () => {
             <button
               type="button"
               onClick={openAddModal}
-              className="w-full h-14 bg-secondary hover:bg-primary text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.99]"
+              className="w-full h-11 sm:h-14 bg-secondary hover:bg-primary text-white rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.99]"
             >
-              <span className="material-symbols-outlined text-[24px]">add_circle</span>
-              <span>{bi('+ નવો પ્લોટ ઉમેરો (+ Add New Plot)', '+ Add New Farm / Plot (+ નવો પ્લોટ ઉમેરો)', '+ Naya Plot Jodein (+ Add New Plot)').primary}</span>
+              <span className="material-symbols-outlined text-[20px] sm:text-[24px]">add_circle</span>
+              <span>{bi('+ નવો પ્લોટ ઉમેરો', '+ Add New Plot', '+ Naya Plot Jodein').primary}</span>
             </button>
           </div>
 
@@ -1354,111 +1415,139 @@ export const MyFarm: React.FC = () => {
           <div className="lg:col-span-5 space-y-5">
 
             {/* Dynamic Plot Details Card */}
-            <div className="bg-surface-container-lowest rounded-2xl p-4 sm:p-5 shadow-sm border border-outline-variant/30 space-y-4">
-              {/* Header with Stage Badge */}
-              <div className="flex items-start justify-between">
+            {!hasPlots ? (
+              <div className="bg-surface-container-lowest rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-sm border border-outline-variant/30 text-center space-y-4">
+                <div className="w-16 h-16 rounded-full bg-secondary-container/40 text-secondary flex items-center justify-center mx-auto">
+                  <span className="material-symbols-outlined text-[32px]">crop_free</span>
+                </div>
                 <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] text-secondary font-bold uppercase tracking-wider">
-                      Active View
-                    </span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-secondary" />
-                    <span className="text-[11px] text-on-surface-variant">
-                      {currentPlot.provenance}
-                    </span>
-                  </div>
-                  <h2 className="text-base sm:text-lg font-bold text-primary mt-0.5">
-                    {currentPlot.title}
+                  <h2 className="text-base sm:text-lg font-bold text-primary">
+                    {bi('કોઈ પ્લોટ સેટ કરેલ નથી', 'No Plots Configured', 'Koi Plot Nahi Hai').primary}
                   </h2>
+                  <p className="text-xs text-on-surface-variant max-w-sm mx-auto mt-1 leading-relaxed">
+                    {bi(
+                      'પાક મોનિટરિંગ, સેન્સર સિંક અને AI હેલ્થ સ્કેન જોવા માટે નવો પ્લોટ ઉમેરો.',
+                      'Add your first plot to track crop stages, soil moisture, and AI disease scans.',
+                      'Fasal stage aur mitti nami dekhne ke liye naya plot jodein.'
+                    ).primary}
+                  </p>
                 </div>
-                <span className="shrink-0 px-2.5 py-1 rounded-full bg-secondary-container text-secondary text-xs font-bold">
-                  {currentPlot.stageBadge}
-                </span>
-              </div>
-
-              {/* Stage Progress Bar */}
-              <div className="w-full bg-surface-container-low rounded-full h-2.5 overflow-hidden">
-                <div
-                  className="bg-secondary h-full rounded-full transition-all duration-500"
-                  style={{ width: currentPlot.progressBar }}
-                />
-              </div>
-
-              {/* Quick Status Rows */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-surface-container-low border border-outline-variant/15">
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[20px] text-secondary">vital_signs</span>
-                    <span className="text-xs text-on-surface-variant font-medium">Crop Health / પાક સ્થિતિ</span>
-                  </div>
-                  <span className="text-xs font-bold text-secondary flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-secondary" />
-                    {currentPlot.health}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-surface-container-low border border-outline-variant/15">
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[20px] text-secondary">opacity</span>
-                    <span className="text-xs text-on-surface-variant font-medium">Soil Moisture / ભેજ</span>
-                  </div>
-                  <span className="text-xs font-bold text-primary">
-                    {currentPlot.moisture}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-surface-container-low border border-outline-variant/15">
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[20px] text-secondary">terrain</span>
-                    <span className="text-xs text-on-surface-variant font-medium">Soil Type / જમીન પ્રકાર</span>
-                  </div>
-                  <span className="text-xs font-bold text-primary truncate max-w-[180px]">
-                    {currentPlot.soilType}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-surface-container-low border border-outline-variant/15">
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[20px] text-secondary">water</span>
-                    <span className="text-xs text-on-surface-variant font-medium">Irrigation / પિયત</span>
-                  </div>
-                  <span className="text-xs font-bold text-primary">
-                    {currentPlot.irrigation}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-surface-container-low border border-outline-variant/15">
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[20px] text-secondary">sensors</span>
-                    <span className="text-xs text-on-surface-variant font-medium">Last Telemetry Sync</span>
-                  </div>
-                  <span className="text-xs font-medium text-on-surface-variant">
-                    {currentPlot.syncTime}
-                  </span>
-                </div>
-              </div>
-
-              {/* Action Buttons for Selected Plot */}
-              <div className="grid grid-cols-2 gap-2.5 pt-1">
                 <button
                   type="button"
-                  onClick={() => navigate('/ai-camera')}
-                  className="flex items-center justify-center gap-1.5 h-12 px-3 rounded-xl bg-secondary hover:bg-primary text-white text-xs font-bold shadow-sm transition-all active:scale-[0.98]"
+                  onClick={openAddModal}
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-secondary hover:bg-primary text-white text-xs sm:text-sm font-bold shadow-sm transition-all"
                 >
-                  <span className="material-symbols-outlined text-[19px]">photo_camera</span>
-                  <span>Scan Crop Leaf</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={openEditModal}
-                  className="flex items-center justify-center gap-1.5 h-12 px-3 rounded-xl bg-surface-container-high hover:bg-surface-variant text-primary text-xs font-bold transition-all active:scale-[0.98] border border-outline-variant/30"
-                >
-                  <span className="material-symbols-outlined text-[19px]">edit</span>
-                  <span>Edit Plot Details</span>
+                  <span className="material-symbols-outlined text-[20px]">add</span>
+                  <span>{bi('+ પ્રથમ પ્લોટ ઉમેરો', '+ Add First Plot', '+ Pehla Plot Jodein').primary}</span>
                 </button>
               </div>
-            </div>
+            ) : (
+              <div className="bg-surface-container-lowest rounded-xl sm:rounded-2xl p-3.5 sm:p-5 shadow-sm border border-outline-variant/30 space-y-3 sm:space-y-4">
+                {/* Header with Stage Badge */}
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] sm:text-[11px] text-secondary font-bold uppercase tracking-wider">
+                        Active View
+                      </span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-secondary" />
+                      <span className="text-[10px] sm:text-[11px] text-on-surface-variant">
+                        {currentPlot.provenance}
+                      </span>
+                    </div>
+                    <h2 className="text-sm sm:text-lg font-bold text-primary mt-0.5">
+                      {currentPlot.title}
+                    </h2>
+                  </div>
+                  <span className="shrink-0 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-secondary-container text-secondary text-[11px] sm:text-xs font-bold">
+                    {currentPlot.stageBadge}
+                  </span>
+                </div>
+
+                {/* Stage Progress Bar */}
+                <div className="w-full bg-surface-container-low rounded-full h-2 sm:h-2.5 overflow-hidden">
+                  <div
+                    className="bg-secondary h-full rounded-full transition-all duration-500"
+                    style={{ width: currentPlot.progressBar }}
+                  />
+                </div>
+
+                {/* Quick Status Rows */}
+                <div className="space-y-1.5 sm:space-y-2">
+                  <div className="flex items-center justify-between p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-surface-container-low border border-outline-variant/15">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <span className="material-symbols-outlined text-[17px] sm:text-[20px] text-secondary">vital_signs</span>
+                      <span className="text-[11px] sm:text-xs text-on-surface-variant font-medium">{bi('પાક સ્થિતિ', 'Crop Health', 'Fasal Sthiti').primary}</span>
+                    </div>
+                    <span className="text-[11px] sm:text-xs font-bold text-secondary flex items-center gap-1 sm:gap-1.5">
+                      <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-secondary" />
+                      {currentPlot.health}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-surface-container-low border border-outline-variant/15">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <span className="material-symbols-outlined text-[17px] sm:text-[20px] text-secondary">opacity</span>
+                      <span className="text-[11px] sm:text-xs text-on-surface-variant font-medium">{bi('જમીન ભેજ', 'Soil Moisture', 'Mitti Nami').primary}</span>
+                    </div>
+                    <span className="text-[11px] sm:text-xs font-bold text-primary">
+                      {currentPlot.moisture}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-surface-container-low border border-outline-variant/15">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <span className="material-symbols-outlined text-[17px] sm:text-[20px] text-secondary">terrain</span>
+                      <span className="text-[11px] sm:text-xs text-on-surface-variant font-medium">{bi('જમીન પ્રકાર', 'Soil Type', 'Mitti Prakar').primary}</span>
+                    </div>
+                    <span className="text-[11px] sm:text-xs font-bold text-primary truncate max-w-[150px] sm:max-w-[180px]">
+                      {currentPlot.soilType}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-surface-container-low border border-outline-variant/15">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <span className="material-symbols-outlined text-[17px] sm:text-[20px] text-secondary">water</span>
+                      <span className="text-[11px] sm:text-xs text-on-surface-variant font-medium">{bi('પિયત પદ્ધતિ', 'Irrigation', 'Piyat').primary}</span>
+                    </div>
+                    <span className="text-[11px] sm:text-xs font-bold text-primary">
+                      {currentPlot.irrigation}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-surface-container-low border border-outline-variant/15">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <span className="material-symbols-outlined text-[17px] sm:text-[20px] text-secondary">sensors</span>
+                      <span className="text-[11px] sm:text-xs text-on-surface-variant font-medium">{bi('છેલ્લો સિંક', 'Last Sync', 'Last Sync').primary}</span>
+                    </div>
+                    <span className="text-[10px] sm:text-xs font-medium text-on-surface-variant">
+                      {currentPlot.syncTime}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Action Buttons for Selected Plot */}
+                <div className="grid grid-cols-2 gap-2 sm:gap-2.5 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/ai-camera')}
+                    className="flex items-center justify-center gap-1.5 h-10 sm:h-12 px-2.5 sm:px-3 rounded-xl bg-secondary hover:bg-primary text-white text-xs font-bold shadow-sm transition-all active:scale-[0.98]"
+                  >
+                    <span className="material-symbols-outlined text-[17px] sm:text-[19px]">photo_camera</span>
+                    <span>{bi('કેમેરા સ્કેન', 'Scan Leaf', 'Leaf Scan').primary}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={openEditModal}
+                    className="flex items-center justify-center gap-1.5 h-10 sm:h-12 px-2.5 sm:px-3 rounded-xl bg-surface-container-high hover:bg-surface-variant text-primary text-xs font-bold transition-all active:scale-[0.98] border border-outline-variant/30"
+                  >
+                    <span className="material-symbols-outlined text-[17px] sm:text-[19px]">edit</span>
+                    <span>{bi('પ્લોટ વિગત', 'Edit Plot', 'Plot Edit').primary}</span>
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Farm History Collapsible Accordion */}
             <div className="w-full bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/30 overflow-hidden">
@@ -1485,47 +1574,57 @@ export const MyFarm: React.FC = () => {
 
               {isHistoryOpen && (
                 <div className="p-4 pt-0 space-y-2.5 border-t border-outline-variant/20 animate-in fade-in duration-200">
-                  <div className="p-3 bg-surface-container-low rounded-xl space-y-1 border border-outline-variant/15">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-primary">
-                        Rabi 2023-24: Wheat (ઘઉં GW-496)
-                      </span>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-secondary-container text-secondary font-bold">
-                        22 Qtl/Ac
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-on-surface-variant">
-                      Area: 2.5 Acres • Above regional benchmark yield (+14%) • Residue mulched into topsoil.
-                    </p>
-                  </div>
+                  {user?.isDemo || hasPlots ? (
+                    <>
+                      <div className="p-3 bg-surface-container-low rounded-xl space-y-1 border border-outline-variant/15">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-primary">
+                            Rabi 2023-24: Wheat (ઘઉં GW-496)
+                          </span>
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-secondary-container text-secondary font-bold">
+                            22 Qtl/Ac
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-on-surface-variant">
+                          Area: 2.5 Acres • Above regional benchmark yield (+14%) • Residue mulched into topsoil.
+                        </p>
+                      </div>
 
-                  <div className="p-3 bg-surface-container-low rounded-xl space-y-1 border border-outline-variant/15">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-primary">
-                        Kharif 2023: Groundnut (મગફળી GG-20)
-                      </span>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-secondary-container text-secondary font-bold">
-                        +18% N2 Fixed
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-on-surface-variant">
-                      Area: 4.5 Acres • High root nodulation, enhanced organic nitrogen content.
-                    </p>
-                  </div>
+                      <div className="p-3 bg-surface-container-low rounded-xl space-y-1 border border-outline-variant/15">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-primary">
+                            Kharif 2023: Groundnut (મગફળી GG-20)
+                          </span>
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-secondary-container text-secondary font-bold">
+                            +18% N2 Fixed
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-on-surface-variant">
+                          Area: 4.5 Acres • High root nodulation, enhanced organic nitrogen content.
+                        </p>
+                      </div>
 
-                  <div className="p-3 bg-surface-container-high rounded-xl flex items-center justify-between">
-                    <div>
-                      <span className="text-xs font-bold text-primary block">
-                        Soil Health Card Benchmark (જમીન ચકાસણી)
-                      </span>
-                      <span className="text-[11px] text-on-surface-variant">
-                        pH 7.2 (Neutral) • Organic Carbon 0.65% (Medium)
-                      </span>
+                      <div className="p-3 bg-surface-container-high rounded-xl flex items-center justify-between">
+                        <div>
+                          <span className="text-xs font-bold text-primary block">
+                            Soil Health Card Benchmark (જમીન ચકાસણી)
+                          </span>
+                          <span className="text-[11px] text-on-surface-variant">
+                            pH 7.2 (Neutral) • Organic Carbon 0.65% (Medium)
+                          </span>
+                        </div>
+                        <span className="material-symbols-outlined text-secondary text-[22px] fill">
+                          verified
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="p-4 bg-surface-container-low rounded-xl text-center">
+                      <p className="text-xs text-on-surface-variant">
+                        {bi('કોઈ પાછલો ઇતિહાસ નોંધાયેલ નથી.', 'No past seasonal history recorded yet.', 'Koi pichla itihas darj nahi hai.').primary}
+                      </p>
                     </div>
-                    <span className="material-symbols-outlined text-secondary text-[22px] fill">
-                      verified
-                    </span>
-                  </div>
+                  )}
                 </div>
               )}
             </div>

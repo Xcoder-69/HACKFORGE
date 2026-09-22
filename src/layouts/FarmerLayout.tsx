@@ -352,15 +352,15 @@ export const FarmerLayout: React.FC = () => {
             title="Farmer Profile"
           >
             <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
-              {user?.name ? user.name.charAt(0) : 'R'}
+              {user?.name ? user.name.charAt(0).toUpperCase() : 'K'}
             </div>
             {!isSidebarCollapsed && (
               <div className="flex flex-col min-w-0 overflow-hidden text-left">
                 <span className="text-xs font-bold text-primary truncate leading-tight">
-                  {user?.name || 'Rameshbhai Patel'}
+                  {user?.name || 'Farmer / ખેડૂત'}
                 </span>
                 <span className="text-[10px] text-on-surface-variant truncate">
-                  {user?.district || 'Surat'} • Kisan
+                  {user?.district ? `${user.district} • Kisan` : 'Registered Farmer'}
                 </span>
               </div>
             )}
@@ -371,10 +371,10 @@ export const FarmerLayout: React.FC = () => {
       {/* ========================================================================= */}
       {/* 2. MOBILE & TABLET TOP HEADER (Strictly screens < 1024px / lg:hidden)      */}
       {/* ========================================================================= */}
-      <header className="sticky top-0 inset-x-0 z-40 flex lg:hidden bg-surface-container-lowest/95 backdrop-blur-xl border-b border-outline-variant/30 shadow-[0_1px_10px_rgba(22,58,45,0.06)] px-3 sm:px-4 h-16 items-center justify-between">
+      <header className="sticky top-0 inset-x-0 z-40 flex lg:hidden bg-surface-container-lowest/95 backdrop-blur-xl border-b border-outline-variant/30 shadow-[0_1px_10px_rgba(22,58,45,0.06)] px-2.5 sm:px-4 h-14 sm:h-16 items-center justify-between">
         {/* Logo & Brand */}
         <div
-          className="flex items-center gap-2 sm:gap-2.5 cursor-pointer shrink-0"
+          className="flex items-center gap-2 cursor-pointer shrink-0"
           onClick={() => navigate('/home')}
           role="button"
           tabIndex={0}
@@ -384,20 +384,20 @@ export const FarmerLayout: React.FC = () => {
           <img
             src="/logo.png?v=2"
             alt="AgroMind Logo"
-            className="w-9 h-9 sm:w-10 sm:h-10 object-contain shrink-0 drop-shadow-sm"
+            className="w-8 h-8 sm:w-9 sm:h-9 object-contain shrink-0 drop-shadow-sm"
           />
           <div className="flex flex-col">
-            <span className="text-base sm:text-lg font-extrabold text-primary tracking-tight leading-tight whitespace-nowrap">
+            <span className="text-sm sm:text-base font-extrabold text-primary tracking-tight leading-tight whitespace-nowrap">
               AgroMind AI
             </span>
-            <span className="text-[10px] text-secondary font-bold">
-              {bi('કિસાન પોર્ટલ (Kisan Portal)', 'Kisan Portal (કિસાન પોર્ટલ)', 'किसान पोर्टल (Kisan Portal)').primary}
+            <span className="text-[9px] sm:text-[10px] text-secondary font-bold truncate max-w-[120px] sm:max-w-none">
+              {bi('કિસાન પોર્ટલ', 'Kisan Portal', 'किसान पोर्टल').primary}
             </span>
           </div>
         </div>
 
         {/* Right Controls: Language Switcher, Profile, Hamburger */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {/* Language Switcher (Tablet) */}
           <div className="hidden sm:flex items-center bg-surface-container rounded-full p-0.5 border border-outline-variant/30 text-xs shrink-0">
             {(['gu', 'hi', 'en'] as Language[]).map((code) => (
@@ -425,7 +425,7 @@ export const FarmerLayout: React.FC = () => {
             aria-label="View Farmer Profile"
             className="flex items-center cursor-pointer"
           >
-            <div className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs shadow-sm shrink-0">
+            <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs shadow-sm shrink-0">
               {user?.name ? user.name.charAt(0) : 'R'}
             </div>
           </div>
@@ -436,9 +436,9 @@ export const FarmerLayout: React.FC = () => {
             onClick={() => setIsDrawerOpen(true)}
             aria-label={t('nav.menu')}
             aria-expanded={isDrawerOpen}
-            className="p-2 rounded-xl text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-secondary/40 shrink-0 flex items-center justify-center"
+            className="p-1.5 sm:p-2 rounded-xl text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-secondary/40 shrink-0 flex items-center justify-center"
           >
-            <span className="material-symbols-outlined text-[26px]">menu</span>
+            <span className="material-symbols-outlined text-[22px] sm:text-[26px]">menu</span>
           </button>
         </div>
       </header>
@@ -586,7 +586,7 @@ export const FarmerLayout: React.FC = () => {
       {/* 4. MAIN CONTENT CONTAINER (Responsive Padding Offset for Desktop Sidebar)  */}
       {/* ========================================================================= */}
       <main
-        className={`flex-1 pb-24 md:pb-12 w-full transition-all duration-300 ${
+        className={`flex-1 pb-20 md:pb-12 w-full transition-all duration-300 ${
           isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'
         }`}
       >
@@ -600,7 +600,7 @@ export const FarmerLayout: React.FC = () => {
         aria-label="Farmer Mobile Navigation"
         className="flex md:hidden fixed bottom-0 inset-x-0 z-40 bg-surface-container-lowest/95 backdrop-blur-xl border-t border-outline-variant/30 shadow-[0_-4px_20px_rgba(22,58,45,0.08)] pb-safe"
       >
-        <div className="max-w-lg mx-auto w-full h-18 px-3 flex items-center justify-around">
+        <div className="max-w-lg mx-auto w-full h-15 px-2 flex items-center justify-around">
           {NAV_ITEMS.slice(0, 5).map((item) => {
             const active = isItemActive(item);
             const labelInfo = item.labels[language] || item.labels.en;
@@ -611,16 +611,13 @@ export const FarmerLayout: React.FC = () => {
                 <NavLink
                   key={item.to}
                   to={item.to}
-                  className="flex flex-col items-center justify-center -mt-6 flex-1 group"
+                  className="flex flex-col items-center justify-center -mt-5 flex-1 group"
                 >
-                  <div className="w-13 h-13 rounded-full bg-secondary text-white shadow-[0_8px_20px_rgba(27,108,59,0.35)] group-hover:bg-primary transition-transform group-active:scale-90 flex items-center justify-center border-4 border-surface-container-lowest">
-                    <span className="material-symbols-outlined text-[26px]">{item.icon}</span>
+                  <div className="w-11 h-11 rounded-full bg-secondary text-white shadow-[0_6px_16px_rgba(27,108,59,0.35)] group-hover:bg-primary transition-transform group-active:scale-90 flex items-center justify-center border-[3px] border-surface-container-lowest">
+                    <span className="material-symbols-outlined text-[22px]">{item.icon}</span>
                   </div>
-                  <span className="text-[10px] font-bold text-secondary mt-0.5 tracking-tight leading-tight">
+                  <span className="text-[9px] font-bold text-secondary mt-0.5 tracking-tight leading-tight truncate max-w-[60px] text-center">
                     {labelInfo.primary}
-                  </span>
-                  <span className="text-[8px] text-secondary/80 font-medium leading-none">
-                    {labelInfo.sub}
                   </span>
                 </NavLink>
               );
@@ -636,12 +633,9 @@ export const FarmerLayout: React.FC = () => {
                   }`
                 }
               >
-                <span className="material-symbols-outlined text-[22px]">{item.icon}</span>
-                <span className="text-[10px] mt-0.5 tracking-tight font-bold leading-tight">
+                <span className={`material-symbols-outlined text-[20px] ${active ? 'fill' : ''}`}>{item.icon}</span>
+                <span className="text-[9px] mt-0.5 tracking-tight font-bold leading-tight truncate max-w-[56px] text-center">
                   {labelInfo.primary}
-                </span>
-                <span className="text-[8px] opacity-75 font-normal leading-none">
-                  {labelInfo.sub}
                 </span>
               </NavLink>
             );

@@ -1,0 +1,46 @@
+{
+  "dataset_name": "Current Daily Price of Various Commodities from Various Markets (Mandi)",
+  "source_file": "data/original/Current Daily Price of Various Commodities from Various Markets (Mandi).csv",
+  "cleaned_file": "data/cleaned/mandi_data_cleaned.csv",
+  "version": "v1",
+  "original_rows": 7992,
+  "cleaned_rows": 7992,
+  "duplicate_rows_removed": 0,
+  "invalid_records_rejected": 0,
+  "columns": [
+    "state",
+    "district",
+    "market",
+    "commodity",
+    "variety",
+    "grade",
+    "arrival_date",
+    "min_price",
+    "max_price",
+    "modal_price"
+  ],
+  "distinct_counts": {
+    "state": 21,
+    "district": 219,
+    "market": 500,
+    "commodity": 151,
+    "variety": 227,
+    "grade": 12,
+    "arrival_date": 1
+  },
+  "date_range": {
+    "min": "2026-09-20",
+    "max": "2026-09-20",
+    "distinct": 1
+  },
+  "gujarat_rows": 35,
+  "potential_use": [
+    "market benchmark price estimation",
+    "market comparison and APMC ranking",
+    "market price feature engineering"
+  ],
+  "not_sufficient_alone_for": [
+    "crop recommendation supervised training (requires soil N-P-K, pH, weather, yield)",
+    "historical time-series price forecasting (contains only 1 single arrival date)"
+  ]
+}

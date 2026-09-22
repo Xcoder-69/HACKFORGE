@@ -8,37 +8,43 @@ import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import { syncEngine } from '../lib/syncEngine';
 import type { IAiAssistantService } from '../contracts/ai.contract';
 
-const DEFAULT_INITIAL_MESSAGES: ChatMessage[] = [
-  {
-    id: 'msg-1',
-    sender: 'assistant',
-    textEn: 'Namaste Ramesh Patel! I am AgroMind AI, your personalized agronomist. How can I assist with your farm in Kamrej today?',
-    textGu: 'નમસ્તે રમેશભાઈ! હું એગ્રોમાઇન્ડ AI છું, તમારો અંગત ખેતી સલાહકાર. આજે કામરેજ સ્થિત તમારા ખેતર માટે હું શું મદદ કરી શકું?',
-    time: '10:00 AM',
-    suggestions: [
-      'Pink Bollworm symptoms in Cotton? (ગુલાબી ઈયળના ઉપાય)',
-      'Should I start Drip today? (આજે પિયત આપવું?)',
-      'Today Surat APMC Cotton rate? (સુરત માર્કેટ ભાવ)',
-      'Soil Phosphorus deficiency treatment? (ફોસ્ફરસ ખાતર)',
-    ],
-    isAiEstimate: false,
-    isOfflineFallback: true,
-  },
-];
+const getInitialMessages = (): ChatMessage[] => {
+  const currentUser = storageService.get<{ name?: string; district?: string; isDemo?: boolean } | null>(STORAGE_KEYS.USER, null);
+  const name = currentUser?.name || (currentUser?.isDemo ? 'Ramesh Patel' : 'Kisan');
+  const loc = currentUser?.district || (currentUser?.isDemo ? 'Kamrej' : 'your farm');
+
+  return [
+    {
+      id: 'msg-1',
+      sender: 'assistant',
+      textEn: `Namaste ${name}! I am AgroMind AI, your personalized agronomist. How can I assist with your farm in ${loc} today?`,
+      textGu: `નમસ્તે ${name}! હું એગ્રોમાઇન્ડ AI છું, તમારો અંગત ખેતી સલાહકાર. આજે તમારા ખેતર માટે હું શું મદદ કરી શકું?`,
+      time: '10:00 AM',
+      suggestions: [
+        'Pink Bollworm symptoms in Cotton? (ગુલાબી ઈયળના ઉપાય)',
+        'Should I start Drip today? (આજે પિયત આપવું?)',
+        'Today APMC Mandi rates? (માર્કેટ ભાવ)',
+        'Soil Phosphorus deficiency treatment? (ફોસ્ફરસ ખાતર)',
+      ],
+      isAiEstimate: false,
+      isOfflineFallback: true,
+    },
+  ];
+};
 
 export const aiAssistantService: IAiAssistantService = {
   /**
    * Retrieves chat message history from persistent storage
    */
   getMessages(): ChatMessage[] {
-    return storageService.get<ChatMessage[]>(STORAGE_KEYS.CHAT, DEFAULT_INITIAL_MESSAGES);
+    return storageService.get<ChatMessage[]>(STORAGE_KEYS.CHAT, getInitialMessages());
   },
 
   /**
    * Clears the chat message history back to initial state
    */
   async clearChat(): Promise<void> {
-    storageService.set(STORAGE_KEYS.CHAT, DEFAULT_INITIAL_MESSAGES);
+    storageService.set(STORAGE_KEYS.CHAT, getInitialMessages());
   },
 
   /**
@@ -102,10 +108,10 @@ export const aiAssistantService: IAiAssistantService = {
           body: {
             text,
             context: {
-              farmerName: user?.name || 'Ramesh Patel',
-              village: user?.village || 'Kamrej',
-              district: user?.district || 'Surat',
-              crops: cropSummary || 'Cotton, Groundnut',
+              farmerName: user?.name || (user?.isDemo ? 'Ramesh Patel' : 'Farmer'),
+              village: user?.village || (user?.isDemo ? 'Kamrej' : ''),
+              district: user?.district || (user?.isDemo ? 'Surat' : 'Gujarat'),
+              crops: cropSummary || (user?.isDemo ? 'Cotton, Groundnut' : 'Farm crops'),
               weatherCondition: weather
                 ? `${weather.current.condition}, ${Math.round(weather.current.temp)}°C`
                 : 'Real-time weather pending',
@@ -153,9 +159,9 @@ export const aiAssistantService: IAiAssistantService = {
 
     // 4. Offline Agronomic Reasoning Engine
     const offlineResponse = this.generateOfflineResponse(text, {
-      farmerName: user?.name || 'Rameshbhai Patel',
-      district: user?.district || 'Surat',
-      crops: cropSummary || 'Cotton, Groundnut',
+      farmerName: user?.name || (user?.isDemo ? 'Rameshbhai Patel' : 'Farmer'),
+      district: user?.district || (user?.isDemo ? 'Surat' : 'Gujarat'),
+      crops: cropSummary || (user?.isDemo ? 'Cotton, Groundnut' : 'Farm crops'),
     });
 
     const finalMessages = [...updatedWithUser, offlineResponse];

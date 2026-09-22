@@ -16,6 +16,8 @@ import { weatherService } from './weatherService';
 import { marketService } from './marketService';
 import { recommendationService } from './recommendationService';
 import { notificationService } from './notificationService';
+import { soilReportService } from './soilReportService';
+import { isDemoUser } from '../data/demoFarmerData';
 import type { AlertSummary, CreateAlertPayload, IAlertService } from '../contracts/alert.contract';
 
 class AlertService implements IAlertService {
@@ -27,9 +29,12 @@ class AlertService implements IAlertService {
     const cached = storageService.get<AlertItem[]>(STORAGE_KEYS.ALERTS, []);
 
     if (isSupabaseConfigured() && supabase && syncEngine.isOnline()) {
-      supabase
-        .from('alerts')
-        .select('*')
+      const currentUser = storageService.get<{ id?: string } | null>(STORAGE_KEYS.USER, null);
+      let query = supabase.from('alerts').select('*');
+      if (currentUser?.id && !isDemoUser(currentUser)) {
+        query = query.or(`farmer_id.is.null,farmer_id.eq.${currentUser.id}`);
+      }
+      query
         .order('created_at', { ascending: false })
         .then(({ data, error }) => {
           if (!error && data && data.length > 0) {
@@ -266,8 +271,20 @@ class AlertService implements IAlertService {
     const updated = [newAlert, ...alerts];
     storageService.set(STORAGE_KEYS.ALERTS, updated);
 
-    // Trigger toast notification
-    notificationService.notifyNewAlertAdded(newAlert.title, newAlert.priority, newAlert.actionRoute);
+    // Trigger rich toast notification
+    notificationService.notifyAlert({
+      title: newAlert.title,
+      titleGu: newAlert.titleGu,
+      titleHi: newAlert.titleHi,
+      message: newAlert.message || newAlert.descriptionEn,
+      messageGu: newAlert.descriptionGu || newAlert.message,
+      messageHi: newAlert.descriptionHi || newAlert.message,
+      priority: newAlert.priority,
+      category: newAlert.category,
+      actionText: newAlert.actionText || 'View Advisory',
+      actionRoute: newAlert.actionRoute || '/alerts',
+      eventId: `alert:${newAlert.key || newAlert.id}`,
+    });
 
     const currentUser = storageService.get<{ id: string } | null>(STORAGE_KEYS.USER, null);
     syncEngine.enqueue({
@@ -624,7 +641,7 @@ class AlertService implements IAlertService {
     // RULE 4: Uploaded Soil Laboratory Report Alerts (No Fake Values)
     // ------------------------------------------------------------------------
     try {
-      const soilReport = storageService.get<SoilReportRecord | null>(STORAGE_KEYS.SOIL_REPORT, null);
+      const soilReport = soilReportService.getSoilReport();
       if (soilReport && soilReport.uploadedAt) {
         // Low Nitrogen Alert
         if (typeof soilReport.nitrogenKgHa === 'number' && soilReport.nitrogenKgHa < 140) {
@@ -754,6 +771,7 @@ class AlertService implements IAlertService {
     //   - Insert as NEW and trigger temporary notification toast.
     // ------------------------------------------------------------------------
     const mergedList: AlertItem[] = [...existing];
+    const newCandidates: AlertItem[] = [];
 
     candidates.forEach((candidate) => {
       const existingAlert = candidate.key ? existingMap.get(candidate.key) : null;
@@ -785,11 +803,54 @@ class AlertService implements IAlertService {
         // Truly brand new alert
         mergedList.unshift(candidate);
         existingMap.set(candidate.key, candidate);
-
-        // Show toast notification for brand new alert
-        notificationService.notifyNewAlertAdded(candidate.title, candidate.priority, candidate.actionRoute);
+        newCandidates.push(candidate);
       }
     });
+
+    // Intelligently notify user without spamming stacked toasts
+    if (newCandidates.length === 1) {
+      const single = newCandidates[0];
+      notificationService.notifyAlert({
+        title: single.title,
+        titleGu: single.titleGu,
+        titleHi: single.titleHi,
+        message: single.message || single.descriptionEn,
+        messageGu: single.descriptionGu || single.message,
+        messageHi: single.descriptionHi || single.message,
+        priority: single.priority,
+        category: single.category,
+        actionText: single.actionText || (single.category === 'market' ? 'Check Mandi' : 'View Advisory'),
+        actionRoute: single.actionRoute || (single.category === 'market' ? '/mandi' : '/alerts'),
+        eventId: `alert:${single.key || single.id}`,
+      });
+    } else if (newCandidates.length > 1) {
+      const priorityWeights: Record<string, number> = { Critical: 4, High: 3, Medium: 2, Low: 1 };
+      const sorted = [...newCandidates].sort(
+        (a, b) => (priorityWeights[b.priority] || 1) - (priorityWeights[a.priority] || 1)
+      );
+      const topAlert = sorted[0];
+      const extraCount = newCandidates.length - 1;
+
+      notificationService.notifyAlert({
+        title: topAlert.title,
+        titleGu: topAlert.titleGu,
+        titleHi: topAlert.titleHi,
+        message: extraCount > 0
+          ? `${topAlert.message || topAlert.descriptionEn} (+${extraCount} more farm advisories)`
+          : (topAlert.message || topAlert.descriptionEn),
+        messageGu: extraCount > 0
+          ? `${topAlert.descriptionGu || topAlert.message} (+${extraCount} અન્ય ચેતવણીઓ ઉપલબ્ધ)`
+          : (topAlert.descriptionGu || topAlert.message),
+        messageHi: extraCount > 0
+          ? `${topAlert.descriptionHi || topAlert.message} (+${extraCount} aur kheti alerts)`
+          : (topAlert.descriptionHi || topAlert.message),
+        priority: topAlert.priority,
+        category: topAlert.category,
+        actionText: extraCount > 0 ? 'View All Alerts' : (topAlert.actionText || 'Take Action'),
+        actionRoute: '/alerts',
+        eventId: `batch_alerts:${newCandidates.map((c) => c.key || c.id).sort().join(';')}`,
+      });
+    }
 
     storageService.set(STORAGE_KEYS.ALERTS, mergedList);
     return mergedList;

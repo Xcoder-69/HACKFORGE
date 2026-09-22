@@ -1,76 +1,38 @@
 // Farm, Plot, and Crop Service for AgroMind AI
 // Centralizes farm parcel management, plot tracking, and crop recommendations integration
 // Backed by reactive storageService (L1 cache) and Supabase syncEngine (L2 cloud persistence)
+// STRICT DEMO ISOLATION: Real users only access their own database records; never demo plots.
 
 import { storageService, STORAGE_KEYS } from './storageService';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import { syncEngine } from '../lib/syncEngine';
+import { DEMO_FARM, DEMO_PLOTS, isDemoUser } from '../data/demoFarmerData';
 import type { FarmParcel, PlotInfo, PlotKey, CropRec } from '../types';
 import type { CreatePlotPayload } from '../contracts/farm.contract';
 
-const now = Date.now();
-const DEFAULT_PLOTS: Record<string, PlotInfo> = {
-  A: {
-    id: 'plot_A',
-    key: 'A',
-    title: 'Plot Details: Block A (બ્લોક એ - કપાસ)',
-    crop: 'Shankar-6 Cotton',
-    subCrop: 'કપાસ',
-    variety: 'Gujarat Cotton Hybrid-16',
-    area: '2.5 Acres',
-    stageBadge: 'Flowering (Day 54/150)',
-    stageName: 'Flowering Stage',
-    dayCount: 'Day 54',
-    plantingDate: new Date(now - 54 * 86400000).toISOString().split('T')[0],
-    progressBar: '36%',
-    health: 'Good (તંદુરસ્ત)',
-    moisture: '68% (Optimal / ઉત્તમ)',
-    soilType: 'Black Cotton Soil (કાળી કાંપવાળી)',
-    irrigation: 'Drip (Next: Tomorrow 7:00 AM)',
-    syncTime: 'Today, 09:30 AM',
-    provenance: 'Measured • IoT Probes',
-  },
-  B: {
-    id: 'plot_B',
-    key: 'B',
-    title: 'Plot Details: Block B (બ્લોક બી - મગફળી)',
-    crop: 'GG-20 Groundnut',
-    subCrop: 'મગફળી',
-    variety: 'Gujarat Groundnut-20',
-    area: '2.0 Acres',
-    stageBadge: 'Vegetative (Day 32/110)',
-    stageName: 'Vegetative Stage',
-    dayCount: 'Day 32',
-    plantingDate: new Date(now - 32 * 86400000).toISOString().split('T')[0],
-    progressBar: '29%',
-    health: 'Excellent (ઉત્કૃષ્ટ)',
-    moisture: '72% (Adequate / યોગ્ય)',
-    soilType: 'Sandy Loamy Soil (ગોરાડુ જમીન)',
-    irrigation: 'Sprinkler (Next: Thursday)',
-    syncTime: 'Today, 08:15 AM',
-    provenance: 'Estimated • Sentinel-2 + Weather',
-  },
-};
-
 export const farmService = {
   /**
-   * Returns current farm parcel synchronously from L1 cache and syncs with Supabase if online
+   * Returns current farm parcel.
+   * If Demo user: returns the seeded 4.5 Acre Surat farm.
+   * If Real user: returns their registered farm parcel or null if not registered.
    */
   getFarmParcel(): FarmParcel | null {
+    const currentUser = storageService.get<{ id?: string; phone?: string } | null>(STORAGE_KEYS.USER, null);
+    if (isDemoUser(currentUser)) {
+      return DEMO_FARM;
+    }
+
     const cached = storageService.get<FarmParcel | null>(STORAGE_KEYS.FARM, null);
 
     // Asynchronous cloud sync in background if online
-    if (isSupabaseConfigured() && supabase && syncEngine.isOnline()) {
-      const currentUser = storageService.get<{ id: string } | null>(STORAGE_KEYS.USER, null);
-      let query = supabase
+    if (isSupabaseConfigured() && supabase && syncEngine.isOnline() && currentUser?.id) {
+      supabase
         .from('farms')
         .select('*')
+        .eq('farmer_id', currentUser.id)
         .order('created_at', { ascending: false })
-        .limit(1);
-      if (currentUser?.id) {
-        query = query.eq('farmer_id', currentUser.id);
-      }
-      query.maybeSingle()
+        .limit(1)
+        .maybeSingle()
         .then(({ data, error }) => {
           if (!error && data) {
             const remoteFarm: FarmParcel = {
@@ -108,70 +70,81 @@ export const farmService = {
    * Saves farm parcel to L1 cache and enqueues to Supabase sync
    */
   saveFarmParcel(parcel: FarmParcel): void {
-    storageService.set(STORAGE_KEYS.FARM, parcel);
+    const currentUser = storageService.get<{ id?: string } | null>(STORAGE_KEYS.USER, null);
+    const farmerId = parcel.farmerId || currentUser?.id || 'usr_farmer';
 
-    syncEngine.enqueue({
-      tableName: 'farms',
-      operation: 'INSERT',
-      recordId: parcel.id,
-      payload: {
-        id: parcel.id,
-        farmer_id: parcel.farmerId,
-        total_area: parcel.totalArea,
-        cultivable_area: parcel.cultivableArea,
-        fallow_area: parcel.fallowArea,
-        unit: parcel.unit,
-        ownership: parcel.ownership,
-        soil_type: parcel.soilType,
-        water_sources: parcel.waterSources,
-        irrigation_technique: parcel.irrigationTechnique,
-        water_availability: parcel.waterAvailability,
-        lat: parcel.coordinates?.lat,
-        lng: parcel.coordinates?.lng,
-        accuracy: parcel.coordinates?.accuracy,
-        season: parcel.season,
-        survey_no: parcel.surveyNo,
-        landmark: parcel.landmark,
-        selected_crops: parcel.selectedCrops,
-      },
-    });
+    const cleanParcel = { ...parcel, farmerId };
+    storageService.set(STORAGE_KEYS.FARM, cleanParcel);
+
+    if (!isDemoUser(currentUser)) {
+      syncEngine.enqueue({
+        tableName: 'farms',
+        operation: 'INSERT',
+        recordId: cleanParcel.id,
+        userId: farmerId,
+        payload: {
+          id: cleanParcel.id,
+          farmer_id: farmerId,
+          total_area: cleanParcel.totalArea,
+          cultivable_area: cleanParcel.cultivableArea,
+          fallow_area: cleanParcel.fallowArea,
+          unit: cleanParcel.unit,
+          ownership: cleanParcel.ownership,
+          soil_type: cleanParcel.soilType,
+          water_sources: cleanParcel.waterSources,
+          irrigation_technique: cleanParcel.irrigationTechnique,
+          water_availability: cleanParcel.waterAvailability,
+          lat: cleanParcel.coordinates?.lat,
+          lng: cleanParcel.coordinates?.lng,
+          accuracy: cleanParcel.coordinates?.accuracy,
+          season: cleanParcel.season,
+          survey_no: cleanParcel.surveyNo,
+          landmark: cleanParcel.landmark,
+          selected_crops: cleanParcel.selectedCrops,
+        },
+      });
+    }
   },
 
   /**
-   * Returns plots from L1 cache and syncs with Supabase if online
+   * Returns plots for the current user.
+   * If Demo user: returns Demo Plots (A: Shankar-6 Cotton, B: GG-20 Groundnut).
+   * If Real user: returns their stored plots or empty object {} (NEVER falls back to demo).
    */
   getPlots(): Record<string, PlotInfo> {
-    let cached = storageService.get<Record<string, PlotInfo>>(STORAGE_KEYS.PLOTS, {});
+    const currentUser = storageService.get<{ id?: string; phone?: string } | null>(STORAGE_KEYS.USER, null);
+    if (isDemoUser(currentUser)) {
+      return DEMO_PLOTS;
+    }
 
-    // Always ensure at least default plots exist
-    if (!cached || Object.keys(cached).length === 0) {
-      cached = { ...DEFAULT_PLOTS };
-      storageService.set(STORAGE_KEYS.PLOTS, cached);
-    } else {
+    const cached = storageService.get<Record<string, PlotInfo>>(STORAGE_KEYS.PLOTS, {});
+
+    // For real users, update dynamically computed days from actual planting dates
+    if (cached && Object.keys(cached).length > 0) {
       let modified = false;
       Object.keys(cached).forEach((pk) => {
         const p = cached[pk];
-        if (!p.plantingDate) {
-          const parsedDay = parseInt((p.dayCount || '').replace(/\D/g, ''), 10) || 30;
-          p.plantingDate = new Date(Date.now() - parsedDay * 86400000).toISOString().split('T')[0];
-          modified = true;
+        if (p.plantingDate) {
+          const age = Math.max(0, Math.floor((Date.now() - new Date(p.plantingDate).getTime()) / 86400000));
+          if (p.dayCount !== `Day ${age}`) {
+            p.dayCount = `Day ${age}`;
+            modified = true;
+          }
         }
-        const age = Math.max(0, Math.floor((Date.now() - new Date(p.plantingDate).getTime()) / 86400000));
-        p.dayCount = `Day ${age}`;
       });
       if (modified) {
         storageService.set(STORAGE_KEYS.PLOTS, cached);
       }
     }
 
-    if (isSupabaseConfigured() && supabase && syncEngine.isOnline()) {
-      const currentUser = storageService.get<{ id: string } | null>(STORAGE_KEYS.USER, null);
-      let query = supabase.from('plots').select('*');
-      if (currentUser?.id) {
-        query = query.eq('farmer_id', currentUser.id);
-      }
-      query.then(({ data, error }) => {
-          if (!error && data && data.length > 0) {
+    // Cloud sync from Supabase in background
+    if (isSupabaseConfigured() && supabase && syncEngine.isOnline() && currentUser?.id) {
+      supabase
+        .from('plots')
+        .select('*')
+        .eq('farmer_id', currentUser.id)
+        .then(({ data, error }) => {
+          if (!error && data) {
             const remotePlots: Record<string, PlotInfo> = {};
             data.forEach((row: any) => {
               remotePlots[row.plot_key] = {
@@ -200,7 +173,7 @@ export const farmService = {
         .catch((err) => console.warn('[FarmService] Supabase fetchPlots error:', err));
     }
 
-    return cached;
+    return cached || {};
   },
 
   /**
@@ -212,28 +185,30 @@ export const farmService = {
     storageService.set(STORAGE_KEYS.PLOTS, plots);
 
     const currentUser = storageService.get<{ id: string } | null>(STORAGE_KEYS.USER, null);
-    syncEngine.enqueue({
-      tableName: 'plots',
-      operation: 'UPDATE',
-      recordId: plot.id,
-      userId: currentUser?.id,
-      payload: {
-        title: plot.title,
-        crop: plot.crop,
-        sub_crop: plot.subCrop,
-        variety: plot.variety,
-        area: plot.area,
-        stage_badge: plot.stageBadge,
-        stage_name: plot.stageName,
-        day_count: plot.dayCount,
-        progress_bar: plot.progressBar,
-        health: plot.health,
-        moisture: plot.moisture,
-        soil_type: plot.soilType,
-        irrigation: plot.irrigation,
-        provenance: plot.provenance,
-      },
-    });
+    if (!isDemoUser(currentUser)) {
+      syncEngine.enqueue({
+        tableName: 'plots',
+        operation: 'UPDATE',
+        recordId: plot.id,
+        userId: currentUser?.id,
+        payload: {
+          title: plot.title,
+          crop: plot.crop,
+          sub_crop: plot.subCrop,
+          variety: plot.variety,
+          area: plot.area,
+          stage_badge: plot.stageBadge,
+          stage_name: plot.stageName,
+          day_count: plot.dayCount,
+          progress_bar: plot.progressBar,
+          health: plot.health,
+          moisture: plot.moisture,
+          soil_type: plot.soilType,
+          irrigation: plot.irrigation,
+          provenance: plot.provenance,
+        },
+      });
+    }
   },
 
   /**
@@ -243,7 +218,7 @@ export const farmService = {
     const plots = this.getPlots();
     const existingKeys = Object.keys(plots);
     const candidateKeys = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
-    let nextKey = 'C';
+    let nextKey = 'A';
     for (const k of candidateKeys) {
       if (!existingKeys.includes(k)) {
         nextKey = k;
@@ -262,6 +237,7 @@ export const farmService = {
       stageBadge: 'Sowing (Day 1/120)',
       stageName: 'Sowing / Germination Stage',
       dayCount: 'Day 1',
+      plantingDate: new Date().toISOString().split('T')[0],
       progressBar: '5%',
       health: 'Optimal (તંદુરસ્ત)',
       moisture: '70% (Optimal)',
@@ -276,32 +252,35 @@ export const farmService = {
 
     const currentUser = storageService.get<{ id: string } | null>(STORAGE_KEYS.USER, null);
     const farm = storageService.get<{ id: string } | null>(STORAGE_KEYS.FARM, null);
-    syncEngine.enqueue({
-      tableName: 'plots',
-      operation: 'INSERT',
-      recordId: plot.id,
-      userId: currentUser?.id,
-      payload: {
-        id: plot.id,
-        farmer_id: currentUser?.id || 'usr_demo',
-        farm_id: farm?.id || 'farm_01',
-        plot_key: plot.key,
-        title: plot.title,
-        crop: plot.crop,
-        sub_crop: plot.subCrop,
-        variety: plot.variety,
-        area: plot.area,
-        stage_badge: plot.stageBadge,
-        stage_name: plot.stageName,
-        day_count: plot.dayCount,
-        progress_bar: plot.progressBar,
-        health: plot.health,
-        moisture: plot.moisture,
-        soil_type: plot.soilType,
-        irrigation: plot.irrigation,
-        provenance: plot.provenance,
-      },
-    });
+
+    if (!isDemoUser(currentUser)) {
+      syncEngine.enqueue({
+        tableName: 'plots',
+        operation: 'INSERT',
+        recordId: plot.id,
+        userId: currentUser?.id,
+        payload: {
+          id: plot.id,
+          farmer_id: currentUser?.id,
+          farm_id: farm?.id,
+          plot_key: plot.key,
+          title: plot.title,
+          crop: plot.crop,
+          sub_crop: plot.subCrop,
+          variety: plot.variety,
+          area: plot.area,
+          stage_badge: plot.stageBadge,
+          stage_name: plot.stageName,
+          day_count: plot.dayCount,
+          progress_bar: plot.progressBar,
+          health: plot.health,
+          moisture: plot.moisture,
+          soil_type: plot.soilType,
+          irrigation: plot.irrigation,
+          provenance: plot.provenance,
+        },
+      });
+    }
 
     return plot;
   },
@@ -311,8 +290,20 @@ export const farmService = {
    */
   deletePlot(key: string): void {
     const plots = this.getPlots();
+    const plotToDelete = plots[key];
     delete plots[key];
     storageService.set(STORAGE_KEYS.PLOTS, plots);
+
+    const currentUser = storageService.get<{ id: string } | null>(STORAGE_KEYS.USER, null);
+    if (plotToDelete && !isDemoUser(currentUser)) {
+      syncEngine.enqueue({
+        tableName: 'plots',
+        operation: 'DELETE',
+        recordId: plotToDelete.id,
+        userId: currentUser?.id,
+        payload: { id: plotToDelete.id },
+      });
+    }
   },
 
   /**
@@ -331,6 +322,7 @@ export const farmService = {
       stageBadge: 'Planned Cultivation',
       stageName: crop.stages[0]?.name || 'Seedling Stage',
       dayCount: 'Day 1',
+      plantingDate: new Date().toISOString().split('T')[0],
       progressBar: '10%',
       health: 'High Match (ઉત્કૃષ્ટ)',
       soilType: crop.soilSuitability.includes('Black') ? 'Black Cotton Soil' : existing.soilType,
@@ -341,23 +333,27 @@ export const farmService = {
     plots[targetKey] = updated;
     storageService.set(STORAGE_KEYS.PLOTS, plots);
 
-    syncEngine.enqueue({
-      tableName: 'plots',
-      operation: 'UPDATE',
-      recordId: updated.id,
-      payload: {
-        crop: updated.crop,
-        sub_crop: updated.subCrop,
-        variety: updated.variety,
-        stage_badge: updated.stageBadge,
-        stage_name: updated.stageName,
-        day_count: updated.dayCount,
-        progress_bar: updated.progressBar,
-        health: updated.health,
-        soil_type: updated.soilType,
-        provenance: updated.provenance,
-      },
-    });
+    const currentUser = storageService.get<{ id: string } | null>(STORAGE_KEYS.USER, null);
+    if (!isDemoUser(currentUser)) {
+      syncEngine.enqueue({
+        tableName: 'plots',
+        operation: 'UPDATE',
+        recordId: updated.id,
+        userId: currentUser?.id,
+        payload: {
+          crop: updated.crop,
+          sub_crop: updated.subCrop,
+          variety: updated.variety,
+          stage_badge: updated.stageBadge,
+          stage_name: updated.stageName,
+          day_count: updated.dayCount,
+          progress_bar: updated.progressBar,
+          health: updated.health,
+          soil_type: updated.soilType,
+          provenance: updated.provenance,
+        },
+      });
+    }
 
     return updated;
   },

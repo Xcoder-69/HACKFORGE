@@ -137,47 +137,47 @@ export const CropHealthScanner: React.FC = () => {
   return (
     <div className="w-full min-h-screen bg-[#163A2D] text-white flex flex-col justify-between">
       {/* Viewfinder Header */}
-      <header className="fixed top-0 inset-x-0 z-50 bg-[#163A2D]/90 backdrop-blur-xl border-b border-white/10 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <header className="fixed top-0 inset-x-0 z-50 bg-[#163A2D]/90 backdrop-blur-xl border-b border-white/10 px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between">
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={() => (diagnosis ? handleReset() : navigate(-1))}
-            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors text-white"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors text-white"
           >
-            <span className="material-symbols-outlined text-[22px]">arrow_back</span>
+            <span className="material-symbols-outlined text-[20px] sm:text-[22px]">arrow_back</span>
           </button>
           <div>
-            <h1 className="font-extrabold text-base md:text-lg leading-tight">
-              AI Crop Health Scanner
+            <h1 className="font-extrabold text-sm sm:text-base md:text-lg leading-tight">
+              AI Crop Scanner
             </h1>
-            <span className="text-xs text-emerald-300 font-medium">પાક રોગ નિદાન કેમેરો</span>
+            <span className="text-[11px] sm:text-xs text-emerald-300 font-medium">પાક રોગ નિદાન</span>
           </div>
         </div>
 
         {/* Quick controls */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <button
             onClick={() => setTorchOn(!torchOn)}
-            className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+            className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-colors ${
               torchOn ? 'bg-amber-400 text-black' : 'bg-white/10 text-white hover:bg-white/20'
             }`}
             title="Toggle Flash"
           >
-            <span className="material-symbols-outlined text-[20px]">
+            <span className="material-symbols-outlined text-[18px] sm:text-[20px]">
               {torchOn ? 'flash_on' : 'flash_off'}
             </span>
           </button>
           <button
             onClick={() => setFacingMode(facingMode === 'environment' ? 'user' : 'environment')}
-            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
             title="Flip Camera"
           >
-            <span className="material-symbols-outlined text-[20px]">flip_camera_ios</span>
+            <span className="material-symbols-outlined text-[18px] sm:text-[20px]">flip_camera_ios</span>
           </button>
         </div>
       </header>
 
       {/* Main Viewfinder Area */}
-      <main className="flex-1 flex flex-col pt-16 pb-24 relative overflow-hidden bg-black">
+      <main className="flex-1 flex flex-col pt-14 sm:pt-16 pb-20 sm:pb-24 relative overflow-hidden bg-black">
         {/* Hidden file input for photo upload */}
         <input
           type="file"
@@ -189,12 +189,12 @@ export const CropHealthScanner: React.FC = () => {
 
         {!diagnosis ? (
           /* Live Scanner Viewfinder */
-          <div className="relative flex-1 flex flex-col items-center justify-between p-4 min-h-[500px]">
+          <div className="relative flex-1 flex flex-col items-center justify-between p-3 sm:p-4 min-h-[440px] sm:min-h-[500px]">
 
             {/* Viewfinder Target & Reticle */}
-            <div className="relative w-72 h-72 md:w-96 md:h-96 my-auto flex items-center justify-center">
+            <div className="relative w-60 h-60 sm:w-72 sm:h-72 md:w-96 md:h-96 my-auto flex items-center justify-center">
               {/* Background simulated leaf preview or uploaded photo */}
-              <div className="absolute inset-0 rounded-3xl overflow-hidden bg-[#0A1A14] flex items-center justify-center border border-white/20 shadow-2xl">
+              <div className="absolute inset-0 rounded-2xl sm:rounded-3xl overflow-hidden bg-[#0A1A14] flex items-center justify-center border border-white/20 shadow-2xl">
                 {capturedImage ? (
                   <img
                     src={capturedImage}
@@ -202,22 +202,22 @@ export const CropHealthScanner: React.FC = () => {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="text-center p-6 space-y-2 opacity-60">
-                    <span className="material-symbols-outlined text-[64px] text-emerald-400 animate-pulse">
+                  <div className="text-center p-4 sm:p-6 space-y-2 opacity-60">
+                    <span className="material-symbols-outlined text-[48px] sm:text-[64px] text-emerald-400 animate-pulse">
                       filter_center_focus
                     </span>
-                    <p className="text-xs text-emerald-200">
-                      Center diseased leaf or pest damage inside the reticle
+                    <p className="text-[11px] sm:text-xs text-emerald-200">
+                      Center leaf or pest damage inside the reticle
                     </p>
                   </div>
                 )}
               </div>
 
               {/* Reticle Corners */}
-              <div className="absolute top-2 left-2 w-8 h-8 border-t-4 border-l-4 border-emerald-400 rounded-tl-xl pointer-events-none" />
-              <div className="absolute top-2 right-2 w-8 h-8 border-t-4 border-r-4 border-emerald-400 rounded-tr-xl pointer-events-none" />
-              <div className="absolute bottom-2 left-2 w-8 h-8 border-b-4 border-l-4 border-emerald-400 rounded-bl-xl pointer-events-none" />
-              <div className="absolute bottom-2 right-2 w-8 h-8 border-b-4 border-r-4 border-emerald-400 rounded-br-xl pointer-events-none" />
+              <div className="absolute top-2 left-2 w-6 h-6 sm:w-8 sm:h-8 border-t-4 border-l-4 border-emerald-400 rounded-tl-xl pointer-events-none" />
+              <div className="absolute top-2 right-2 w-6 h-6 sm:w-8 sm:h-8 border-t-4 border-r-4 border-emerald-400 rounded-tr-xl pointer-events-none" />
+              <div className="absolute bottom-2 left-2 w-6 h-6 sm:w-8 sm:h-8 border-b-4 border-l-4 border-emerald-400 rounded-bl-xl pointer-events-none" />
+              <div className="absolute bottom-2 right-2 w-6 h-6 sm:w-8 sm:h-8 border-b-4 border-r-4 border-emerald-400 rounded-br-xl pointer-events-none" />
 
               {/* Scanning animation bar */}
               {isScanning && (
@@ -387,44 +387,44 @@ export const CropHealthScanner: React.FC = () => {
               ) : (
                 <>
                   {/* ═══ SECTION 1 — CROP ═══ */}
-                  <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E2DA] space-y-3">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="material-symbols-outlined text-emerald-700 text-[22px]">eco</span>
-                      <h3 className="text-sm font-bold text-emerald-800 uppercase tracking-wider">Crop Identified</h3>
+                  <div className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 shadow-sm border border-[#E5E2DA] space-y-2.5 sm:space-y-3">
+                    <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
+                      <span className="material-symbols-outlined text-emerald-700 text-[18px] sm:text-[22px]">eco</span>
+                      <h3 className="text-xs sm:text-sm font-bold text-emerald-800 uppercase tracking-wider">Crop Identified</h3>
                     </div>
-                    <h2 className="text-2xl md:text-3xl font-black text-[#163A2D]">
+                    <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#163A2D]">
                       {diagnosis.crop || 'Unknown Crop'}
                     </h2>
-                    <div className="grid grid-cols-2 gap-3 mt-2">
-                      <div className="p-3 rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA]">
-                        <p className="text-[10px] font-bold text-[#717974] uppercase tracking-wider">Type</p>
-                        <p className="text-sm font-bold text-[#163A2D] mt-0.5">{diagnosis.cropType || diagnosis.cropInfo?.cropType || '—'}</p>
+                    <div className="grid grid-cols-2 gap-2 sm:gap-3 mt-1.5 sm:mt-2">
+                      <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA]">
+                        <p className="text-[9px] sm:text-[10px] font-bold text-[#717974] uppercase tracking-wider">Type</p>
+                        <p className="text-xs sm:text-sm font-bold text-[#163A2D] mt-0.5 truncate">{diagnosis.cropType || diagnosis.cropInfo?.cropType || '—'}</p>
                       </div>
-                      <div className="p-3 rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA]">
-                        <p className="text-[10px] font-bold text-[#717974] uppercase tracking-wider">Growth Stage</p>
-                        <p className="text-sm font-bold text-[#163A2D] mt-0.5">{diagnosis.growthStage || '—'}</p>
+                      <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA]">
+                        <p className="text-[9px] sm:text-[10px] font-bold text-[#717974] uppercase tracking-wider">Growth Stage</p>
+                        <p className="text-xs sm:text-sm font-bold text-[#163A2D] mt-0.5 truncate">{diagnosis.growthStage || '—'}</p>
                       </div>
-                      <div className="p-3 rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA]">
-                        <p className="text-[10px] font-bold text-[#717974] uppercase tracking-wider">Scientific Name</p>
-                        <p className="text-sm font-bold text-[#163A2D] mt-0.5 italic">{diagnosis.scientificName || diagnosis.cropInfo?.scientificName || '—'}</p>
+                      <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA]">
+                        <p className="text-[9px] sm:text-[10px] font-bold text-[#717974] uppercase tracking-wider">Scientific Name</p>
+                        <p className="text-xs sm:text-sm font-bold text-[#163A2D] mt-0.5 italic truncate">{diagnosis.scientificName || diagnosis.cropInfo?.scientificName || '—'}</p>
                       </div>
-                      <div className="p-3 rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA]">
-                        <p className="text-[10px] font-bold text-[#717974] uppercase tracking-wider">Season</p>
-                        <p className="text-sm font-bold text-[#163A2D] mt-0.5">{diagnosis.cropInfo?.typicalSeason || '—'}</p>
+                      <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA]">
+                        <p className="text-[9px] sm:text-[10px] font-bold text-[#717974] uppercase tracking-wider">Season</p>
+                        <p className="text-xs sm:text-sm font-bold text-[#163A2D] mt-0.5 truncate">{diagnosis.cropInfo?.typicalSeason || '—'}</p>
                       </div>
                     </div>
                     {diagnosis.cropInfo && (
-                      <div className="mt-2 p-3 rounded-2xl bg-emerald-50 border border-emerald-200">
+                      <div className="mt-2 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-emerald-50 border border-emerald-200">
                         <p className="text-xs text-emerald-900 font-medium">{diagnosis.cropInfo.generalCultivationInfo}</p>
                       </div>
                     )}
                     {/* AI Confidence & badges */}
-                    <div className="flex items-center gap-2 flex-wrap mt-2">
-                      <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap mt-2">
+                      <span className="text-[11px] sm:text-xs font-bold text-emerald-800 bg-emerald-100 px-2 sm:px-2.5 py-0.5 rounded-full border border-emerald-200">
                         {diagnosis.confidenceLabel || 'Confidence unavailable'}
                       </span>
                       {diagnosis.isAiEstimate && (
-                        <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
+                        <span className="text-[10px] sm:text-[11px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
                           AI Estimate
                         </span>
                       )}
@@ -432,13 +432,13 @@ export const CropHealthScanner: React.FC = () => {
                   </div>
 
                   {/* ═══ SECTION 2 — CONDITION ═══ */}
-                  <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E2DA] space-y-4">
+                  <div className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 shadow-sm border border-[#E5E2DA] space-y-3 sm:space-y-4">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[22px] text-emerald-700">health_and_safety</span>
-                        <h3 className="text-sm font-bold text-emerald-800 uppercase tracking-wider">Condition</h3>
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <span className="material-symbols-outlined text-[18px] sm:text-[22px] text-emerald-700">health_and_safety</span>
+                        <h3 className="text-xs sm:text-sm font-bold text-emerald-800 uppercase tracking-wider">Condition</h3>
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                      <span className={`px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full text-[11px] sm:text-xs font-bold uppercase tracking-wider ${
                         diagnosis.visibleCondition === 'Healthy' || (diagnosis.severity === 'Low' && !diagnosis.possibleIssue?.includes('At Risk'))
                           ? 'bg-emerald-100 text-emerald-800'
                           : diagnosis.severity === 'Severe' || diagnosis.severity === 'High'
@@ -449,15 +449,15 @@ export const CropHealthScanner: React.FC = () => {
                       }`}>
                         {diagnosis.visibleCondition === 'Healthy' || (diagnosis.severity === 'Low' && diagnosis.treatments?.length === 0)
                           ? '✅ Healthy'
-                          : `⚠️ ${diagnosis.severity} Severity`
+                          : `⚠️ ${diagnosis.severity}`
                         }
                       </span>
                     </div>
 
                     {/* Healthy case */}
                     {(diagnosis.visibleCondition === 'Healthy' || (diagnosis.severity === 'Low' && diagnosis.treatments?.length === 0)) ? (
-                      <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200">
-                        <p className="text-sm text-emerald-900 font-semibold">
+                      <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-emerald-50 border border-emerald-200">
+                        <p className="text-xs sm:text-sm text-emerald-900 font-semibold">
                           {diagnosis.diseaseName || 'Your crop looks healthy!'}
                         </p>
                         <p className="text-xs text-emerald-700 mt-1">{diagnosis.diseaseGu}</p>
@@ -466,21 +466,21 @@ export const CropHealthScanner: React.FC = () => {
                       <>
                         {/* Disease/Issue */}
                         <div className="space-y-2">
-                          <div className="flex items-start gap-3">
-                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
+                          <div className="flex items-start gap-2.5 sm:gap-3">
+                            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 ${
                               diagnosis.severity === 'Severe' || diagnosis.severity === 'High'
                                 ? 'bg-red-100 text-red-700'
                                 : diagnosis.severity === 'Moderate'
                                 ? 'bg-orange-100 text-orange-700'
                                 : 'bg-yellow-100 text-yellow-700'
                             }`}>
-                              <span className="material-symbols-outlined text-[28px]">pest_control</span>
+                              <span className="material-symbols-outlined text-[22px] sm:text-[28px]">pest_control</span>
                             </div>
                             <div>
-                              <h4 className="text-lg font-black text-[#163A2D]">{diagnosis.possibleIssue || diagnosis.diseaseName}</h4>
-                              <p className="text-sm font-bold text-emerald-700">{diagnosis.pestNameGu || diagnosis.diseaseGu}</p>
+                              <h4 className="text-base sm:text-lg font-black text-[#163A2D]">{diagnosis.possibleIssue || diagnosis.diseaseName}</h4>
+                              <p className="text-xs sm:text-sm font-bold text-emerald-700">{diagnosis.pestNameGu || diagnosis.diseaseGu}</p>
                               {diagnosis.scientificName && (
-                                <p className="text-xs italic text-[#717974]">{diagnosis.scientificName}</p>
+                                <p className="text-[11px] sm:text-xs italic text-[#717974]">{diagnosis.scientificName}</p>
                               )}
                             </div>
                           </div>
@@ -489,11 +489,11 @@ export const CropHealthScanner: React.FC = () => {
                         {/* Symptoms */}
                         {diagnosis.symptoms && diagnosis.symptoms.length > 0 && (
                           <div>
-                            <p className="text-xs font-bold text-[#717974] uppercase tracking-wider mb-2">Observed Symptoms</p>
-                            <ul className="space-y-1.5">
+                            <p className="text-[10px] sm:text-xs font-bold text-[#717974] uppercase tracking-wider mb-1.5 sm:mb-2">Observed Symptoms</p>
+                            <ul className="space-y-1 sm:space-y-1.5">
                               {diagnosis.symptoms.map((symp, sIdx) => (
-                                <li key={sIdx} className="flex items-start gap-2 text-sm text-[#414844]">
-                                  <span className="material-symbols-outlined text-red-600 text-[16px] shrink-0 mt-0.5">radio_button_checked</span>
+                                <li key={sIdx} className="flex items-start gap-1.5 sm:gap-2 text-xs sm:text-sm text-[#414844]">
+                                  <span className="material-symbols-outlined text-red-600 text-[14px] sm:text-[16px] shrink-0 mt-0.5">radio_button_checked</span>
                                   <span>{symp}</span>
                                 </li>
                               ))}
@@ -504,15 +504,15 @@ export const CropHealthScanner: React.FC = () => {
                         {/* Treatments */}
                         {((diagnosis.remedies && diagnosis.remedies.length > 0) || (diagnosis.treatments && diagnosis.treatments.length > 0)) && (
                           <div>
-                            <p className="text-xs font-bold text-[#717974] uppercase tracking-wider mb-2">Prescribed Actions</p>
-                            <div className="space-y-2">
+                            <p className="text-[10px] sm:text-xs font-bold text-[#717974] uppercase tracking-wider mb-1.5 sm:mb-2">Prescribed Actions</p>
+                            <div className="space-y-1.5 sm:space-y-2">
                               {(diagnosis.remedies || diagnosis.treatments || []).map((rem, rIdx) => (
-                                <div key={rIdx} className="p-3 rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA] flex flex-col md:flex-row md:items-center justify-between gap-2">
+                                <div key={rIdx} className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA] flex flex-col md:flex-row md:items-center justify-between gap-1.5 sm:gap-2">
                                   <div>
-                                    <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">{rem.type}</span>
-                                    <h4 className="font-extrabold text-sm text-[#163A2D] mt-1">{rem.action}</h4>
+                                    <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">{rem.type}</span>
+                                    <h4 className="font-extrabold text-xs sm:text-sm text-[#163A2D] mt-1">{rem.action}</h4>
                                   </div>
-                                  <div className="bg-white px-3 py-1 rounded-xl border border-[#E5E2DA] text-xs font-bold text-emerald-900 shrink-0">
+                                  <div className="bg-white px-2.5 py-1 rounded-lg sm:rounded-xl border border-[#E5E2DA] text-[11px] sm:text-xs font-bold text-emerald-900 shrink-0 self-start md:self-auto">
                                     {rem.dosage}
                                   </div>
                                 </div>
@@ -525,65 +525,60 @@ export const CropHealthScanner: React.FC = () => {
 
                     {/* Warning */}
                     {diagnosis.warning && (
-                      <div className="p-3 rounded-2xl bg-amber-50 border border-amber-300 flex items-start gap-2 text-xs text-amber-900">
-                        <span className="material-symbols-outlined text-amber-700 text-[18px] shrink-0">warning</span>
+                      <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-amber-50 border border-amber-300 flex items-start gap-2 text-xs text-amber-900">
+                        <span className="material-symbols-outlined text-amber-700 text-[16px] sm:text-[18px] shrink-0">warning</span>
                         <span>{diagnosis.warning}</span>
                       </div>
                     )}
                   </div>
 
                   {/* ═══ SECTION 3 — MARKET ═══ */}
-                  <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E2DA] space-y-4">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="material-symbols-outlined text-emerald-700 text-[22px]">storefront</span>
-                      <h3 className="text-sm font-bold text-emerald-800 uppercase tracking-wider">Market Information</h3>
+                  <div className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 shadow-sm border border-[#E5E2DA] space-y-3 sm:space-y-4">
+                    <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
+                      <span className="material-symbols-outlined text-emerald-700 text-[18px] sm:text-[22px]">storefront</span>
+                      <h3 className="text-xs sm:text-sm font-bold text-emerald-800 uppercase tracking-wider">Market Information</h3>
                     </div>
 
                     {diagnosis.marketInfo?.dataAvailable ? (
                       <>
                         {/* Market & Price */}
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="p-3 rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA] col-span-2">
-                            <p className="text-[10px] font-bold text-[#717974] uppercase tracking-wider">Nearest Relevant Market</p>
-                            <p className="text-base font-black text-[#163A2D] mt-0.5">{diagnosis.marketInfo.nearestMarket}</p>
-                            <p className="text-xs text-[#717974] mt-0.5">{diagnosis.marketInfo.distanceLabel}</p>
+                        <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                          <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA] col-span-2">
+                            <p className="text-[9px] sm:text-[10px] font-bold text-[#717974] uppercase tracking-wider">Nearest Relevant Market</p>
+                            <p className="text-sm sm:text-base font-black text-[#163A2D] mt-0.5">{diagnosis.marketInfo.nearestMarket}</p>
+                            <p className="text-[11px] sm:text-xs text-[#717974] mt-0.5">{diagnosis.marketInfo.distanceLabel}</p>
                           </div>
-                          <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200">
-                            <p className="text-[10px] font-bold text-[#717974] uppercase tracking-wider">Modal Price</p>
-                            <p className="text-lg font-black text-emerald-800 mt-0.5">
+                          <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-emerald-50 border border-emerald-200">
+                            <p className="text-[9px] sm:text-[10px] font-bold text-[#717974] uppercase tracking-wider">Modal Price</p>
+                            <p className="text-base sm:text-lg font-black text-emerald-800 mt-0.5">
                               {formatPrice(diagnosis.marketInfo.modalPrice)}
-                              <span className="text-xs font-medium text-[#717974]"> /Qtl</span>
+                              <span className="text-[10px] sm:text-xs font-medium text-[#717974]"> /Qtl</span>
                             </p>
                           </div>
-                          <div className="p-3 rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA]">
-                            <p className="text-[10px] font-bold text-[#717974] uppercase tracking-wider">Price Range</p>
-                            <p className="text-sm font-bold text-[#163A2D] mt-0.5">
+                          <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA]">
+                            <p className="text-[9px] sm:text-[10px] font-bold text-[#717974] uppercase tracking-wider">Price Range</p>
+                            <p className="text-xs sm:text-sm font-bold text-[#163A2D] mt-0.5">
                               {formatPrice(diagnosis.marketInfo.minPrice)} – {formatPrice(diagnosis.marketInfo.maxPrice)}
                             </p>
                           </div>
                         </div>
 
                         {/* Trend & Activity */}
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="p-3 rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA]">
-                            <p className="text-[10px] font-bold text-[#717974] uppercase tracking-wider">7-Day Trend</p>
-                            <div className="flex items-center gap-1.5 mt-1">
-                              <span className={`material-symbols-outlined text-[18px] ${trendColor(diagnosis.marketInfo.priceTrend)}`}>
+                        <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                          <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA]">
+                            <p className="text-[9px] sm:text-[10px] font-bold text-[#717974] uppercase tracking-wider">7-Day Trend</p>
+                            <div className="flex items-center gap-1 sm:gap-1.5 mt-1">
+                              <span className={`material-symbols-outlined text-[16px] sm:text-[18px] ${trendColor(diagnosis.marketInfo.priceTrend)}`}>
                                 {trendIcon(diagnosis.marketInfo.priceTrend)}
                               </span>
-                              <span className={`text-sm font-bold ${trendColor(diagnosis.marketInfo.priceTrend)}`}>
+                              <span className={`text-xs sm:text-sm font-bold ${trendColor(diagnosis.marketInfo.priceTrend)}`}>
                                 {diagnosis.marketInfo.priceTrend}
                               </span>
-                              {diagnosis.marketInfo.trend7dPercent !== null && (
-                                <span className={`text-xs font-medium ${trendColor(diagnosis.marketInfo.priceTrend)}`}>
-                                  ({diagnosis.marketInfo.trend7dPercent > 0 ? '+' : ''}{diagnosis.marketInfo.trend7dPercent}%)
-                                </span>
-                              )}
                             </div>
                           </div>
-                          <div className="p-3 rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA]">
-                            <p className="text-[10px] font-bold text-[#717974] uppercase tracking-wider">Market Activity</p>
-                            <p className={`text-sm font-bold mt-1 ${
+                          <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA]">
+                            <p className="text-[9px] sm:text-[10px] font-bold text-[#717974] uppercase tracking-wider">Market Activity</p>
+                            <p className={`text-xs sm:text-sm font-bold mt-1 ${
                               diagnosis.marketInfo.marketActivity === 'High' ? 'text-emerald-700' :
                               diagnosis.marketInfo.marketActivity === 'Moderate' ? 'text-amber-700' :
                               'text-slate-600'
@@ -594,30 +589,29 @@ export const CropHealthScanner: React.FC = () => {
                         </div>
 
                         {/* Source & Date */}
-                        <div className="flex items-center justify-between text-[10px] text-[#717974] mt-1 px-1">
-                          <span>📅 Reported: {diagnosis.marketInfo.reportedDate}</span>
-                          <span>📊 Source: {diagnosis.marketInfo.source}</span>
+                        <div className="flex items-center justify-between text-[9px] sm:text-[10px] text-[#717974] mt-1 px-1">
+                          <span>📅 {diagnosis.marketInfo.reportedDate}</span>
+                          <span>📊 {diagnosis.marketInfo.source}</span>
                         </div>
                       </>
                     ) : (
-                      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-center">
-                        <span className="material-symbols-outlined text-slate-400 text-[32px]">storefront</span>
-                        <p className="text-sm text-slate-600 font-medium mt-2">No nearby market data available for this crop.</p>
-                        <p className="text-xs text-slate-500 mt-1">Market data temporarily unavailable. Try again later.</p>
+                      <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-200 text-center">
+                        <span className="material-symbols-outlined text-slate-400 text-[28px] sm:text-[32px]">storefront</span>
+                        <p className="text-xs sm:text-sm text-slate-600 font-medium mt-1">No nearby market data available.</p>
                       </div>
                     )}
                   </div>
 
                   {/* ═══ SECTION 4 — ACTION ═══ */}
-                  <div className="bg-white rounded-3xl p-5 shadow-sm border border-[#E5E2DA]">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="material-symbols-outlined text-emerald-700 text-[22px]">assignment_turned_in</span>
-                      <h3 className="text-sm font-bold text-emerald-800 uppercase tracking-wider">Next Step</h3>
+                  <div className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-sm border border-[#E5E2DA]">
+                    <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                      <span className="material-symbols-outlined text-emerald-700 text-[18px] sm:text-[22px]">assignment_turned_in</span>
+                      <h3 className="text-xs sm:text-sm font-bold text-emerald-800 uppercase tracking-wider">Next Step</h3>
                     </div>
-                    <p className="text-sm text-[#414844] font-medium">
+                    <p className="text-xs sm:text-sm text-[#414844] font-medium leading-relaxed">
                       {diagnosis.visibleCondition === 'Healthy' || (diagnosis.severity === 'Low' && diagnosis.treatments?.length === 0)
-                        ? 'Continue regular crop monitoring. Take photos every 3-5 days for early detection of any issues.'
-                        : 'Take immediate action based on the prescribed treatments above. Consult your local KVK agronomist for confirmation before applying chemicals.'
+                        ? 'Continue regular crop monitoring. Take photos every 3-5 days for early detection of issues.'
+                        : 'Take action based on the prescribed treatments above. Consult your local KVK agronomist for confirmation before applying chemicals.'
                       }
                     </p>
                   </div>
@@ -625,28 +619,28 @@ export const CropHealthScanner: React.FC = () => {
               )}
 
               {/* Responsible AI Disclaimer */}
-              <div className="p-4 rounded-2xl bg-white border border-slate-200 text-center">
-                <p className="text-xs text-slate-500 italic">
+              <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-slate-200 text-center">
+                <p className="text-[11px] sm:text-xs text-slate-500 italic">
                   🛡️ {diagnosis.disclaimer || 'AI diagnostic estimate only. Field-validate with certified KVK extension officer or agronomist before applying chemical pesticides.'}
                 </p>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
                 <button
                   onClick={handleReset}
-                  className="w-full sm:flex-1 py-3 bg-[#F1EEE5] hover:bg-[#E5E2DA] text-[#163A2D] font-bold rounded-2xl text-sm transition-colors flex items-center justify-center gap-2"
+                  className="w-full sm:flex-1 py-2.5 sm:py-3 bg-[#F1EEE5] hover:bg-[#E5E2DA] text-[#163A2D] font-bold rounded-xl sm:rounded-2xl text-xs sm:text-sm transition-colors flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-[20px]">restart_alt</span>
+                  <span className="material-symbols-outlined text-[18px] sm:text-[20px]">restart_alt</span>
                   <span>Scan Another Leaf</span>
                 </button>
 
                 <button
-                  onClick={() => navigate('/admin')}
-                  className="w-full sm:flex-1 py-3 bg-[#163A2D] hover:bg-emerald-900 text-white font-bold rounded-2xl text-sm transition-colors shadow-md flex items-center justify-center gap-2"
+                  onClick={() => navigate('/chat')}
+                  className="w-full sm:flex-1 py-2.5 sm:py-3 bg-[#163A2D] hover:bg-emerald-900 text-white font-bold rounded-xl sm:rounded-2xl text-xs sm:text-sm transition-colors shadow-md flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-[20px]">support_agent</span>
-                  <span>Consult KVK Agronomist</span>
+                  <span className="material-symbols-outlined text-[18px] sm:text-[20px]">support_agent</span>
+                  <span>Consult Agri-Expert</span>
                 </button>
               </div>
             </div>

@@ -222,7 +222,11 @@ export const Login: React.FC = () => {
     if (res.success) {
       showToast(t('auth.loginSuccess'));
       setTimeout(() => {
-        navigate('/home');
+        if (res.user && !res.user.isDemo && !res.user.onboardingCompleted) {
+          navigate('/onboarding');
+        } else {
+          navigate('/home');
+        }
       }, 500);
     } else {
       setError(res.error || 'Login failed. Please check your credentials.');

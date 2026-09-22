@@ -32,17 +32,17 @@ export const Onboarding: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<number>(1);
 
   // Step 1: Profile & Location States
-  const [farmerName, setFarmerName] = useState(user?.name || 'Ramesh Patel / રમેશભાઈ પટેલ');
-  const [phone, setPhone] = useState(user?.phone || '9876543210');
+  const [farmerName, setFarmerName] = useState(user?.name || (user?.isDemo ? 'Ramesh Patel' : ''));
+  const [phone, setPhone] = useState(user?.phone || (user?.isDemo ? '9876543210' : ''));
   const [ageGroup, setAgeGroup] = useState('35-45 yrs');
   const [district, setDistrict] = useState(user?.district || 'Surat');
   const [city, setCity] = useState(user?.city || user?.taluka || 'Kamrej');
   const [taluka, setTaluka] = useState(user?.taluka || user?.city || 'Kamrej');
-  const [village, setVillage] = useState(user?.village || 'Kamrej');
+  const [village, setVillage] = useState(user?.village || '');
   const [isCustomVillage, setIsCustomVillage] = useState(false);
-  const [pincode, setPincode] = useState('394185');
-  const [surveyNo, setSurveyNo] = useState('Block 142/A');
-  const [landmark, setLandmark] = useState('Near Canal / નહેર પાસે');
+  const [pincode, setPincode] = useState(user?.isDemo ? '394185' : '');
+  const [surveyNo, setSurveyNo] = useState(user?.isDemo ? 'Block 142/A' : '');
+  const [landmark, setLandmark] = useState(user?.isDemo ? 'Near Canal / નહેર પાસે' : '');
 
   const handleDistrictChange = (newDist: string) => {
     setDistrict(newDist);
@@ -143,7 +143,7 @@ export const Onboarding: React.FC = () => {
 
       // Update farmer account
       updateProfile({
-        name: farmerName,
+        name: farmerName || 'Farmer / ખેડૂત',
         phone,
         district,
         city,
@@ -152,21 +152,58 @@ export const Onboarding: React.FC = () => {
         pincode,
         ageGroup,
         kycDone: true,
+        onboardingCompleted: true,
       });
 
-      // Synchronize plots
-      const currentPlots = farmService.getPlots();
-      if (currentPlots.A) {
-        currentPlots.A.area = `${(cultivableArea * 0.6).toFixed(1)} ${unit.includes('Vigha') ? 'Vigha' : 'Acres'}`;
-        currentPlots.A.soilType = soilType;
-        currentPlots.A.irrigation = irrigationTechnique;
-        farmService.savePlot(currentPlots.A);
-      }
-      if (currentPlots.B) {
-        currentPlots.B.area = `${(cultivableArea * 0.4).toFixed(1)} ${unit.includes('Vigha') ? 'Vigha' : 'Acres'}`;
-        currentPlots.B.soilType = soilType;
-        currentPlots.B.irrigation = irrigationTechnique;
-        farmService.savePlot(currentPlots.B);
+      // Synchronize initial plots from user selections
+      if (selectedCrops.length > 0) {
+        const crop1 = selectedCrops[0];
+        const plotA = {
+          id: 'plot_' + Date.now() + '_A',
+          name: 'Block A',
+          area: `${(cultivableArea * (selectedCrops.length > 1 ? 0.6 : 1.0)).toFixed(1)} ${unit.includes('Vigha') ? 'Vigha' : 'Acres'}`,
+          crop: crop1.charAt(0).toUpperCase() + crop1.slice(1),
+          cropStage: 'Sowing / Early Vegetative',
+          stageName: 'Early Vegetative Growth',
+          soilType,
+          irrigation: irrigationTechnique,
+          sowingDate: new Date().toISOString().split('T')[0],
+          health: 'Optimal',
+          moisture: '34%',
+          syncTime: 'Just now',
+          coordinates: [
+            [parseFloat(lat) || 21.2721, parseFloat(lng) || 72.9546],
+            [parseFloat(lat) || 21.2721, (parseFloat(lng) || 72.9546) + 0.001],
+            [(parseFloat(lat) || 21.2721) + 0.001, (parseFloat(lng) || 72.9546) + 0.001],
+            [(parseFloat(lat) || 21.2721) + 0.001, parseFloat(lng) || 72.9546],
+          ],
+        };
+        farmService.savePlot(plotA as any);
+
+        if (selectedCrops.length > 1) {
+          const crop2 = selectedCrops[1];
+          const plotB = {
+            id: 'plot_' + Date.now() + '_B',
+            name: 'Block B',
+            area: `${(cultivableArea * 0.4).toFixed(1)} ${unit.includes('Vigha') ? 'Vigha' : 'Acres'}`,
+            crop: crop2.charAt(0).toUpperCase() + crop2.slice(1),
+            cropStage: 'Sowing / Early Vegetative',
+            stageName: 'Early Vegetative Growth',
+            soilType,
+            irrigation: irrigationTechnique,
+            sowingDate: new Date().toISOString().split('T')[0],
+            health: 'Optimal',
+            moisture: '36%',
+            syncTime: 'Just now',
+            coordinates: [
+              [parseFloat(lat) || 21.2721, (parseFloat(lng) || 72.9546) + 0.001],
+              [parseFloat(lat) || 21.2721, (parseFloat(lng) || 72.9546) + 0.002],
+              [(parseFloat(lat) || 21.2721) + 0.001, (parseFloat(lng) || 72.9546) + 0.002],
+              [(parseFloat(lat) || 21.2721) + 0.001, (parseFloat(lng) || 72.9546) + 0.001],
+            ],
+          };
+          farmService.savePlot(plotB as any);
+        }
       }
 
       showToast('Farm parcel registered successfully with Sentinel-2 link!');

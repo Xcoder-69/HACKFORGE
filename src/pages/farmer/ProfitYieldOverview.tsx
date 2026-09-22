@@ -1,17 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { financialService } from '../../services/financialService';
+import { farmService } from '../../services/farmService';
 
 export const ProfitYieldOverview: React.FC = () => {
   const navigate = useNavigate();
-  const { language } = useLanguage();
+  const { language, bi } = useLanguage();
+  const { user } = useAuth();
   const [selectedMandi, setSelectedMandi] = useState('Surat APMC');
   const [financials, setFinancials] = useState(() => financialService.getFinancialOverview());
+  const [plots, setPlots] = useState(() => farmService.getPlots());
 
   useEffect(() => {
     const unsub = financialService.subscribe(() => {
       setFinancials(financialService.getFinancialOverview());
+      setPlots(farmService.getPlots());
     });
     return unsub;
   }, []);
@@ -23,7 +28,7 @@ export const ProfitYieldOverview: React.FC = () => {
     { mandi: 'Rajkot APMC', distance: '320 km (Benchmark)', cotton: '₹7,400 / Qtl', groundnut: '₹7,150 / Qtl', trend: 'up' },
   ];
 
-  const historicalSeasons = [
+  const historicalSeasons = user?.isDemo ? [
     {
       season: 'Kharif 2026 (Live Ledger)',
       cost: `₹${financials.totalExpenses.toLocaleString('en-IN')}`,
@@ -33,6 +38,14 @@ export const ProfitYieldOverview: React.FC = () => {
     },
     { season: 'Rabi 2025-26', cost: '₹22,400', revenue: '₹68,500', netProfit: '₹46,100', roi: '205%' },
     { season: 'Kharif 2025', cost: '₹44,000', revenue: '₹1,42,000', netProfit: '₹98,000', roi: '222%' },
+  ] : [
+    {
+      season: 'Current Season (Live Ledger)',
+      cost: `₹${financials.totalExpenses.toLocaleString('en-IN')}`,
+      revenue: `₹${financials.expectedRevenue.toLocaleString('en-IN')}`,
+      netProfit: `₹${financials.projectedNetProfit.toLocaleString('en-IN')}`,
+      roi: `${financials.roiPercent}%`,
+    },
   ];
 
   return (
@@ -46,10 +59,12 @@ export const ProfitYieldOverview: React.FC = () => {
               <span>Yield Economics & Mandi Intelligence • નફો અને આવક વિશ્લેષણ</span>
             </div>
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
-              Profit, Yield & Revenue Overview
+              {bi('નફો અને આવક વિશ્લેષણ', 'Profit, Yield & Revenue Overview', 'Munafa aur Aavak').primary}
             </h1>
             <p className="text-emerald-100/80 text-sm mt-0.5">
-              Live financial projections for 10 Vigha landholding across Cotton & Groundnut
+              {user?.isDemo
+                ? 'Live financial projections for 10 Vigha landholding across Cotton & Groundnut'
+                : `Live financial ledger & APMC projections for ${user?.name || 'Farmer'} (${user?.district || 'Gujarat'})`}
             </p>
           </div>
 
@@ -74,130 +89,208 @@ export const ProfitYieldOverview: React.FC = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 pt-6 space-y-6">
-        {/* Big Profit Hero Card */}
-        <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-[#E5E2DA] relative overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-            {/* Projected Net Profit Hero */}
-            <div className="lg:col-span-5 space-y-2">
-              <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider bg-emerald-100 px-3 py-1 rounded-full">
-                Kharif 2026 Projected Net Profit
-              </span>
-              <div className="text-4xl md:text-5xl font-black text-[#163A2D] mt-2">
-                ₹{financials.projectedNetProfit.toLocaleString('en-IN')}
-              </div>
-              <p className="text-sm font-bold text-emerald-700">
-                {financials.projectedNetProfit >= 0 ? '+21.8% vs Last Kharif Season (૨૧.૮% વધુ ચોખ્ખો નફો)' : 'Higher Expenses than Projected'}
-              </p>
-              <p className="text-xs text-[#717974] leading-relaxed">
-                Dynamically calculated from recorded operational ledger expenses and Surat APMC benchmark modal prices.
+        {/* If real user has no ledger records, show welcoming empty state */}
+        {!user?.isDemo && !financials.hasData ? (
+          <div className="bg-white rounded-3xl p-8 shadow-sm border border-[#E5E2DA] text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center mx-auto border border-emerald-200">
+              <span className="material-symbols-outlined text-[34px]">account_balance_wallet</span>
+            </div>
+            <div className="max-w-md mx-auto">
+              <h3 className="text-lg font-bold text-[#163A2D]">
+                {bi('કોઈ નાણાકીય અથવા પાક ઉત્પાદન નોંધ નથી', 'No Financial or Harvest Ledger Recorded Yet', 'Koi kharch ya aavak record nahi hai').primary}
+              </h3>
+              <p className="text-xs text-[#717974] mt-1.5 leading-relaxed">
+                {bi(
+                  'તમારા બિયારણ, ખાતર, પિયત અને મજૂરી ખર્ચ નોંધો જેથી AI આપમેળે કુલ રોકાણ, અપેક્ષિત આવક, નેટ નફો અને APMC બજાર આધારિત ROI ગણી શકે.',
+                  'Log your seed, fertilizer, irrigation, and labor expenses to calculate real seasonal ROI, net profit margins, and APMC modal price projections.',
+                  'Apne kharche darj karein taaki AI net munafa aur ROI calculate kar sake.'
+                ).primary}
               </p>
             </div>
-
-            {/* Financial Breakdown Equation */}
-            <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="bg-[#F6F3EA] p-4 rounded-2xl border border-[#E5E2DA]">
-                <span className="text-xs font-bold text-[#717974] uppercase block">Expected Revenue</span>
-                <span className="text-2xl font-black text-emerald-800 mt-1 block">
-                  ₹{financials.expectedRevenue.toLocaleString('en-IN')}
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => navigate('/expenses')}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#163A2D] hover:bg-emerald-900 text-white text-xs sm:text-sm font-bold shadow-md transition-all active:scale-95"
+              >
+                <span className="material-symbols-outlined text-[20px]">add_circle</span>
+                <span>{bi('+ પ્રથમ ખર્ચ ઉમેરો', '+ Add First Expense', '+ Pehla Kharch Jodein').primary}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/my-farm')}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#F6F3EA] hover:bg-[#ECE8DC] text-[#163A2D] text-xs sm:text-sm font-bold border border-[#E5E2DA] transition-all"
+              >
+                <span className="material-symbols-outlined text-[18px]">agriculture</span>
+                <span>{bi('પ્લોટ સેટ કરો', 'Configure Plots', 'Plot Set Karein').primary}</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* Big Profit Hero Card */
+          <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-[#E5E2DA] relative overflow-hidden">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+              {/* Projected Net Profit Hero */}
+              <div className="lg:col-span-5 space-y-2">
+                <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider bg-emerald-100 px-3 py-1 rounded-full">
+                  {user?.isDemo ? 'Kharif 2026 Projected Net Profit' : 'Season Projected Net Profit'}
                 </span>
-                <span className="text-[11px] text-[#717974] mt-1 block">64 Qtl Total Harvest</span>
+                <div className="text-4xl md:text-5xl font-black text-[#163A2D] mt-2">
+                  ₹{financials.projectedNetProfit.toLocaleString('en-IN')}
+                </div>
+                <p className="text-sm font-bold text-emerald-700">
+                  {financials.projectedNetProfit >= 0 ? '+21.8% vs Last Kharif Season (૨૧.૮% વધુ ચોખ્ખો નફો)' : 'Higher Expenses than Projected'}
+                </p>
+                <p className="text-xs text-[#717974] leading-relaxed">
+                  Dynamically calculated from recorded operational ledger expenses and APMC benchmark modal prices.
+                </p>
               </div>
 
-              <div className="bg-[#F6F3EA] p-4 rounded-2xl border border-[#E5E2DA]">
-                <span className="text-xs font-bold text-[#717974] uppercase block">Total Cultivation Cost</span>
-                <span className="text-2xl font-black text-red-700 mt-1 block">
-                  -₹{financials.totalExpenses.toLocaleString('en-IN')}
-                </span>
-                <span className="text-[11px] text-[#717974] mt-1 block">Recorded in Ledger</span>
-              </div>
+              {/* Financial Breakdown Equation */}
+              <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="bg-[#F6F3EA] p-4 rounded-2xl border border-[#E5E2DA]">
+                  <span className="text-xs font-bold text-[#717974] uppercase block">Expected Revenue</span>
+                  <span className="text-2xl font-black text-emerald-800 mt-1 block">
+                    ₹{financials.expectedRevenue.toLocaleString('en-IN')}
+                  </span>
+                  <span className="text-[11px] text-[#717974] mt-1 block">
+                    {user?.isDemo ? '64 Qtl Total Harvest' : 'Projected Harvest Value'}
+                  </span>
+                </div>
 
-              <div className="bg-[#F6F3EA] p-4 rounded-2xl border border-[#E5E2DA]">
-                <span className="text-xs font-bold text-[#717974] uppercase block">Return on Investment</span>
-                <span className="text-2xl font-black text-[#163A2D] mt-1 block">
-                  {financials.roiPercent}%
-                </span>
-                <span className="text-[11px] text-emerald-700 font-bold mt-1 block">
-                  ₹{(financials.roiPercent / 100).toFixed(2)} return per ₹1
-                </span>
+                <div className="bg-[#F6F3EA] p-4 rounded-2xl border border-[#E5E2DA]">
+                  <span className="text-xs font-bold text-[#717974] uppercase block">Total Cultivation Cost</span>
+                  <span className="text-2xl font-black text-red-700 mt-1 block">
+                    -₹{financials.totalExpenses.toLocaleString('en-IN')}
+                  </span>
+                  <span className="text-[11px] text-[#717974] mt-1 block">Recorded in Ledger</span>
+                </div>
+
+                <div className="bg-[#F6F3EA] p-4 rounded-2xl border border-[#E5E2DA]">
+                  <span className="text-xs font-bold text-[#717974] uppercase block">Return on Investment</span>
+                  <span className="text-2xl font-black text-[#163A2D] mt-1 block">
+                    {financials.roiPercent}%
+                  </span>
+                  <span className="text-[11px] text-emerald-700 font-bold mt-1 block">
+                    ₹{(financials.roiPercent / 100).toFixed(2)} return per ₹1
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Harvest Projections by Plot */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Plot A: Cotton */}
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E2DA] space-y-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
-                  Block A • 6.5 Vigha
-                </span>
-                <h3 className="text-xl font-black text-[#163A2D] mt-2">Bt Cotton (G.Cot-16)</h3>
-                <p className="text-xs text-[#717974]">Flowering & Boll Forming Stage</p>
+        {user?.isDemo ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Plot A: Cotton */}
+            <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E2DA] space-y-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                    Block A • 6.5 Vigha
+                  </span>
+                  <h3 className="text-xl font-black text-[#163A2D] mt-2">Bt Cotton (G.Cot-16)</h3>
+                  <p className="text-xs text-[#717974]">Flowering & Boll Forming Stage</p>
+                </div>
+                <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center font-bold text-lg">
+                  ☁️
+                </div>
               </div>
-              <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center font-bold text-lg">
-                ☁️
+
+              <div className="grid grid-cols-3 gap-2 py-3 border-y border-[#F1EEE5] text-center">
+                <div>
+                  <span className="text-[11px] text-[#717974] block">Est. Yield</span>
+                  <span className="text-sm md:text-base font-black text-[#163A2D]">24 Qtl</span>
+                </div>
+                <div>
+                  <span className="text-[11px] text-[#717974] block">Mandi Rate</span>
+                  <span className="text-sm md:text-base font-black text-emerald-800">₹7,200/Qtl</span>
+                </div>
+                <div>
+                  <span className="text-[11px] text-[#717974] block">Est. Value</span>
+                  <span className="text-sm md:text-base font-black text-[#163A2D]">₹1,72,800</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-[#717974]">Projected Harvest Window:</span>
+                <span className="font-bold text-[#163A2D]">15 Oct - 05 Nov 2026</span>
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 py-3 border-y border-[#F1EEE5] text-center">
-              <div>
-                <span className="text-[11px] text-[#717974] block">Est. Yield</span>
-                <span className="text-sm md:text-base font-black text-[#163A2D]">24 Qtl</span>
+            {/* Plot B: Groundnut */}
+            <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E2DA] space-y-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                    Block B • 3.5 Vigha
+                  </span>
+                  <h3 className="text-xl font-black text-[#163A2D] mt-2">Groundnut (GG-20)</h3>
+                  <p className="text-xs text-[#717974]">Pegging & Pod Filling Stage</p>
+                </div>
+                <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-900 flex items-center justify-center font-bold text-lg">
+                  🥜
+                </div>
               </div>
-              <div>
-                <span className="text-[11px] text-[#717974] block">Mandi Rate</span>
-                <span className="text-sm md:text-base font-black text-emerald-800">₹7,200/Qtl</span>
-              </div>
-              <div>
-                <span className="text-[11px] text-[#717974] block">Est. Value</span>
-                <span className="text-sm md:text-base font-black text-[#163A2D]">₹1,72,800</span>
-              </div>
-            </div>
 
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-[#717974]">Projected Harvest Window:</span>
-              <span className="font-bold text-[#163A2D]">15 Oct - 05 Nov 2026</span>
+              <div className="grid grid-cols-3 gap-2 py-3 border-y border-[#F1EEE5] text-center">
+                <div>
+                  <span className="text-[11px] text-[#717974] block">Est. Yield</span>
+                  <span className="text-sm md:text-base font-black text-[#163A2D]">40 Qtl</span>
+                </div>
+                <div>
+                  <span className="text-[11px] text-[#717974] block">Mandi Rate</span>
+                  <span className="text-sm md:text-base font-black text-emerald-800">₹6,850/Qtl</span>
+                </div>
+                <div>
+                  <span className="text-[11px] text-[#717974] block">Est. Value</span>
+                  <span className="text-sm md:text-base font-black text-[#163A2D]">₹2,74,000</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-[#717974]">Projected Harvest Window:</span>
+                <span className="font-bold text-[#163A2D]">28 Sep - 12 Oct 2026</span>
+              </div>
             </div>
           </div>
+        ) : Object.keys(plots).length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {Object.entries(plots).map(([key, plot]) => (
+              <div key={key} className="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E2DA] space-y-4">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                      {plot.name} • {plot.area}
+                    </span>
+                    <h3 className="text-xl font-black text-[#163A2D] mt-2">{plot.crop}</h3>
+                    <p className="text-xs text-[#717974]">{plot.stageName}</p>
+                  </div>
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-900 flex items-center justify-center font-bold text-lg">
+                    🌱
+                  </div>
+                </div>
 
-          {/* Plot B: Groundnut */}
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E2DA] space-y-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
-                  Block B • 3.5 Vigha
-                </span>
-                <h3 className="text-xl font-black text-[#163A2D] mt-2">Groundnut (GG-20)</h3>
-                <p className="text-xs text-[#717974]">Pegging & Pod Filling Stage</p>
-              </div>
-              <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-900 flex items-center justify-center font-bold text-lg">
-                🥜
-              </div>
-            </div>
+                <div className="grid grid-cols-2 gap-2 py-3 border-y border-[#F1EEE5] text-center">
+                  <div>
+                    <span className="text-[11px] text-[#717974] block">Soil Type</span>
+                    <span className="text-xs md:text-sm font-bold text-[#163A2D]">{plot.soilType}</span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-[#717974] block">Irrigation</span>
+                    <span className="text-xs md:text-sm font-bold text-emerald-800">{plot.irrigation}</span>
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-3 gap-2 py-3 border-y border-[#F1EEE5] text-center">
-              <div>
-                <span className="text-[11px] text-[#717974] block">Est. Yield</span>
-                <span className="text-sm md:text-base font-black text-[#163A2D]">40 Qtl</span>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-[#717974]">Planting Date:</span>
+                  <span className="font-bold text-[#163A2D]">{plot.sowingDate || 'Active Season'}</span>
+                </div>
               </div>
-              <div>
-                <span className="text-[11px] text-[#717974] block">Mandi Rate</span>
-                <span className="text-sm md:text-base font-black text-emerald-800">₹6,850/Qtl</span>
-              </div>
-              <div>
-                <span className="text-[11px] text-[#717974] block">Est. Value</span>
-                <span className="text-sm md:text-base font-black text-[#163A2D]">₹2,74,000</span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-[#717974]">Projected Harvest Window:</span>
-              <span className="font-bold text-[#163A2D]">28 Sep - 12 Oct 2026</span>
-            </div>
+            ))}
           </div>
-        </div>
+        ) : null}
 
         {/* Nearby APMC Mandi Rate Comparison */}
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E2DA] space-y-4">

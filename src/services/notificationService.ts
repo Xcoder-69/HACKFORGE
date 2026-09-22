@@ -11,7 +11,9 @@ export interface ToastItem {
   message?: string;
   messageGu?: string;
   messageHi?: string;
-  type: 'info' | 'success' | 'warning' | 'alert';
+  type: 'info' | 'success' | 'warning' | 'alert' | 'market';
+  category?: 'market' | 'weather' | 'crop' | 'disease' | 'soil' | 'advisory' | 'system';
+  priority?: 'Critical' | 'High' | 'Medium' | 'Low';
   actionText?: string;
   actionRoute?: string;
   durationMs?: number;
@@ -26,10 +28,27 @@ export interface ShowToastOptions {
   message?: string;
   messageGu?: string;
   messageHi?: string;
-  type?: 'info' | 'success' | 'warning' | 'alert';
+  type?: 'info' | 'success' | 'warning' | 'alert' | 'market';
+  category?: 'market' | 'weather' | 'crop' | 'disease' | 'soil' | 'advisory' | 'system';
+  priority?: 'Critical' | 'High' | 'Medium' | 'Low';
   actionText?: string;
   actionRoute?: string;
   durationMs?: number;
+}
+
+export interface AlertNotificationOptions {
+  title: string;
+  titleGu?: string;
+  titleHi?: string;
+  message?: string;
+  messageGu?: string;
+  messageHi?: string;
+  priority?: 'Critical' | 'High' | 'Medium' | 'Low' | string;
+  category?: 'market' | 'weather' | 'crop' | 'disease' | 'soil' | 'advisory' | string;
+  type?: 'info' | 'success' | 'warning' | 'alert' | 'market';
+  actionText?: string;
+  actionRoute?: string;
+  eventId?: string;
 }
 
 const SEEN_STORAGE_KEY = 'agromind_seen_toasts';
@@ -108,14 +127,16 @@ class NotificationService {
       messageGu: options.messageGu,
       messageHi: options.messageHi,
       type: options.type || 'info',
+      category: options.category,
+      priority: options.priority,
       actionText: options.actionText,
       actionRoute: options.actionRoute,
       durationMs: duration,
       createdAt: Date.now(),
     };
 
-    // Limit active toasts to top 3
-    this.activeToasts = [newToast, ...this.activeToasts.slice(0, 2)];
+    // Limit active toasts to top 2 to keep mobile view clean and uncluttered
+    this.activeToasts = [newToast, ...this.activeToasts.slice(0, 1)];
     this.notify();
 
     // Auto-dismiss
@@ -203,7 +224,7 @@ class NotificationService {
       messageHi: 'Mausam aur mandi ke hisab se nayi sifarish taiyar hai.',
       type: 'info',
       actionText: 'View Recs',
-      actionRoute: '/crop-recommendation',
+      actionRoute: '/recommendations',
     });
   }
 
@@ -222,18 +243,64 @@ class NotificationService {
     });
   }
 
-  public notifyNewAlertAdded(title: string, priority: string, route: string): void {
+  /**
+   * Dispatches rich, multilingual alert toasts with proper titles, priority badges, and contextual styling.
+   */
+  public notifyAlert(options: AlertNotificationOptions): void {
+    const priority = (options.priority || 'Medium') as 'Critical' | 'High' | 'Medium' | 'Low';
+    const category = (options.category || 'advisory').toLowerCase();
+    const isMarket = category === 'market' || options.title.toLowerCase().includes('market') || options.title.toLowerCase().includes('selling');
+    const isCritical = priority === 'Critical';
+    const isHigh = priority === 'High';
+
+    const toastType: ToastItem['type'] = options.type || (isMarket ? 'market' : isCritical ? 'alert' : isHigh ? 'warning' : 'info');
+
     this.showToast({
+      eventId: options.eventId || `event:alert:${options.title}:${Date.now()}`,
+      title: options.title,
+      titleGu: options.titleGu || options.title,
+      titleHi: options.titleHi || options.title,
+      message: options.message || '',
+      messageGu: options.messageGu || options.message || '',
+      messageHi: options.messageHi || options.message || '',
+      type: toastType,
+      category: (category as any),
+      priority,
+      actionText: options.actionText || (isMarket ? 'Check Mandi' : 'View Advisory'),
+      actionRoute: options.actionRoute || (isMarket ? '/mandi' : '/alerts'),
+      durationMs: isCritical ? 6500 : 5000,
+    });
+  }
+
+  /**
+   * Backward-compatible alert notification method that cleanly resolves real alert content
+   * rather than generating robotic 'New Alert Added' placeholders.
+   */
+  public notifyNewAlertAdded(
+    titleOrOptions: string | AlertNotificationOptions,
+    priority: string = 'Medium',
+    route: string = '/alerts',
+    extraMessage?: string
+  ): void {
+    if (typeof titleOrOptions === 'object') {
+      this.notifyAlert(titleOrOptions);
+      return;
+    }
+
+    const title = titleOrOptions;
+    const isMarket = title.toLowerCase().includes('market') || title.toLowerCase().includes('selling') || title.toLowerCase().includes('bazaar');
+    const isCritical = priority.toLowerCase() === 'critical';
+    const isHigh = priority.toLowerCase() === 'high';
+
+    this.notifyAlert({
       eventId: `event:new_alert:${title}`,
-      title: 'New Alert Added',
-      titleGu: 'નવી ચેતવણી ઉમેરાઈ',
-      titleHi: 'Naya Alert Aaya',
-      message: `${priority} priority alert: ${title}`,
-      messageGu: `${priority} અગ્રતા: ${title}`,
-      messageHi: `${priority} priority: ${title}`,
-      type: priority === 'Critical' ? 'alert' : 'warning',
-      actionText: 'Take Action',
-      actionRoute: route,
+      title,
+      message: extraMessage || (isMarket ? 'Favorable price window reported in APMC. Tap to inspect rates.' : 'Important agronomic advisory available for your farm.'),
+      priority: priority as any,
+      category: isMarket ? 'market' : 'weather',
+      type: isMarket ? 'market' : isCritical ? 'alert' : isHigh ? 'warning' : 'info',
+      actionText: isMarket ? 'Check Mandi' : 'View Advisory',
+      actionRoute: route || (isMarket ? '/mandi' : '/alerts'),
     });
   }
 }

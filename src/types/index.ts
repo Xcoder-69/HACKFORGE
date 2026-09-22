@@ -19,6 +19,8 @@ export interface UserProfile {
   smsAlerts?: boolean;
   whatsappAlerts?: boolean;
   voiceAssistance?: boolean;
+  onboardingCompleted?: boolean;
+  isDemo?: boolean;
 }
 
 export type UnitType = 'Vigha (વીઘા)' | 'Acre (એકર)' | 'Guntha (ગુંઠા)' | 'Hectare (હેક્ટર)';

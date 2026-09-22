@@ -5,7 +5,7 @@
  * Run: node server/scripts/preprocess-mandi-csv.mjs
  */
 
-import { readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -13,7 +13,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const PROJECT_ROOT = resolve(__dirname, '..', '..');
 
-const CSV_PATH = resolve(PROJECT_ROOT, 'Current Daily Price of Various Commodities from Various Markets (Mandi).csv');
+const DATA_ORIGINAL_CSV = resolve(PROJECT_ROOT, 'data', 'original', 'Current Daily Price of Various Commodities from Various Markets (Mandi).csv');
+const ROOT_CSV = resolve(PROJECT_ROOT, 'Current Daily Price of Various Commodities from Various Markets (Mandi).csv');
+const CSV_PATH = existsSync(DATA_ORIGINAL_CSV) ? DATA_ORIGINAL_CSV : ROOT_CSV;
 const OUTPUT_DIR = resolve(PROJECT_ROOT, 'server', 'data');
 const OUTPUT_PATH = resolve(OUTPUT_DIR, 'mandi_data.json');
 

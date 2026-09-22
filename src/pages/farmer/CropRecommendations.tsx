@@ -214,50 +214,50 @@ export const CropRecommendations: React.FC = () => {
       {/* ===================================================================== */}
       {/* TOP AGROMIND HEADER BAR                                               */}
       {/* ===================================================================== */}
-      <div className="bg-[#163A2D] text-white py-6 px-4 md:px-8 shadow-sm">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="bg-[#163A2D] text-white py-4 sm:py-6 px-3 sm:px-6 md:px-8 shadow-sm">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-3 sm:gap-4">
           <div>
-            <div className="flex items-center gap-2 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-1">
-              <span className="material-symbols-outlined text-[18px]">psychology</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-emerald-300 text-[11px] sm:text-xs font-bold uppercase tracking-wider mb-0.5 sm:mb-1">
+              <span className="material-symbols-outlined text-[16px] sm:text-[18px]">psychology</span>
               <span>
                 {bi(
-                  'AI પાક ભલામણ કેન્દ્ર • Data-Driven Agronomy',
-                  'AgroMind AI • Crop Advisory Center',
-                  'स्वायत्त एग्रोनॉमी AI • फसल सलाह केंद्र'
+                  'AI પાક ભલામણ • Agronomy',
+                  'AgroMind AI • Crop Advisory',
+                  'एग्रोनॉमी AI • फसल सलाह'
                 ).primary}
               </span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
-              {bi('પાક ભલામણ અને ખેતી આયોજન', 'Crop Recommendations & Cultivation Planning', 'फसल सिफारिशें और योजना').primary}
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight">
+              {bi('પાક ભલામણ અને ખેતી આયોજન', 'Crop Recommendations & Planning', 'फसल सिफारिशें और योजना').primary}
             </h1>
-            <p className="text-emerald-300/90 text-xs font-semibold mt-0.5">
+            <p className="text-emerald-300/90 text-[11px] sm:text-xs font-semibold mt-0.5">
               {bi(
-                'લાઇવ ઓપન-મેટિઓ હવામાન અને APMC મંડી ભાવ આધારિત વાસ્તવિક સલાહ',
-                'Real-time agronomic guidance powered by Open-Meteo & APMC Mandi telemetry',
-                'लाइव ओपन-मेटियो मौसम और एपीएमसी मंडी भाव पर आधारित वास्तविक सलाह'
+                'લાઇવ હવામાન અને APMC મંડી ભાવ આધારિત વાસ્તવિક સલાહ',
+                'Real-time guidance powered by Open-Meteo & APMC Mandi',
+                'लाइव मौसम और मंडी भाव आधारित सलाह'
               ).primary}
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {activeTab === 'what_to_grow' && (
               <button
                 type="button"
                 onClick={() => setShowComparison(true)}
                 disabled={!selectedCrop || !compareWith}
-                className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs md:text-sm flex items-center gap-2 shadow-md transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                className="px-3 sm:px-4 py-2 sm:py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-md transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
               >
-                <span className="material-symbols-outlined text-[18px]">compare_arrows</span>
-                <span>{bi('સરખામણી કરો / Compare', 'Compare Crops / સરખામણી કરો', 'फसल तुलना / Compare').primary}</span>
+                <span className="material-symbols-outlined text-[16px] sm:text-[18px]">compare_arrows</span>
+                <span>{bi('સરખામણી', 'Compare Crops', 'फसल तुलना').primary}</span>
               </button>
             )}
             <button
               type="button"
               onClick={() => navigate('/market')}
-              className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold text-xs md:text-sm flex items-center gap-1.5 transition-colors border border-white/20 cursor-pointer"
+              className="px-3 sm:px-4 py-2 sm:py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold text-xs sm:text-sm flex items-center gap-1.5 transition-colors border border-white/20 cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[18px]">storefront</span>
-              <span>{bi('લાઇવ મંડી ભાવ', 'Live Mandi Rates', 'लाइव मंडी भाव').primary}</span>
+              <span className="material-symbols-outlined text-[16px] sm:text-[18px]">storefront</span>
+              <span>{bi('મંડી ભાવ', 'Live Mandi Rates', 'मंडी भाव').primary}</span>
             </button>
           </div>
         </div>
@@ -266,12 +266,12 @@ export const CropRecommendations: React.FC = () => {
       {/* ===================================================================== */}
       {/* MAIN CONTAINER                                                        */}
       {/* ===================================================================== */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 pt-5 space-y-6">
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 md:px-8 pt-3 sm:pt-5 space-y-4 sm:space-y-6">
         {/* Saved feedback toast */}
         {savedSuccess && selectedCrop && (
-          <div className="p-4 bg-emerald-100 border border-emerald-300 text-emerald-900 rounded-2xl flex items-center gap-3 shadow-md animate-bounce">
-            <span className="material-symbols-outlined text-emerald-700 text-[24px]">check_circle</span>
-            <span className="font-bold text-sm">
+          <div className="p-3 sm:p-4 bg-emerald-100 border border-emerald-300 text-emerald-900 rounded-xl sm:rounded-2xl flex items-center gap-2.5 sm:gap-3 shadow-md animate-bounce">
+            <span className="material-symbols-outlined text-emerald-700 text-[20px] sm:text-[24px]">check_circle</span>
+            <span className="font-bold text-xs sm:text-sm">
               {selectedCrop.nameEn} ({selectedCrop.nameGu}) has been scheduled for Block A! Redirecting to My Farm...
             </span>
           </div>
@@ -280,22 +280,22 @@ export const CropRecommendations: React.FC = () => {
         {/* =================================================================== */}
         {/* TWO PRIMARY NAVIGATION TABS                                         */}
         {/* =================================================================== */}
-        <div className="bg-[#F1EEE5] p-1.5 rounded-2xl flex items-center gap-2 shadow-inner">
+        <div className="bg-[#F1EEE5] p-1 sm:p-1.5 rounded-xl sm:rounded-2xl flex items-center gap-1.5 sm:gap-2 shadow-inner">
           <button
             type="button"
             onClick={() => setActiveTab('what_to_grow')}
-            className={`flex-1 py-3 px-4 rounded-xl font-extrabold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            className={`flex-1 py-2 sm:py-3 px-2 sm:px-4 rounded-lg sm:rounded-xl font-extrabold text-xs sm:text-sm transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer ${
               activeTab === 'what_to_grow'
                 ? 'bg-[#163A2D] text-white shadow-md'
                 : 'text-[#414844] hover:text-[#163A2D] hover:bg-white/60'
             }`}
           >
-            <span className="material-symbols-outlined text-[20px]">eco</span>
+            <span className="material-symbols-outlined text-[18px] sm:text-[20px]">eco</span>
             <div className="text-left">
               <span className="block leading-tight">
-                {bi('૧. હું શું વાવી શકું? (What to Grow)', '1. What Should I Grow?', '1. मैं क्या उगाऊं? (What to Grow)').primary}
+                {bi('૧. શું વાવવું?', '1. What Should I Grow?', '1. क्या उगाएं?').primary}
               </span>
-              <span className="text-[10px] font-normal opacity-80 block">
+              <span className="text-[10px] font-normal opacity-80 hidden sm:block">
                 {bi('વાવણી આયોજન & નફો અંદાજ', 'Pre-sowing suitability & profit estimates', 'बुवाई योजना और अनुमानित लाभ').primary}
               </span>
             </div>
@@ -304,19 +304,19 @@ export const CropRecommendations: React.FC = () => {
           <button
             type="button"
             onClick={() => setActiveTab('my_crop')}
-            className={`flex-1 py-3 px-4 rounded-xl font-extrabold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            className={`flex-1 py-2 sm:py-3 px-2 sm:px-4 rounded-lg sm:rounded-xl font-extrabold text-xs sm:text-sm transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer ${
               activeTab === 'my_crop'
                 ? 'bg-[#163A2D] text-white shadow-md'
                 : 'text-[#414844] hover:text-[#163A2D] hover:bg-white/60'
             }`}
           >
-            <span className="material-symbols-outlined text-[20px]">potted_plant</span>
+            <span className="material-symbols-outlined text-[18px] sm:text-[20px]">potted_plant</span>
             <div className="text-left">
               <span className="block leading-tight">
-                {bi('૨. મારો હાલનો પાક (My Growing Crop)', '2. Already Growing a Crop', '2. मेरी मौजूदा फसल (My Growing Crop)').primary}
+                {bi('૨. હાલનો પાક', '2. Growing Crop', '2. मेरी मौजूदा फसल').primary}
               </span>
-              <span className="text-[10px] font-normal opacity-80 block">
-                {bi('પાક વૃદ્ધિ, પિયત, ખાતર & જીવાત સલાહ', 'Crop-specific irrigation, pest & harvest care', 'फसल विशिष्ट सिंचाई, खाद व कीट सलाह').primary}
+              <span className="text-[10px] font-normal opacity-80 hidden sm:block">
+                {bi('પાક વૃદ્ધિ, પિયત & ખાતર સલાહ', 'Crop-specific irrigation & fertilizer care', 'फसल सिंचाई व खाद सलाह').primary}
               </span>
             </div>
           </button>
@@ -325,49 +325,43 @@ export const CropRecommendations: React.FC = () => {
         {/* =================================================================== */}
         {/* PARCEL & METEOROLOGICAL TELEMETRY CONTEXT BAR                       */}
         {/* =================================================================== */}
-        <div className="bg-white rounded-2xl p-4 md:p-5 shadow-sm border border-[#E5E2DA] flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined text-[24px]">location_on</span>
+        <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-5 shadow-sm border border-[#E5E2DA] flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-[20px] sm:text-[24px]">location_on</span>
             </div>
             <div>
               <span className="text-[10px] font-extrabold text-emerald-800 uppercase tracking-wide block">
                 {bi('ખેતર અને હવામાન ટેલિમેટ્રી', 'Active Field Telemetry', 'खेत और मौसम टेलीमेट्री').primary}
               </span>
-              <h3 className="text-sm md:text-base font-black text-[#163A2D]">
+              <h3 className="text-xs sm:text-base font-black text-[#163A2D]">
                 {location.locationName || location.district || 'Surat Farm'} • {farmParcel?.totalArea || 4.5} {farmParcel?.unit?.includes('Vigha') ? 'Vigha' : 'Acres'}
               </h3>
             </div>
           </div>
 
           {/* Micro Telemetry Chips */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full no-scrollbar flex-wrap">
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-0.5 max-w-full no-scrollbar flex-wrap">
             {/* Live Weather Chip */}
-            <div className="px-3 py-1.5 bg-[#F6F3EA] rounded-xl text-xs font-bold text-[#1C1C17] flex items-center gap-1.5 border border-[#E5E2DA]">
-              <span className="material-symbols-outlined text-amber-600 text-[16px]">
+            <div className="px-2.5 sm:px-3 py-1 sm:py-1.5 bg-[#F6F3EA] rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold text-[#1C1C17] flex items-center gap-1 sm:gap-1.5 border border-[#E5E2DA]">
+              <span className="material-symbols-outlined text-amber-600 text-[14px] sm:text-[16px]">
                 {weather?.current?.icon || 'wb_sunny'}
               </span>
               <span>
-                {weather?.current ? `${Math.round(weather.current.temp)}°C` : '28°C'} ({weather?.current?.condition || 'Clear'})
+                {weather?.current ? `${Math.round(weather.current.temp)}°C` : '28°C'}
               </span>
             </div>
 
             {/* Soil Type Chip */}
-            <div className="px-3 py-1.5 bg-[#F6F3EA] rounded-xl text-xs font-bold text-[#1C1C17] flex items-center gap-1.5 border border-[#E5E2DA]">
-              <span className="material-symbols-outlined text-amber-800 text-[16px]">terrain</span>
+            <div className="px-2.5 sm:px-3 py-1 sm:py-1.5 bg-[#F6F3EA] rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold text-[#1C1C17] flex items-center gap-1 sm:gap-1.5 border border-[#E5E2DA]">
+              <span className="material-symbols-outlined text-amber-800 text-[14px] sm:text-[16px]">terrain</span>
               <span>{farmParcel?.soilType ? farmParcel.soilType.split('(')[0].trim() : 'Black Cotton Soil'}</span>
             </div>
 
-            {/* Unmeasured Lab Soil Parameters -> Explicit "Data Unavailable" Tag */}
-            <div className="px-2.5 py-1 bg-amber-50 text-amber-800 rounded-xl text-[11px] font-bold border border-amber-200 flex items-center gap-1" title="Laboratory soil test not on file">
-              <span className="material-symbols-outlined text-[13px]">info</span>
-              <span>Soil NPK: Data unavailable</span>
-            </div>
-
             {/* Open-Meteo Verified Live Badge */}
-            <div className="px-2.5 py-1 bg-emerald-50 text-emerald-800 rounded-xl text-[11px] font-bold border border-emerald-200 flex items-center gap-1">
+            <div className="px-2 sm:px-2.5 py-0.5 sm:py-1 bg-emerald-50 text-emerald-800 rounded-lg sm:rounded-xl text-[10px] sm:text-[11px] font-bold border border-emerald-200 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
-              <span>Open-Meteo Live</span>
+              <span>Live Weather</span>
             </div>
           </div>
         </div>
@@ -376,51 +370,51 @@ export const CropRecommendations: React.FC = () => {
         {/* TAB 1: WHAT SHOULD I GROW? (PRE-SOWING SUITABILITY & PROFIT)        */}
         {/* =================================================================== */}
         {activeTab === 'what_to_grow' && (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Season Selector Bar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="bg-[#F1EEE5] p-1 rounded-xl flex items-center gap-1.5 max-w-md w-full shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
+              <div className="bg-[#F1EEE5] p-1 rounded-xl flex items-center gap-1 sm:gap-1.5 max-w-md w-full shadow-xs">
                 <button
                   type="button"
                   onClick={() => setSeason('kharif')}
-                  className={`flex-1 py-2 rounded-lg font-extrabold text-xs transition-all flex flex-col items-center cursor-pointer ${
+                  className={`flex-1 py-1.5 sm:py-2 rounded-lg font-extrabold text-xs transition-all flex flex-col items-center cursor-pointer ${
                     season === 'kharif'
                       ? 'bg-[#163A2D] text-white shadow-sm'
                       : 'text-[#414844] hover:bg-white/60'
                   }`}
                 >
-                  <span>{bi('ચોમાસુ (Kharif)', 'Kharif (ચોમાસુ)', 'खरीफ (Kharif)').primary}</span>
-                  <span className="text-[10px] font-normal opacity-80">Jun - Oct</span>
+                  <span>{bi('ચોમાસુ', 'Kharif', 'खरीफ').primary}</span>
+                  <span className="text-[9px] sm:text-[10px] font-normal opacity-80">Jun - Oct</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setSeason('rabi')}
-                  className={`flex-1 py-2 rounded-lg font-extrabold text-xs transition-all flex flex-col items-center cursor-pointer ${
+                  className={`flex-1 py-1.5 sm:py-2 rounded-lg font-extrabold text-xs transition-all flex flex-col items-center cursor-pointer ${
                     season === 'rabi'
                       ? 'bg-[#163A2D] text-white shadow-sm'
                       : 'text-[#414844] hover:bg-white/60'
                   }`}
                 >
-                  <span>{bi('શિયાળુ (Rabi)', 'Rabi (શિયાળુ)', 'रबी (Rabi)').primary}</span>
-                  <span className="text-[10px] font-normal opacity-80">Oct - Mar</span>
+                  <span>{bi('શિયાળુ', 'Rabi', 'रबी').primary}</span>
+                  <span className="text-[9px] sm:text-[10px] font-normal opacity-80">Oct - Mar</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setSeason('zaid')}
-                  className={`flex-1 py-2 rounded-lg font-extrabold text-xs transition-all flex flex-col items-center cursor-pointer ${
+                  className={`flex-1 py-1.5 sm:py-2 rounded-lg font-extrabold text-xs transition-all flex flex-col items-center cursor-pointer ${
                     season === 'zaid'
                       ? 'bg-[#163A2D] text-white shadow-sm'
                       : 'text-[#414844] hover:bg-white/60'
                   }`}
                 >
-                  <span>{bi('ઉનાળુ (Zaid)', 'Zaid (ઉનાળુ)', 'जायद (Zaid)').primary}</span>
-                  <span className="text-[10px] font-normal opacity-80">Mar - Jun</span>
+                  <span>{bi('ઉનાળુ', 'Zaid', 'जायद').primary}</span>
+                  <span className="text-[9px] sm:text-[10px] font-normal opacity-80">Mar - Jun</span>
                 </button>
               </div>
 
               {/* Multilingual Search Bar */}
               <div className="relative flex-1 max-w-sm">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-emerald-700 text-lg">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-emerald-700 text-[18px] sm:text-lg">
                   search
                 </span>
                 <input
@@ -428,11 +422,11 @@ export const CropRecommendations: React.FC = () => {
                   value={cropSearch}
                   onChange={(e) => setCropSearch(e.target.value)}
                   placeholder={bi(
-                    'પાક અથવા જાત શોધો... (કપાસ, મગફળી, wheat)',
+                    'પાક અથવા જાત શોધો... (કપાસ, મગફળી)',
                     'Search crop or variety... (Cotton, Groundnut)',
                     'फसल या किस्म खोजें... (कपास, मूंगफली)'
                   ).primary}
-                  className="w-full pl-9 pr-8 py-2 bg-white border border-[#E5E2DA] rounded-xl text-xs md:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/30 shadow-xs"
+                  className="w-full pl-9 pr-8 py-1.5 sm:py-2 bg-white border border-[#E5E2DA] rounded-xl text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/30 shadow-xs"
                 />
                 {cropSearch && (
                   <button
@@ -448,44 +442,44 @@ export const CropRecommendations: React.FC = () => {
 
             {/* Loading / Error States */}
             {isLoadingRecs ? (
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-pulse">
-                <div className="lg:col-span-5 space-y-4">
-                  <div className="h-44 bg-white rounded-2xl border border-[#E5E2DA]" />
-                  <div className="h-44 bg-white rounded-2xl border border-[#E5E2DA]" />
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 animate-pulse">
+                <div className="lg:col-span-5 space-y-3 sm:space-y-4">
+                  <div className="h-36 sm:h-44 bg-white rounded-xl sm:rounded-2xl border border-[#E5E2DA]" />
+                  <div className="h-36 sm:h-44 bg-white rounded-xl sm:rounded-2xl border border-[#E5E2DA]" />
                 </div>
-                <div className="lg:col-span-7 h-96 bg-white rounded-2xl border border-[#E5E2DA]" />
+                <div className="lg:col-span-7 h-80 sm:h-96 bg-white rounded-xl sm:rounded-2xl border border-[#E5E2DA]" />
               </div>
             ) : recError ? (
-              <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center space-y-3">
-                <span className="material-symbols-outlined text-red-600 text-[32px]">warning</span>
-                <h3 className="text-base font-bold text-red-950">{recError}</h3>
+              <div className="bg-red-50 border border-red-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 text-center space-y-2 sm:space-y-3">
+                <span className="material-symbols-outlined text-red-600 text-[28px] sm:text-[32px]">warning</span>
+                <h3 className="text-sm sm:text-base font-bold text-red-950">{recError}</h3>
                 <button
                   type="button"
                   onClick={loadRecommendations}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold cursor-pointer"
+                  className="px-3.5 sm:px-4 py-1.5 sm:py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold cursor-pointer"
                 >
                   Retry Loading
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
                 {/* ------------------------------------------------------------- */}
                 {/* LEFT COLUMN: Ranked Recommended Crops List (5 cols)           */}
                 {/* ------------------------------------------------------------- */}
-                <div className="lg:col-span-5 space-y-4">
+                <div className="lg:col-span-5 space-y-3 sm:space-y-4">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-base font-extrabold text-[#163A2D] flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-emerald-700 text-[20px]">stars</span>
-                      <span>{bi('અનુકૂળતા મુજબ ક્રમાંકિત પાક', 'Ranked by Weather & Market Fit', 'मौसम व मंडी अनुसार अनुशंसित फसलें').primary}</span>
+                    <h2 className="text-sm sm:text-base font-extrabold text-[#163A2D] flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-emerald-700 text-[18px] sm:text-[20px]">stars</span>
+                      <span>{bi('અનુકૂળતા મુજબ પાક', 'Ranked by Weather & Market', 'मौसम व मंडी अनुसार फसलें').primary}</span>
                     </h2>
-                    <span className="text-xs font-bold text-[#717974]">
-                      {filteredCrops.length} {bi('પાક ઉપલબ્ધ', 'Crops Available', 'फसलें उपलब्ध').primary}
+                    <span className="text-[11px] sm:text-xs font-bold text-[#717974]">
+                      {filteredCrops.length} {bi('પાક ઉપલબ્ધ', 'Crops', 'फसलें').primary}
                     </span>
                   </div>
 
                   {filteredCrops.length === 0 ? (
-                    <div className="bg-white rounded-2xl p-8 text-center border border-[#E5E2DA] space-y-2">
-                      <p className="font-bold text-[#163A2D]">No crops matching "{cropSearch}"</p>
+                    <div className="bg-white rounded-xl sm:rounded-2xl p-6 sm:p-8 text-center border border-[#E5E2DA] space-y-2">
+                      <p className="font-bold text-xs sm:text-sm text-[#163A2D]">No crops matching "{cropSearch}"</p>
                       <button
                         type="button"
                         onClick={() => setCropSearch('')}
@@ -501,16 +495,16 @@ export const CropRecommendations: React.FC = () => {
                         <div
                           key={crop.id}
                           onClick={() => setSelectedCrop(crop)}
-                          className={`cursor-pointer rounded-2xl p-4 border-2 transition-all shadow-sm ${
+                          className={`cursor-pointer rounded-xl sm:rounded-2xl p-3 sm:p-4 border-2 transition-all shadow-sm ${
                             isSelected
-                              ? 'border-emerald-600 bg-white ring-2 ring-emerald-500/20 shadow-md scale-[1.01]'
+                              ? 'border-emerald-600 bg-white ring-2 ring-emerald-500/20 shadow-md scale-[1.005]'
                               : 'border-[#E5E2DA] bg-white hover:border-emerald-300'
                           }`}
                         >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex items-start gap-3">
+                          <div className="flex items-start justify-between gap-2.5 sm:gap-3">
+                            <div className="flex items-start gap-2.5 sm:gap-3">
                               <div
-                                className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shrink-0 ${
+                                className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center font-black text-xs sm:text-sm shrink-0 ${
                                   idx === 0
                                     ? 'bg-amber-100 text-amber-900 border border-amber-300'
                                     : 'bg-emerald-100 text-emerald-900'
@@ -519,24 +513,24 @@ export const CropRecommendations: React.FC = () => {
                                 #{idx + 1}
                               </div>
                               <div>
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <h3 className="font-black text-base text-[#163A2D]">
+                                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                                  <h3 className="font-black text-sm sm:text-base text-[#163A2D]">
                                     {bi(crop.nameGu, crop.nameEn, crop.nameHi).primary}
                                   </h3>
                                   <span
-                                    className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${getSuitabilityColor(
+                                    className={`text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full font-bold border ${getSuitabilityColor(
                                       crop.suitabilityCategory
                                     )}`}
                                   >
                                     {bi(crop.suitabilityCategoryGu, crop.suitabilityCategory, crop.suitabilityCategory).primary}
                                   </span>
                                 </div>
-                                <p className="text-xs font-semibold text-emerald-700">{crop.variety}</p>
+                                <p className="text-[11px] sm:text-xs font-semibold text-emerald-700">{crop.variety}</p>
                               </div>
                             </div>
 
                             <span
-                              className={`material-symbols-outlined text-[22px] ${
+                              className={`material-symbols-outlined text-[18px] sm:text-[22px] shrink-0 ${
                                 isSelected ? 'text-emerald-600' : 'text-[#C1C8C3]'
                               }`}
                             >
@@ -545,29 +539,29 @@ export const CropRecommendations: React.FC = () => {
                           </div>
 
                           {/* 3 Metric Chips */}
-                          <div className="mt-3 pt-2.5 border-t border-[#F1EEE5] grid grid-cols-3 gap-2 text-center text-xs">
-                            <div className="bg-[#F6F3EA] p-2 rounded-xl">
-                              <span className="text-[10px] uppercase font-bold text-[#717974] block">Est. Profit</span>
-                              <span className="text-xs font-black text-emerald-800 truncate block">
-                                ₹{(crop.estimatedProfitMax / 1000).toFixed(1)}k / Ac
+                          <div className="mt-2.5 sm:mt-3 pt-2 sm:pt-2.5 border-t border-[#F1EEE5] grid grid-cols-3 gap-1.5 sm:gap-2 text-center text-xs">
+                            <div className="bg-[#F6F3EA] p-1.5 sm:p-2 rounded-lg sm:rounded-xl">
+                              <span className="text-[9px] sm:text-[10px] uppercase font-bold text-[#717974] block truncate">Est. Profit</span>
+                              <span className="text-[11px] sm:text-xs font-black text-emerald-800 truncate block">
+                                ₹{(crop.estimatedProfitMax / 1000).toFixed(1)}k/Ac
                               </span>
                             </div>
-                            <div className="bg-[#F6F3EA] p-2 rounded-xl">
-                              <span className="text-[10px] uppercase font-bold text-[#717974] block">Mandi Price</span>
-                              <span className="text-xs font-black text-[#163A2D] truncate block">
+                            <div className="bg-[#F6F3EA] p-1.5 sm:p-2 rounded-lg sm:rounded-xl">
+                              <span className="text-[9px] sm:text-[10px] uppercase font-bold text-[#717974] block truncate">Mandi Price</span>
+                              <span className="text-[11px] sm:text-xs font-black text-[#163A2D] truncate block">
                                 {crop.liveMarketPriceFormatted}
                               </span>
                             </div>
-                            <div className="bg-[#F6F3EA] p-2 rounded-xl">
-                              <span className="text-[10px] uppercase font-bold text-[#717974] block">Duration</span>
-                              <span className="text-xs font-bold text-[#1C1C17] truncate block">
+                            <div className="bg-[#F6F3EA] p-1.5 sm:p-2 rounded-lg sm:rounded-xl">
+                              <span className="text-[9px] sm:text-[10px] uppercase font-bold text-[#717974] block truncate">Duration</span>
+                              <span className="text-[11px] sm:text-xs font-bold text-[#1C1C17] truncate block">
                                 {crop.growingDurationDays.split(' ')[0]} d
                               </span>
                             </div>
                           </div>
 
-                          <p className="text-xs text-[#414844] mt-2.5 leading-relaxed bg-[#FCF9F0] p-2.5 rounded-xl border border-[#E5E2DA]">
-                            💡 <strong>{bi('શા માટે અનુકૂળ:', 'Why suitable:', 'क्यों उपयुक्त:').primary}</strong>{' '}
+                          <p className="text-[11px] sm:text-xs text-[#414844] mt-2 sm:mt-2.5 leading-snug bg-[#FCF9F0] p-2 sm:p-2.5 rounded-lg sm:rounded-xl border border-[#E5E2DA] line-clamp-2 sm:line-clamp-none">
+                            💡 <strong>{bi('અનુકૂળતા:', 'Fit:', 'अनुकूलता:').primary}</strong>{' '}
                             {bi(crop.suitabilityReasonGu, crop.suitabilityReasonEn, crop.suitabilityReasonEn).primary}
                           </p>
                         </div>
@@ -579,28 +573,28 @@ export const CropRecommendations: React.FC = () => {
                 {/* ------------------------------------------------------------- */}
                 {/* RIGHT COLUMN: Selected Crop Comprehensive Analysis (7 cols)  */}
                 {/* ------------------------------------------------------------- */}
-                <div className="lg:col-span-7 space-y-5">
+                <div className="lg:col-span-7 space-y-4 sm:space-y-5">
                   {selectedCrop ? (
-                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#E5E2DA] space-y-6">
+                    <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm border border-[#E5E2DA] space-y-4 sm:space-y-6">
                       {/* Header */}
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-[#E5E2DA] gap-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3.5 sm:pb-5 border-b border-[#E5E2DA] gap-3 sm:gap-4">
                         <div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1.5 sm:gap-2">
                             <span
-                              className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider border ${getSuitabilityColor(
+                              className={`px-2 sm:px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider border ${getSuitabilityColor(
                                 selectedCrop.suitabilityCategory
                               )}`}
                             >
                               {bi(selectedCrop.suitabilityCategoryGu, selectedCrop.suitabilityCategory, selectedCrop.suitabilityCategory).primary}
                             </span>
-                            <span className="text-xs font-semibold text-[#717974]">
-                              Score: {selectedCrop.suitabilityScore} / 100 (Rubric Based)
+                            <span className="text-[11px] sm:text-xs font-semibold text-[#717974]">
+                              Score: {selectedCrop.suitabilityScore}/100
                             </span>
                           </div>
-                          <h2 className="text-2xl font-black text-[#163A2D] mt-1">
+                          <h2 className="text-xl sm:text-2xl font-black text-[#163A2D] mt-1">
                             {bi(selectedCrop.nameGu, selectedCrop.nameEn, selectedCrop.nameHi).primary}
                           </h2>
-                          <p className="text-xs text-[#717974] mt-0.5">
+                          <p className="text-[11px] sm:text-xs text-[#717974] mt-0.5">
                             {selectedCrop.variety} • {selectedCrop.soilSuitabilityEn}
                           </p>
                         </div>
@@ -608,10 +602,10 @@ export const CropRecommendations: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleApplyToFarm(selectedCrop)}
-                          className="px-4 py-2.5 bg-[#163A2D] hover:bg-emerald-900 text-white rounded-xl font-bold text-xs md:text-sm flex items-center gap-2 shadow-md transition-all active:scale-95 cursor-pointer shrink-0"
+                          className="w-full sm:w-auto px-3.5 sm:px-4 py-2 sm:py-2.5 bg-[#163A2D] hover:bg-emerald-900 text-white rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 sm:gap-2 shadow-md transition-all active:scale-95 cursor-pointer shrink-0"
                         >
-                          <span className="material-symbols-outlined text-[18px]">add_task</span>
-                          <span>{bi('પાક સ્વીકારો (Apply Plan)', 'Apply Plan to Farm', 'योजना स्वीकारें').primary}</span>
+                          <span className="material-symbols-outlined text-[16px] sm:text-[18px]">add_task</span>
+                          <span>{bi('પાક સ્વીકારો', 'Apply Plan to Farm', 'योजना स्वीकारें').primary}</span>
                         </button>
                       </div>
 
@@ -650,60 +644,60 @@ export const CropRecommendations: React.FC = () => {
                       {/* ======================================================= */}
                       {/* TRANSPARENT PROFIT & ARITHMETIC BREAKDOWN CARD          */}
                       {/* ======================================================= */}
-                      <div className="bg-[#F6F3EA] rounded-2xl p-5 border border-[#E5E2DA] space-y-4">
-                        <div className="flex items-center justify-between border-b border-[#E5E2DA] pb-2.5">
-                          <h3 className="font-extrabold text-sm text-[#163A2D] flex items-center gap-1.5">
-                            <span className="material-symbols-outlined text-emerald-700 text-[18px]">calculate</span>
-                            <span>{bi('પારદર્શક આવક અને નફો ગણતરી', 'Transparent Revenue & Profit Math', 'पारदर्शी आय व लाभ गणना').primary}</span>
+                      <div className="bg-[#F6F3EA] rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border border-[#E5E2DA] space-y-3 sm:space-y-4">
+                        <div className="flex items-center justify-between border-b border-[#E5E2DA] pb-2 sm:pb-2.5">
+                          <h3 className="font-extrabold text-xs sm:text-sm text-[#163A2D] flex items-center gap-1.5">
+                            <span className="material-symbols-outlined text-emerald-700 text-[16px] sm:text-[18px]">calculate</span>
+                            <span>{bi('પારદર્શક નફો ગણતરી', 'Revenue & Profit Math', 'आय व लाभ गणना').primary}</span>
                           </h3>
-                          <span className="text-[10px] font-bold text-[#717974]">
-                            Base: 1 Acre • {selectedCrop.liveMarketName}
+                          <span className="text-[9px] sm:text-[10px] font-bold text-[#717974]">
+                            1 Acre • {selectedCrop.liveMarketName}
                           </span>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 text-xs">
                           {/* 1. Estimated Input Costs */}
-                          <div className="bg-white p-3.5 rounded-xl border border-[#E5E2DA] space-y-1">
-                            <span className="text-[10px] font-bold text-[#717974] uppercase block">
-                              1. Total Input Cost / ખર્ચ
+                          <div className="bg-white p-2.5 sm:p-3.5 rounded-lg sm:rounded-xl border border-[#E5E2DA] space-y-0.5 sm:space-y-1">
+                            <span className="text-[9px] sm:text-[10px] font-bold text-[#717974] uppercase block">
+                              1. Total Input Cost
                             </span>
-                            <span className="text-base font-black text-red-700 block">
+                            <span className="text-sm sm:text-base font-black text-red-700 block">
                               ₹{selectedCrop.costs.totalCostPerAcre.toLocaleString('en-IN')}
                             </span>
-                            <p className="text-[10px] text-gray-500">
-                              Seeds: ₹{selectedCrop.costs.seedCostPerAcre} • Fert: ₹{selectedCrop.costs.fertilizerCostPerAcre} • Labor: ₹{selectedCrop.costs.laborAndMachineryPerAcre}
+                            <p className="text-[9px] sm:text-[10px] text-gray-500">
+                              Seeds: ₹{selectedCrop.costs.seedCostPerAcre} • Fert: ₹{selectedCrop.costs.fertilizerCostPerAcre}
                             </p>
                           </div>
 
                           {/* 2. Expected Revenue */}
-                          <div className="bg-white p-3.5 rounded-xl border border-[#E5E2DA] space-y-1">
-                            <span className="text-[10px] font-bold text-[#717974] uppercase block">
-                              2. Expected Gross Revenue
+                          <div className="bg-white p-2.5 sm:p-3.5 rounded-lg sm:rounded-xl border border-[#E5E2DA] space-y-0.5 sm:space-y-1">
+                            <span className="text-[9px] sm:text-[10px] font-bold text-[#717974] uppercase block">
+                              2. Gross Revenue
                             </span>
-                            <span className="text-base font-black text-[#163A2D] block">
+                            <span className="text-sm sm:text-base font-black text-[#163A2D] block">
                               ₹{selectedCrop.estimatedRevenueMin.toLocaleString('en-IN')} - ₹{selectedCrop.estimatedRevenueMax.toLocaleString('en-IN')}
                             </span>
-                            <p className="text-[10px] text-gray-500">
-                              Yield ({selectedCrop.yieldRange.minYieldPerAcre}–{selectedCrop.yieldRange.maxYieldPerAcre} {selectedCrop.yieldRange.unit}) × ₹{selectedCrop.liveMarketPrice}
+                            <p className="text-[9px] sm:text-[10px] text-gray-500">
+                              Yield × ₹{selectedCrop.liveMarketPrice}
                             </p>
                           </div>
 
                           {/* 3. Estimated Net Profit */}
-                          <div className="bg-emerald-50 p-3.5 rounded-xl border border-emerald-300 space-y-1">
-                            <span className="text-[10px] font-bold text-emerald-800 uppercase block">
+                          <div className="bg-emerald-50 p-2.5 sm:p-3.5 rounded-lg sm:rounded-xl border border-emerald-300 space-y-0.5 sm:space-y-1">
+                            <span className="text-[9px] sm:text-[10px] font-bold text-emerald-800 uppercase block">
                               3. Estimated Net Profit
                             </span>
-                            <span className="text-base font-black text-emerald-800 block">
+                            <span className="text-sm sm:text-base font-black text-emerald-800 block">
                               ₹{selectedCrop.estimatedProfitMin.toLocaleString('en-IN')} - ₹{selectedCrop.estimatedProfitMax.toLocaleString('en-IN')}
                             </span>
-                            <p className="text-[10px] text-emerald-700 font-semibold">
-                              Revenue − Total Input Cost
+                            <p className="text-[9px] sm:text-[10px] text-emerald-700 font-semibold">
+                              Revenue − Input Cost
                             </p>
                           </div>
                         </div>
 
                         {/* Explicit Disclaimer */}
-                        <p className="text-[11px] text-[#414844] italic bg-white/70 p-2 rounded-xl border border-[#E5E2DA]/60">
+                        <p className="text-[10px] sm:text-[11px] text-[#414844] italic bg-white/70 p-2 rounded-lg sm:rounded-xl border border-[#E5E2DA]/60">
                           ℹ️ {bi(selectedCrop.disclaimerGu, selectedCrop.disclaimer, selectedCrop.disclaimer).primary}
                         </p>
                       </div>
@@ -711,51 +705,43 @@ export const CropRecommendations: React.FC = () => {
                       {/* ======================================================= */}
                       {/* DATA AUDIT & UNAVAILABLE FIELDS BADGES                  */}
                       {/* ======================================================= */}
-                      <div className="p-4 rounded-xl bg-white border border-[#E5E2DA] space-y-2.5 text-xs">
-                        <span className="font-extrabold text-[#163A2D] flex items-center gap-1.5">
-                          <span className="material-symbols-outlined text-[16px] text-emerald-700">fact_check</span>
-                          <span>Data Sources & Soil Availability Audit:</span>
+                      <div className="p-3 sm:p-4 rounded-xl bg-white border border-[#E5E2DA] space-y-2 text-xs">
+                        <span className="font-extrabold text-[#163A2D] flex items-center gap-1.5 text-xs">
+                          <span className="material-symbols-outlined text-[15px] sm:text-[16px] text-emerald-700">fact_check</span>
+                          <span>Data Audit:</span>
                         </span>
-                        <div className="flex flex-wrap gap-2 text-[11px]">
-                          <span className="px-2 py-1 bg-emerald-50 text-emerald-800 rounded-md font-semibold border border-emerald-200">
-                            Weather: {selectedCrop.dataAudit.weatherSource} ({selectedCrop.dataAudit.weatherTimestamp})
+                        <div className="flex flex-wrap gap-1.5 sm:gap-2 text-[10px] sm:text-[11px]">
+                          <span className="px-2 py-0.5 sm:py-1 bg-emerald-50 text-emerald-800 rounded font-semibold border border-emerald-200">
+                            Weather: {selectedCrop.dataAudit.weatherSource}
                           </span>
-                          <span className="px-2 py-1 bg-sky-50 text-sky-800 rounded-md font-semibold border border-sky-200">
-                            Mandi: {selectedCrop.dataAudit.marketSource} ({selectedCrop.dataAudit.marketPriceDate})
+                          <span className="px-2 py-0.5 sm:py-1 bg-sky-50 text-sky-800 rounded font-semibold border border-sky-200">
+                            Mandi: {selectedCrop.dataAudit.marketSource}
                           </span>
-                          {selectedCrop.dataAudit.unavailableFields.map((field, fIdx) => (
-                            <span
-                              key={fIdx}
-                              className="px-2 py-1 bg-amber-50 text-amber-900 rounded-md font-bold border border-amber-200"
-                            >
-                              ⚠️ {field}
-                            </span>
-                          ))}
                         </div>
                       </div>
 
                       {/* Cultivation Stages Roadmap */}
-                      <div className="space-y-3">
-                        <h3 className="font-extrabold text-sm text-[#163A2D] flex items-center gap-1.5">
-                          <span className="material-symbols-outlined text-emerald-700 text-[18px]">timeline</span>
-                          <span>{bi('તબક્કાવાર ખેતી આયોજન', 'Chronological Cultivation Stages', 'क्रमवार कृषि योजना').primary}</span>
+                      <div className="space-y-2.5 sm:space-y-3">
+                        <h3 className="font-extrabold text-xs sm:text-sm text-[#163A2D] flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-emerald-700 text-[16px] sm:text-[18px]">timeline</span>
+                          <span>{bi('તબક્કાવાર ખેતી આયોજન', 'Cultivation Stages', 'क्रमवार कृषि योजना').primary}</span>
                         </h3>
-                        <div className="space-y-3">
+                        <div className="space-y-2 sm:space-y-3">
                           {selectedCrop.stages.map((stg, sIdx) => (
-                            <div key={sIdx} className="p-3.5 bg-[#F6F3EA] rounded-xl border border-[#E5E2DA] space-y-1">
+                            <div key={sIdx} className="p-2.5 sm:p-3.5 bg-[#F6F3EA] rounded-lg sm:rounded-xl border border-[#E5E2DA] space-y-1">
                               <div className="flex items-center justify-between">
                                 <span className="font-bold text-xs text-[#163A2D]">
                                   {sIdx + 1}. {bi(stg.nameGu, stg.name, stg.name).primary}
                                 </span>
-                                <span className="text-[10px] px-2 py-0.5 bg-white text-emerald-800 font-bold rounded-md border border-[#E5E2DA]">
+                                <span className="text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 bg-white text-emerald-800 font-bold rounded border border-[#E5E2DA]">
                                   {stg.days}
                                 </span>
                               </div>
-                              <p className="text-xs text-[#414844]">
+                              <p className="text-[11px] sm:text-xs text-[#414844]">
                                 {bi(stg.detailGu, stg.detail, stg.detail).primary}
                               </p>
                               {stg.fertilizerAction && (
-                                <p className="text-[11px] text-emerald-800 font-semibold">
+                                <p className="text-[10px] sm:text-[11px] text-emerald-800 font-semibold">
                                   🌱 {bi(stg.fertilizerActionGu || stg.fertilizerAction, stg.fertilizerAction, stg.fertilizerAction).primary}
                                 </p>
                               )}
@@ -775,76 +761,87 @@ export const CropRecommendations: React.FC = () => {
         {/* TAB 2: MY GROWING CROP (ALREADY GROWING A CROP ADVISORY)            */}
         {/* =================================================================== */}
         {activeTab === 'my_crop' && (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Plot and Crop Selector Banner */}
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-[#E5E2DA] space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E5E2DA] pb-3">
+            <div className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 shadow-sm border border-[#E5E2DA] space-y-3 sm:space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 border-b border-[#E5E2DA] pb-2.5 sm:pb-3">
                 <div>
-                  <h2 className="text-base font-extrabold text-[#163A2D] flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-emerald-700 text-[20px]">agriculture</span>
-                    <span>{bi('વાવેલા પાકની પસંદગી કરો', 'Select Active Farm Plot & Stage', 'बोई गई फसल और अवस्था चुनें').primary}</span>
+                  <h2 className="text-sm sm:text-base font-extrabold text-[#163A2D] flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-emerald-700 text-[18px] sm:text-[20px]">agriculture</span>
+                    <span>{bi('વાવેલા પાકની પસંદગી કરો', 'Select Active Plot & Stage', 'बोई गई फसल और अवस्था').primary}</span>
                   </h2>
-                  <p className="text-xs text-[#717974] mt-0.5">
+                  <p className="text-[11px] sm:text-xs text-[#717974] mt-0.5">
                     {bi(
-                      'તમારા ખેતરના બ્લોક મુજબ પાક અને અવસ્થા પસંદ કરો જેથી ચોક્કસ સલાહ મળી શકે.',
-                      'Choose plot and growth stage to receive crop-specific meteorological, irrigation and pest advice.',
-                      'सटीक सलाह के लिए अपने खेत का ब्लॉक और फसल की अवस्था चुनें।'
+                      'તમારા ખેતરના બ્લોક મુજબ પાક અને અવસ્થા પસંદ કરો.',
+                      'Choose plot and growth stage to receive crop-specific advice.',
+                      'सटीक सलाह के लिए खेत का ब्लॉक और अवस्था चुनें।'
                     ).primary}
                   </p>
                 </div>
 
                 {/* Plot Selector Chips */}
-                <div className="flex items-center gap-2">
-                  {Object.entries(plots).map(([key, p]) => (
+                <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar">
+                  {Object.keys(plots).length === 0 ? (
                     <button
-                      key={key}
                       type="button"
-                      onClick={() => handleSelectPlot(key)}
-                      className={`px-3 py-1.5 rounded-xl font-bold text-xs border transition-all cursor-pointer ${
-                        selectedPlotKey === key
-                          ? 'bg-[#163A2D] text-white border-[#163A2D] shadow-sm'
-                          : 'bg-[#F6F3EA] text-[#163A2D] border-[#E5E2DA] hover:border-emerald-500'
-                      }`}
+                      onClick={() => navigate('/my-farm')}
+                      className="px-3 py-1.5 rounded-xl font-bold text-xs bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100 transition-colors flex items-center gap-1"
                     >
-                      Plot {key}: {p.crop.split(' ')[0]}
+                      <span className="material-symbols-outlined text-[15px]">add_location_alt</span>
+                      <span>{bi('+ પ્લોટ ઉમેરો', '+ Add Plot in My Farm', '+ Plot Jodein').primary}</span>
                     </button>
-                  ))}
+                  ) : (
+                    Object.entries(plots).map(([key, p]) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => handleSelectPlot(key)}
+                        className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl font-bold text-xs border transition-all cursor-pointer shrink-0 ${
+                          selectedPlotKey === key
+                            ? 'bg-[#163A2D] text-white border-[#163A2D] shadow-sm'
+                            : 'bg-[#F6F3EA] text-[#163A2D] border-[#E5E2DA] hover:border-emerald-500'
+                        }`}
+                      >
+                        Plot {key}: {p.crop.split(' ')[0]}
+                      </button>
+                    ))
+                  )}
                 </div>
               </div>
 
               {/* Crop & Stage Dropdowns */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4">
                 <div>
-                  <label className="text-[11px] font-bold text-[#717974] uppercase block mb-1">
-                    {bi('વાવેલો પાક / Crop', 'Active Crop', 'बोई गई फसल').primary}
+                  <label className="text-[10px] sm:text-[11px] font-bold text-[#717974] uppercase block mb-1">
+                    {bi('વાવેલો પાક', 'Active Crop', 'बोई गई फसल').primary}
                   </label>
                   <select
                     value={selectedCropName}
                     onChange={(e) => setSelectedCropName(e.target.value)}
-                    className="w-full p-2.5 bg-[#F6F3EA] border border-[#E5E2DA] rounded-xl text-xs font-extrabold text-[#163A2D] focus:outline-none focus:ring-2 focus:ring-emerald-500/30 cursor-pointer"
+                    className="w-full p-2 sm:p-2.5 bg-[#F6F3EA] border border-[#E5E2DA] rounded-lg sm:rounded-xl text-xs font-extrabold text-[#163A2D] focus:outline-none focus:ring-2 focus:ring-emerald-500/30 cursor-pointer"
                   >
-                    <option value="cotton">Bt Cotton (કપાસ - G.Cot-16)</option>
-                    <option value="groundnut">Groundnut (મગફળી - GG-20)</option>
-                    <option value="sugarcane">Sugarcane (શેરડી - Co-86032)</option>
-                    <option value="wheat">Durum Wheat (ઘઉં - GW-496)</option>
-                    <option value="chickpea">Chickpea / Gram (ચણા - GG-5)</option>
-                    <option value="sesame">Summer Sesame (તલ - GT-2)</option>
+                    <option value="cotton">Bt Cotton (કપાસ)</option>
+                    <option value="groundnut">Groundnut (મગફળી)</option>
+                    <option value="sugarcane">Sugarcane (શેરડી)</option>
+                    <option value="wheat">Durum Wheat (ઘઉં)</option>
+                    <option value="chickpea">Chickpea / Gram (ચણા)</option>
+                    <option value="sesame">Summer Sesame (તલ)</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-bold text-[#717974] uppercase block mb-1">
-                    {bi('વિકાસ તબક્કો / Stage', 'Growth Stage', 'विकास अवस्था').primary}
+                  <label className="text-[10px] sm:text-[11px] font-bold text-[#717974] uppercase block mb-1">
+                    {bi('વિકાસ તબક્કો', 'Growth Stage', 'विकास अवस्था').primary}
                   </label>
                   <select
                     value={selectedGrowthStage}
                     onChange={(e) => setSelectedGrowthStage(e.target.value)}
-                    className="w-full p-2.5 bg-[#F6F3EA] border border-[#E5E2DA] rounded-xl text-xs font-extrabold text-[#163A2D] focus:outline-none focus:ring-2 focus:ring-emerald-500/30 cursor-pointer"
+                    className="w-full p-2 sm:p-2.5 bg-[#F6F3EA] border border-[#E5E2DA] rounded-lg sm:rounded-xl text-xs font-extrabold text-[#163A2D] focus:outline-none focus:ring-2 focus:ring-emerald-500/30 cursor-pointer"
                   >
                     <option value="Vegetative">Vegetative Growth (વાનસ્પતિક વૃદ્ધિ)</option>
-                    <option value="Flowering">Flowering & Square Initiation (ફૂલ-ચાપવા બેસવા)</option>
-                    <option value="Pod Formation">Pegging & Pod / Boll Formation (જીંડવા / પોપટા બંધાવા)</option>
-                    <option value="Maturation">Maturation & Dough Stage (દાણા ભરાવા / પાકટતા)</option>
+                    <option value="Flowering">Flowering & Square Initiation (ફૂલ-ચાપવા)</option>
+                    <option value="Pod Formation">Pod / Boll Formation (જીંડવા / પોપટા)</option>
+                    <option value="Maturation">Maturation & Dough (દાણા ભરાવા)</option>
                     <option value="Harvesting">Harvesting & Picking (કાપણી / વીણી)</option>
                   </select>
                 </div>
@@ -894,23 +891,23 @@ export const CropRecommendations: React.FC = () => {
                 )}
 
                 {/* 4 Crop-Specific Advisory Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-5">
                   {/* Card 1: Weather & Crop Status */}
-                  <div className="bg-white rounded-2xl p-5 border border-[#E5E2DA] shadow-sm space-y-3">
+                  <div className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border border-[#E5E2DA] shadow-sm space-y-2.5 sm:space-y-3">
                     <div className="flex items-center justify-between border-b border-[#E5E2DA] pb-2">
-                      <span className="font-black text-sm text-[#163A2D] flex items-center gap-1.5">
-                        <span className="material-symbols-outlined text-emerald-700 text-[18px]">thermostat</span>
+                      <span className="font-black text-xs sm:text-sm text-[#163A2D] flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-emerald-700 text-[16px] sm:text-[18px]">thermostat</span>
                         <span>{bi('હવામાન અનુકૂળતા', 'Weather Suitability', 'मौसम अनुकूलता').primary}</span>
                       </span>
-                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-bold">
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-bold">
                         {bi(advisory.weatherSuitability.statusGu, advisory.weatherSuitability.status, advisory.weatherSuitability.status).primary}
                       </span>
                     </div>
-                    <div className="space-y-1.5 text-xs">
+                    <div className="space-y-1 text-xs">
                       <p className="font-bold text-[#163A2D]">
                         🌡️ {bi(advisory.weatherSuitability.temperatureStatusGu, advisory.weatherSuitability.temperatureStatus, advisory.weatherSuitability.temperatureStatus).primary}
                       </p>
-                      <p className="text-xs text-[#414844] leading-relaxed">
+                      <p className="text-[11px] sm:text-xs text-[#414844] leading-snug">
                         {bi(
                           `${advisory.cropNameGu} માટે વર્તમાન ${advisory.currentStageGu} તબક્કે આ તાપમાન અનુકૂળ વૃદ્ધિ દર્શાવે છે.`,
                           `Current temperature is well within standard threshold for ${advisory.cropName} during ${advisory.currentStage}.`,
@@ -921,42 +918,42 @@ export const CropRecommendations: React.FC = () => {
                   </div>
 
                   {/* Card 2: Dynamic Irrigation Guidance */}
-                  <div className="bg-white rounded-2xl p-5 border border-[#E5E2DA] shadow-sm space-y-3">
+                  <div className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border border-[#E5E2DA] shadow-sm space-y-2.5 sm:space-y-3">
                     <div className="flex items-center justify-between border-b border-[#E5E2DA] pb-2">
-                      <span className="font-black text-sm text-[#163A2D] flex items-center gap-1.5">
-                        <span className="material-symbols-outlined text-blue-600 text-[18px]">water_drop</span>
-                        <span>{bi('પિયત આયોજન (Dynamic Irrigation)', 'Irrigation Guidance', 'सिंचाई योजना').primary}</span>
+                      <span className="font-black text-xs sm:text-sm text-[#163A2D] flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-blue-600 text-[16px] sm:text-[18px]">water_drop</span>
+                        <span>{bi('પિયત આયોજન', 'Irrigation Guidance', 'सिंचाई योजना').primary}</span>
                       </span>
                       <span className="text-[10px] font-bold text-blue-800 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
                         {advisory.irrigationGuidance.nextSchedule}
                       </span>
                     </div>
-                    <div className="space-y-1.5 text-xs">
+                    <div className="space-y-1 text-xs">
                       <p className="font-bold text-blue-900">
                         💧 {bi(advisory.irrigationGuidance.actionGu, advisory.irrigationGuidance.action, advisory.irrigationGuidance.action).primary}
                       </p>
-                      <p className="text-xs text-[#414844]">
+                      <p className="text-[11px] sm:text-xs text-[#414844]">
                         {bi(advisory.irrigationGuidance.reasonGu, advisory.irrigationGuidance.reason, advisory.irrigationGuidance.reason).primary}
                       </p>
                     </div>
                   </div>
 
                   {/* Card 3: Crop-Specific Fertilizer Schedule */}
-                  <div className="bg-white rounded-2xl p-5 border border-[#E5E2DA] shadow-sm space-y-3">
+                  <div className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border border-[#E5E2DA] shadow-sm space-y-2.5 sm:space-y-3">
                     <div className="flex items-center justify-between border-b border-[#E5E2DA] pb-2">
-                      <span className="font-black text-sm text-[#163A2D] flex items-center gap-1.5">
-                        <span className="material-symbols-outlined text-amber-700 text-[18px]">compost</span>
+                      <span className="font-black text-xs sm:text-sm text-[#163A2D] flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-amber-700 text-[16px] sm:text-[18px]">compost</span>
                         <span>{bi('ખાતર વ્યવસ્થાપન', 'Fertilizer Guidance', 'उर्वरक प्रबंधन').primary}</span>
                       </span>
                       <span className="text-[10px] text-amber-800 font-bold bg-amber-50 px-2 py-0.5 rounded-md">
                         {advisory.currentStage.split(' ')[0]} Dose
                       </span>
                     </div>
-                    <div className="space-y-1.5 text-xs">
+                    <div className="space-y-1 text-xs">
                       <p className="font-bold text-[#163A2D]">
                         🌱 {bi(advisory.fertilizerGuidance.dosageGu, advisory.fertilizerGuidance.dosage, advisory.fertilizerGuidance.dosage).primary}
                       </p>
-                      <p className="text-xs text-[#414844]">
+                      <p className="text-[11px] sm:text-xs text-[#414844]">
                         <strong>{bi('પદ્ધતિ:', 'Method:', 'विधि:').primary}</strong> {bi(advisory.fertilizerGuidance.methodGu, advisory.fertilizerGuidance.method, advisory.fertilizerGuidance.method).primary}
                       </p>
                       <p className="text-[10px] text-amber-900 font-medium italic bg-amber-50/70 p-2 rounded-lg border border-amber-200/60">
@@ -966,24 +963,24 @@ export const CropRecommendations: React.FC = () => {
                   </div>
 
                   {/* Card 4: Crop-Specific Pest & Disease Prevention */}
-                  <div className="bg-white rounded-2xl p-5 border border-[#E5E2DA] shadow-sm space-y-3">
+                  <div className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border border-[#E5E2DA] shadow-sm space-y-2.5 sm:space-y-3">
                     <div className="flex items-center justify-between border-b border-[#E5E2DA] pb-2">
-                      <span className="font-black text-sm text-[#163A2D] flex items-center gap-1.5">
-                        <span className="material-symbols-outlined text-red-600 text-[18px]">pest_control</span>
-                        <span>{bi('જીવાત & રોગ નિયંત્રણ (Pest Watch)', 'Pest & Disease Prevention', 'कीट व रोग नियंत्रण').primary}</span>
+                      <span className="font-black text-xs sm:text-sm text-[#163A2D] flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-red-600 text-[16px] sm:text-[18px]">pest_control</span>
+                        <span>{bi('જીવાત & રોગ નિયંત્રણ', 'Pest & Disease Prevention', 'कीट व रोग नियंत्रण').primary}</span>
                       </span>
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-800 font-bold">
                         {advisory.pestPrevention.threatName}
                       </span>
                     </div>
-                    <div className="space-y-1.5 text-xs">
+                    <div className="space-y-1 text-xs">
                       <p className="font-bold text-red-950">
                         ⚠️ {bi(advisory.pestPrevention.threatNameGu, advisory.pestPrevention.threatName, advisory.pestPrevention.threatName).primary}
                       </p>
-                      <p className="text-xs text-[#414844]">
+                      <p className="text-[11px] sm:text-xs text-[#414844]">
                         {bi(advisory.pestPrevention.symptomsGu, advisory.pestPrevention.symptoms, advisory.pestPrevention.symptoms).primary}
                       </p>
-                      <p className="text-xs text-emerald-800 font-semibold bg-emerald-50 p-2 rounded-lg border border-emerald-200">
+                      <p className="text-[11px] sm:text-xs text-emerald-800 font-semibold bg-emerald-50 p-2 rounded-lg border border-emerald-200">
                         🛡️ {bi(advisory.pestPrevention.preventiveActionGu, advisory.pestPrevention.preventiveAction, advisory.pestPrevention.preventiveAction).primary}
                       </p>
                     </div>
@@ -991,48 +988,48 @@ export const CropRecommendations: React.FC = () => {
                 </div>
 
                 {/* Harvest Projection & Market Valuation Card */}
-                <div className="bg-[#F6F3EA] rounded-2xl p-5 border border-[#E5E2DA] shadow-sm space-y-4">
-                  <div className="flex items-center justify-between border-b border-[#E5E2DA] pb-3">
-                    <h3 className="font-extrabold text-sm text-[#163A2D] flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-emerald-700 text-[18px]">payments</span>
-                      <span>{bi('કાપણી સમય અને બજાર વેચાણ વ્યૂહરચના', 'Harvest Projection & Market Strategy', 'कटाई समय व बिक्री रणनीति').primary}</span>
+                <div className="bg-[#F6F3EA] rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border border-[#E5E2DA] shadow-sm space-y-3 sm:space-y-4">
+                  <div className="flex items-center justify-between border-b border-[#E5E2DA] pb-2.5 sm:pb-3">
+                    <h3 className="font-extrabold text-xs sm:text-sm text-[#163A2D] flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-emerald-700 text-[16px] sm:text-[18px]">payments</span>
+                      <span>{bi('કાપણી સમય અને બજાર વ્યૂહરચના', 'Harvest Projection & Strategy', 'कटाई समय व रणनीति').primary}</span>
                     </h3>
-                    <span className="text-xs font-bold text-emerald-800">
-                      Current Price: {advisory.harvestProjection.currentMarketPrice}
+                    <span className="text-[11px] sm:text-xs font-bold text-emerald-800">
+                      {advisory.harvestProjection.currentMarketPrice}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                    <div className="bg-white p-3 rounded-xl border border-[#E5E2DA]">
-                      <span className="text-[10px] uppercase font-bold text-[#717974] block">Harvest Window</span>
-                      <span className="text-sm font-black text-[#163A2D] block mt-0.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 text-xs">
+                    <div className="bg-white p-2.5 sm:p-3 rounded-lg sm:rounded-xl border border-[#E5E2DA]">
+                      <span className="text-[9px] sm:text-[10px] uppercase font-bold text-[#717974] block">Harvest Window</span>
+                      <span className="text-xs sm:text-sm font-black text-[#163A2D] block mt-0.5">
                         {advisory.harvestProjection.expectedWindow}
                       </span>
-                      <span className="text-[10px] text-gray-500">{advisory.harvestProjection.daysRemaining}</span>
+                      <span className="text-[9px] sm:text-[10px] text-gray-500">{advisory.harvestProjection.daysRemaining}</span>
                     </div>
 
-                    <div className="bg-white p-3 rounded-xl border border-[#E5E2DA]">
-                      <span className="text-[10px] uppercase font-bold text-[#717974] block">Expected Yield</span>
-                      <span className="text-sm font-black text-emerald-800 block mt-0.5">
+                    <div className="bg-white p-2.5 sm:p-3 rounded-lg sm:rounded-xl border border-[#E5E2DA]">
+                      <span className="text-[9px] sm:text-[10px] uppercase font-bold text-[#717974] block">Expected Yield</span>
+                      <span className="text-xs sm:text-sm font-black text-emerald-800 block mt-0.5">
                         {advisory.harvestProjection.expectedYieldPerAcre}
                       </span>
-                      <span className="text-[10px] text-gray-500">Based on standard farm parcel</span>
+                      <span className="text-[9px] sm:text-[10px] text-gray-500">Standard farm parcel</span>
                     </div>
 
-                    <div className="bg-white p-3 rounded-xl border border-[#E5E2DA]">
-                      <span className="text-[10px] uppercase font-bold text-[#717974] block">Estimated Revenue</span>
-                      <span className="text-sm font-black text-emerald-800 block mt-0.5">
+                    <div className="bg-white p-2.5 sm:p-3 rounded-lg sm:rounded-xl border border-[#E5E2DA]">
+                      <span className="text-[9px] sm:text-[10px] uppercase font-bold text-[#717974] block">Estimated Revenue</span>
+                      <span className="text-xs sm:text-sm font-black text-emerald-800 block mt-0.5">
                         {advisory.harvestProjection.estimatedRevenuePerAcre}
                       </span>
-                      <span className="text-[10px] text-gray-500">Yield × Current Mandi Price</span>
+                      <span className="text-[9px] sm:text-[10px] text-gray-500">Yield × Price</span>
                     </div>
                   </div>
 
-                  <div className="bg-white p-3.5 rounded-xl border border-[#E5E2DA] text-xs space-y-1">
-                    <span className="font-bold text-[#163A2D] block">
+                  <div className="bg-white p-2.5 sm:p-3.5 rounded-lg sm:rounded-xl border border-[#E5E2DA] text-xs space-y-1">
+                    <span className="font-bold text-[#163A2D] block text-xs">
                       📈 {bi('બજાર વેચાણ ભલામણ:', 'Selling Strategy:', 'बिक्री रणनीति:').primary}
                     </span>
-                    <p className="text-xs text-[#414844]">
+                    <p className="text-[11px] sm:text-xs text-[#414844]">
                       {bi(advisory.harvestProjection.sellingStrategyGu, advisory.harvestProjection.sellingStrategy, advisory.harvestProjection.sellingStrategy).primary}
                     </p>
                   </div>

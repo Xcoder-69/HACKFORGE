@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { storageService } from '../../services/storageService';
+import { farmService } from '../../services/farmService';
 import {
   INDIA_STATES_AND_DISTRICTS,
   getCitiesForDistrict,
@@ -15,6 +16,7 @@ export const FarmerProfile: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout, updateProfile } = useAuth();
   const { language, setLanguage, bi } = useLanguage();
+  const [farmParcel, setFarmParcel] = useState(() => farmService.getFarmParcel());
 
   const savedPrefs = storageService.get(PREFS_KEY, {
     sms: true,
@@ -31,25 +33,26 @@ export const FarmerProfile: React.FC = () => {
   const [showPinModal, setShowPinModal] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const [fullName, setFullName] = useState(user?.name || 'Ramesh Patel');
-  const [phone, setPhone] = useState(user?.phone || '9876543210');
-  const [district, setDistrict] = useState(user?.district || 'Surat');
-  const [city, setCity] = useState(user?.city || user?.taluka || 'Kamrej');
-  const [taluka, setTaluka] = useState(user?.taluka || user?.city || 'Kamrej');
-  const [village, setVillage] = useState(user?.village || 'Kamrej Gam');
+  const [fullName, setFullName] = useState(user?.name || (user?.isDemo ? 'Ramesh Patel' : ''));
+  const [phone, setPhone] = useState(user?.phone || (user?.isDemo ? '9876543210' : ''));
+  const [district, setDistrict] = useState(user?.district || (user?.isDemo ? 'Surat' : 'Gujarat'));
+  const [city, setCity] = useState(user?.city || user?.taluka || (user?.isDemo ? 'Kamrej' : ''));
+  const [taluka, setTaluka] = useState(user?.taluka || user?.city || (user?.isDemo ? 'Kamrej' : ''));
+  const [village, setVillage] = useState(user?.village || (user?.isDemo ? 'Kamrej Gam' : ''));
   const [isCustomVillage, setIsCustomVillage] = useState(false);
-  const [pmKisanId, setPmKisanId] = useState(user?.pmKisanId || 'GJ-SUR-88412');
+  const [pmKisanId, setPmKisanId] = useState(user?.pmKisanId || (user?.isDemo ? 'GJ-SUR-88412' : 'Pending'));
 
   useEffect(() => {
     if (user) {
-      setFullName(user.name);
-      setPhone(user.phone || '9876543210');
-      setDistrict(user.district || 'Surat');
-      setCity(user.city || user.taluka || 'Kamrej');
-      setTaluka(user.taluka || user.city || 'Kamrej');
-      setVillage(user.village || 'Kamrej Gam');
-      setPmKisanId(user.pmKisanId || 'GJ-SUR-88412');
+      setFullName(user.name || (user.isDemo ? 'Ramesh Patel' : ''));
+      setPhone(user.phone || (user.isDemo ? '9876543210' : ''));
+      setDistrict(user.district || (user.isDemo ? 'Surat' : 'Gujarat'));
+      setCity(user.city || user.taluka || (user.isDemo ? 'Kamrej' : ''));
+      setTaluka(user.taluka || user.city || (user.isDemo ? 'Kamrej' : ''));
+      setVillage(user.village || (user.isDemo ? 'Kamrej Gam' : ''));
+      setPmKisanId(user.pmKisanId || (user.isDemo ? 'GJ-SUR-88412' : 'Pending'));
     }
+    setFarmParcel(farmService.getFarmParcel());
   }, [user]);
 
   const handleDistrictChange = (newDist: string) => {
@@ -160,7 +163,7 @@ export const FarmerProfile: React.FC = () => {
             <div className="flex items-center gap-4">
               <div className="relative">
                 <div className="w-20 h-20 rounded-full bg-emerald-100 text-emerald-900 border-2 border-emerald-600 flex items-center justify-center font-black text-2xl shadow-md">
-                  RP
+                  {fullName.split(' ').filter(Boolean).map((n) => n[0]).join('').slice(0, 2).toUpperCase() || 'FM'}
                 </div>
                 <span
                   className="absolute -bottom-1 -right-1 bg-emerald-600 text-white w-7 h-7 rounded-full flex items-center justify-center shadow-md"
@@ -172,15 +175,17 @@ export const FarmerProfile: React.FC = () => {
 
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-2xl font-black text-[#163A2D]">{fullName}</h2>
+                  <h2 className="text-2xl font-black text-[#163A2D]">{fullName || 'Farmer / ખેડૂત'}</h2>
                   <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
-                    100% KYC Verified
+                    {user?.isDemo ? '100% KYC Verified' : 'Verified Farmer'}
                   </span>
                 </div>
-                <p className="text-sm font-semibold text-emerald-700">રમેશભાઈ ગોવિંદભાઈ પટેલ</p>
+                <p className="text-sm font-semibold text-emerald-700">
+                  {user?.isDemo ? 'રમેશભાઈ ગોવિંદભાઈ પટેલ' : fullName}
+                </p>
                 <p className="text-xs text-[#717974] flex items-center gap-1 mt-1">
                   <span className="material-symbols-outlined text-[16px] text-emerald-600">location_on</span>
-                  {village}, {taluka}, {district}, Gujarat
+                  {village ? `${village}, ` : ''}{taluka ? `${taluka}, ` : ''}{district || 'Gujarat'}
                 </p>
               </div>
             </div>
@@ -198,19 +203,27 @@ export const FarmerProfile: React.FC = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4 border-t border-[#F1EEE5]">
             <div className="bg-[#F6F3EA] p-3 rounded-2xl border border-[#E5E2DA]">
               <span className="text-[11px] text-[#717974] font-bold uppercase block">Total Land</span>
-              <span className="text-base font-black text-[#163A2D]">10 Vigha (5.5 Ac)</span>
+              <span className="text-base font-black text-[#163A2D]">
+                {farmParcel?.totalArea || (user?.isDemo ? '10 Vigha (4.5 Ac)' : 'Not Set')}
+              </span>
             </div>
             <div className="bg-[#F6F3EA] p-3 rounded-2xl border border-[#E5E2DA]">
               <span className="text-[11px] text-[#717974] font-bold uppercase block">Soil Type</span>
-              <span className="text-base font-black text-emerald-800">Black Cotton</span>
+              <span className="text-base font-black text-emerald-800 truncate block">
+                {farmParcel?.soilType || (user?.isDemo ? 'Black Cotton' : 'Alluvial / Loam')}
+              </span>
             </div>
             <div className="bg-[#F6F3EA] p-3 rounded-2xl border border-[#E5E2DA]">
               <span className="text-[11px] text-[#717974] font-bold uppercase block">Irrigation</span>
-              <span className="text-base font-black text-[#163A2D]">Micro-Drip (90%)</span>
+              <span className="text-base font-black text-[#163A2D] truncate block">
+                {farmParcel?.irrigationType || (user?.isDemo ? 'Micro-Drip (90%)' : 'Borewell / Canal')}
+              </span>
             </div>
             <div className="bg-[#F6F3EA] p-3 rounded-2xl border border-[#E5E2DA]">
               <span className="text-[11px] text-[#717974] font-bold uppercase block">KVK Station</span>
-              <span className="text-base font-black text-emerald-800">KVK Surat</span>
+              <span className="text-base font-black text-emerald-800 truncate block">
+                KVK {district || 'Surat'}
+              </span>
             </div>
           </div>
         </div>

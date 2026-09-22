@@ -1,0 +1,74 @@
+{
+  "modelVersion": "v1.0.0",
+  "modelType": "RandomForestRegressor",
+  "datasetVersion": "2026-09-20-cleaned-v1",
+  "dataset": "data/cleaned/mandi_data_cleaned.csv",
+  "datasetRows": 7992,
+  "dateRange": {
+    "startDate": "2026-09-20",
+    "endDate": "2026-09-20",
+    "uniqueDates": 1,
+    "isTimeSeries": false
+  },
+  "features": [
+    "commodity",
+    "variety",
+    "grade",
+    "state",
+    "district",
+    "market"
+  ],
+  "target": "modal_price",
+  "targetUnit": "INR_per_quintal",
+  "trainRows": 6392,
+  "validationRows": 800,
+  "testRows": 800,
+  "splitRatio": "80/10/10",
+  "randomState": 42,
+  "trainingDate": "2026-09-20T18:51:29Z",
+  "metrics": {
+    "test": {
+      "mae": 1121.78,
+      "rmse": 1926.35,
+      "r2": 0.8290,
+      "mape_percent": 71.13
+    },
+    "validation": {
+      "mae": 1252.09,
+      "rmse": 2515.31,
+      "r2": 0.8646,
+      "mape_percent": 3642.90
+    },
+    "train": {
+      "mae": 1004.25,
+      "rmse": 2023.23,
+      "r2": 0.8768,
+      "mape_percent": 2614.76
+    }
+  },
+  "generalization": {
+    "r2GapTrainVsTest": 0.0478,
+    "maeGapTestVsTrain": 117.52,
+    "overfittingAssessment": "Moderate generalization gap. No catastrophic overfitting observed."
+  },
+  "dataLeakageAudit": {
+    "min_price_included": false,
+    "max_price_included": false,
+    "finding": "In the raw dataset, modal_price equals (min_price + max_price)/2 in 94.26% of records (7,533/7,992) and lies within [min_price, max_price] in 100% of records. Both min_price and max_price were strictly excluded from model features to prevent mathematical target leakage."
+  },
+  "featureImportance": {
+    "commodity": 0.7779,
+    "variety": 0.1055,
+    "state": 0.0400,
+    "market": 0.0358,
+    "district": 0.0308,
+    "grade": 0.0100
+  },
+  "limitations": [
+    "Single-day snapshot: The training dataset contains records exclusively for 2026-09-20. The model CANNOT perform temporal, 7-day, 30-day, or future seasonal price forecasting.",
+    "Not a crop recommendation engine: Mandi prices alone do not capture soil chemistry (pH, NPK), climate (rainfall, temperature), or yield outcomes.",
+    "Error magnitude: Test MAE of ₹1,121.78/quintal means predictions have non-trivial error bands for low-value commodities.",
+    "Categorical domain limitation: Novel varieties or unobserved markets will default to target-encoded global priors."
+  ],
+  "labelingRequirement": "Market price estimation / analysis model (NOT future price forecasting model)"
+}

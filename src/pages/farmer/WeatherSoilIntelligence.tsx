@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { weatherService, type WeatherData } from '../../services/weatherService';
 import { farmService } from '../../services/farmService';
+import { soilReportService, type SoilExtractionResult } from '../../services/soilReportService';
+import type { SoilReportRecord } from '../../types';
 import { filterAndSortMultilingual } from '../../utils/multilingualSearch';
 import {
   locationService,
@@ -22,11 +25,29 @@ export type WeatherLoadingStage =
 export const WeatherSoilIntelligence: React.FC = () => {
   const navigate = useNavigate();
   const { language, bi } = useLanguage();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'weather' | 'soil' | 'spray'>('weather');
   const [selectedDay, setSelectedDay] = useState<number>(0);
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+
+  // Soil Health & Reports State
+  const [soilReport, setSoilReport] = useState<SoilReportRecord | null>(() => soilReportService.getSoilReport());
+  const [plots, setPlots] = useState(() => farmService.getPlots());
+  const [showSoilModal, setShowSoilModal] = useState<boolean>(false);
+  const [isProcessingSoilFile, setIsProcessingSoilFile] = useState<boolean>(false);
+  const [soilExtractionResult, setSoilExtractionResult] = useState<SoilExtractionResult | null>(null);
+  const [manualSoilForm, setManualSoilForm] = useState({
+    labName: 'District Agricultural Testing Lab',
+    sampleDate: new Date().toISOString().split('T')[0],
+    ph: 7.2,
+    nitrogenKgHa: 220,
+    phosphorusKgHa: 28,
+    potassiumKgHa: 295,
+    organicCarbonPercent: 0.65,
+    notes: 'Soil test indicates moderate nitrogen and low phosphorus. Balanced NPK application advised.',
+  });
 
   // Automatic Location Detection State
   const [currentLocation, setCurrentLocation] = useState<GeoCoordinates>(() =>
@@ -54,8 +75,74 @@ export const WeatherSoilIntelligence: React.FC = () => {
     language
   );
 
-  const [loadingStage, setLoadingStage] = useState<WeatherLoadingStage>('getting_location');
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const handleSoilFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsProcessingSoilFile(true);
+    try {
+      const result = await soilReportService.extractFromFile(file);
+      setSoilExtractionResult(result);
+      setManualSoilForm({
+        labName: result.report.labName,
+        sampleDate: result.report.sampleDate,
+        ph: result.report.ph,
+        nitrogenKgHa: result.report.nitrogenKgHa,
+        phosphorusKgHa: result.report.phosphorusKgHa,
+        potassiumKgHa: result.report.potassiumKgHa,
+        organicCarbonPercent: result.report.organicCarbonPercent,
+        notes: result.report.notes,
+      });
+      setShowSoilModal(true);
+    } catch (err) {
+      console.error('Soil extraction error:', err);
+    } finally {
+      setIsProcessingSoilFile(false);
+    }
+  };
+
+  const handleSaveConfirmedSoilReport = () => {
+    const confirmed: SoilReportRecord = {
+      id: soilReport?.id || `soil_${Date.now()}`,
+      uploadedAt: new Date().toISOString(),
+      labName: manualSoilForm.labName,
+      sampleDate: manualSoilForm.sampleDate,
+      ph: Number(manualSoilForm.ph),
+      nitrogenKgHa: Number(manualSoilForm.nitrogenKgHa),
+      phosphorusKgHa: Number(manualSoilForm.phosphorusKgHa),
+      potassiumKgHa: Number(manualSoilForm.potassiumKgHa),
+      organicCarbonPercent: Number(manualSoilForm.organicCarbonPercent),
+      micronutrients: {
+        zincPpm: 0.8,
+        ironPpm: 5.2,
+        sulfurPpm: 12.5,
+      },
+      notes: manualSoilForm.notes,
+    };
+    soilReportService.saveSoilReport(confirmed);
+    setSoilReport(confirmed);
+    setShowSoilModal(false);
+    setSoilExtractionResult(null);
+  };
+
+  const getNpkStatus = (val: number, min: number, max: number): { label: string; color: string } => {
+    if (val < min) return { label: 'Low', color: 'bg-red-100 text-red-800' };
+    if (val > max) return { label: 'High', color: 'bg-emerald-100 text-emerald-800' };
+    return { label: 'Medium', color: 'bg-amber-100 text-amber-800' };
+  };
+
+  const getDynamicRecommendation = (report: SoilReportRecord | null): string => {
+    if (!report) return '';
+    if (report.phosphorusKgHa < 30) {
+      return `Phosphorus is currently in the lower quartile (${report.phosphorusKgHa} kg/ha vs 35-60 optimal). Apply 25 kg SSP (Single Super Phosphate) per acre during next scheduled fertigation to support root vigor.`;
+    }
+    if (report.nitrogenKgHa < 240) {
+      return `Nitrogen is below optimum (${report.nitrogenKgHa} kg/ha). Apply split dosage of Neem-coated Urea or vermicompost to accelerate vegetative growth.`;
+    }
+    if (report.potassiumKgHa < 160) {
+      return `Potassium is in the low band (${report.potassiumKgHa} kg/ha). Supplement with Muriate of Potash (MOP) to improve pest resistance and boll formation.`;
+    }
+    return report.notes || 'Soil macronutrients (NPK) and pH are well-balanced. Maintain regular moisture levels.';
+  };
 
   const fetchWeather = async (
     lat?: number,
@@ -231,15 +318,15 @@ export const WeatherSoilIntelligence: React.FC = () => {
                 </span>
               </span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
+            <h1 className="text-xl sm:text-3xl font-extrabold tracking-tight">
               {bi('હવામાન અને જમીન વિશ્લેષણ', 'Weather & Soil Intelligence', 'मौसम और मृदा विश्लेषण').primary}
             </h1>
-            <p className="text-emerald-300/90 text-xs font-semibold mt-0.5">
+            <p className="hidden sm:block text-emerald-300/90 text-xs font-semibold mt-0.5">
               {bi('Live Weather & Soil Intelligence', 'જીવંત હવામાન અને જમીન સ્થિતિ', 'Live Weather & Soil Intelligence').primary}
             </p>
-            <p className="text-emerald-100/80 text-sm mt-0.5 flex items-center gap-1.5 flex-wrap">
+            <p className="text-emerald-100/80 text-xs sm:text-sm mt-0.5 flex items-center gap-1.5 flex-wrap">
               <span>
-                Hyperlocal telemetry for{' '}
+                {bi('સ્થાન:', 'Location:', 'Sthan:').primary}{' '}
                 <strong className="text-white">
                   {language === 'gu'
                     ? currentLocation.locationNameGu
@@ -247,21 +334,21 @@ export const WeatherSoilIntelligence: React.FC = () => {
                 </strong>
               </span>
               <span>•</span>
-              <span>Station: {weatherData?.stationId || 'GJ-Live'}</span>
+              <span className="text-emerald-300">{weatherData?.stationId || 'Live Radar'}</span>
             </p>
           </div>
 
           {/* Action pills */}
-          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 flex-wrap">
             {/* GPS Detection Button */}
             <button
               onClick={handleDetectLocation}
               disabled={isDetectingLocation}
-              className="px-3.5 py-2.5 bg-emerald-600/80 hover:bg-emerald-600 text-white rounded-xl font-bold text-sm flex items-center gap-1.5 transition-colors border border-emerald-400/40 active:scale-95 shadow-sm"
+              className="px-2.5 sm:px-3.5 py-1.5 sm:py-2 bg-emerald-600/80 hover:bg-emerald-600 text-white rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1 sm:gap-1.5 transition-colors border border-emerald-400/40 active:scale-95 shadow-sm"
               title="Detect current location using GPS"
             >
               <span
-                className={`material-symbols-outlined text-[18px] ${
+                className={`material-symbols-outlined text-[16px] sm:text-[18px] ${
                   isDetectingLocation ? 'animate-spin' : ''
                 }`}
               >
@@ -269,22 +356,22 @@ export const WeatherSoilIntelligence: React.FC = () => {
               </span>
               <span>
                 {isDetectingLocation
-                  ? bi('શોધાય છે...', 'Detecting GPS...', 'GPS Khoj Rahe Hain...').primary
-                  : bi('GPS સ્થાન (Detect GPS)', 'Detect GPS (GPS સ્થાન)', 'GPS Location Pata Karein').primary}
+                  ? bi('શોધાય છે...', 'Detecting...', 'Khoj...').primary
+                  : 'GPS'}
               </span>
             </button>
 
             {/* Manual District Selection Button */}
             <button
               onClick={() => setShowDistrictModal(true)}
-              className="px-3 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold text-sm flex items-center gap-1.5 transition-colors border border-white/20 active:scale-95"
+              className="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold text-xs sm:text-sm flex items-center gap-1 sm:gap-1.5 transition-colors border border-white/20 active:scale-95"
               title="Select Gujarat agricultural district"
             >
-              <span className="material-symbols-outlined text-[18px]">
+              <span className="material-symbols-outlined text-[16px] sm:text-[18px]">
                 location_on
               </span>
               <span>
-                {bi('જિલ્લો બદલો (Change District)', 'Change District (જિલ્લો બદલો)', 'Jila Badlein (Change District)').primary}
+                {bi('જિલ્લો', 'District', 'Jila').primary}
               </span>
             </button>
 
@@ -298,31 +385,31 @@ export const WeatherSoilIntelligence: React.FC = () => {
                 )
               }
               disabled={isRefreshing}
-              className="px-3.5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold text-sm flex items-center gap-1.5 transition-colors border border-white/20 active:scale-95"
+              className="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold text-xs sm:text-sm flex items-center gap-1 sm:gap-1.5 transition-colors border border-white/20 active:scale-95"
               title="Refresh live Open-Meteo forecast"
             >
               <span
-                className={`material-symbols-outlined text-[18px] ${
+                className={`material-symbols-outlined text-[16px] sm:text-[18px] ${
                   isRefreshing ? 'animate-spin' : ''
                 }`}
               >
                 sync
               </span>
-              <span>{isRefreshing ? 'Syncing...' : 'Refresh'}</span>
+              <span className="hidden xs:inline">{isRefreshing ? 'Sync...' : 'Refresh'}</span>
             </button>
             <button
               onClick={() => navigate('/alerts')}
-              className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded-xl text-sm flex items-center gap-1.5 shadow-md transition-all active:scale-95"
+              className="px-2.5 sm:px-3.5 py-1.5 sm:py-2 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded-xl text-xs sm:text-sm flex items-center gap-1 sm:gap-1.5 shadow-md transition-all active:scale-95"
             >
-              <span className="material-symbols-outlined text-[18px]">notifications_active</span>
-              <span>Weather Alerts (1)</span>
+              <span className="material-symbols-outlined text-[16px] sm:text-[18px]">notifications_active</span>
+              <span>{bi('એલર્ટ', 'Alerts', 'Alerts').primary}</span>
             </button>
             <button
               onClick={() => navigate('/recommendations')}
-              className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold text-sm flex items-center gap-1.5 transition-colors border border-white/20"
+              className="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold text-xs sm:text-sm flex items-center gap-1 sm:gap-1.5 transition-colors border border-white/20"
             >
-              <span className="material-symbols-outlined text-[18px]">eco</span>
-              <span>Crop Advisory</span>
+              <span className="material-symbols-outlined text-[16px] sm:text-[18px]">eco</span>
+              <span>{bi('પાક સલાહ', 'Crops', 'Fasal').primary}</span>
             </button>
           </div>
         </div>
@@ -407,65 +494,66 @@ export const WeatherSoilIntelligence: React.FC = () => {
         )}
 
         {/* Tab Selection */}
-        <div className="flex items-center gap-2 border-b border-[#E5E2DA] pb-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 border-b border-[#E5E2DA] pb-2 overflow-x-auto no-scrollbar">
           <button
             onClick={() => setActiveTab('weather')}
-            className={`px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-all ${
+            className={`px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 transition-all whitespace-nowrap shrink-0 ${
               activeTab === 'weather'
                 ? 'bg-[#163A2D] text-white shadow-sm'
                 : 'text-[#414844] hover:bg-[#F1EEE5]'
             }`}
           >
-            <span className="material-symbols-outlined text-[18px]">wb_sunny</span>
-            <span>Live Weather & 7-Day Forecast</span>
+            <span className="material-symbols-outlined text-[16px] sm:text-[18px]">wb_sunny</span>
+            <span>{bi('હવામાન', 'Weather', 'Mausam').primary}</span>
+            <span className="hidden sm:inline"> (7-Day)</span>
           </button>
           <button
             onClick={() => setActiveTab('soil')}
-            className={`px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-all ${
+            className={`px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 transition-all whitespace-nowrap shrink-0 ${
               activeTab === 'soil'
                 ? 'bg-[#163A2D] text-white shadow-sm'
                 : 'text-[#414844] hover:bg-[#F1EEE5]'
             }`}
           >
-            <span className="material-symbols-outlined text-[18px]">layers</span>
-            <span>Soil Moisture & N-P-K Health</span>
+            <span className="material-symbols-outlined text-[16px] sm:text-[18px]">layers</span>
+            <span>{bi('જમીન', 'Soil Health', 'Mitti').primary}</span>
+            <span className="hidden sm:inline"> & N-P-K</span>
           </button>
           <button
             onClick={() => setActiveTab('spray')}
-            className={`px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-all ${
+            className={`px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 transition-all whitespace-nowrap shrink-0 ${
               activeTab === 'spray'
                 ? 'bg-[#163A2D] text-white shadow-sm'
                 : 'text-[#414844] hover:bg-[#F1EEE5]'
             }`}
           >
-            <span className="material-symbols-outlined text-[18px]">water_voc</span>
-            <span>Smart Spraying & Irrigation Window</span>
+            <span className="material-symbols-outlined text-[16px] sm:text-[18px]">water_voc</span>
+            <span>{bi('સ્પ્રે સલાહ', 'Spray Window', 'Spray').primary}</span>
           </button>
         </div>
 
         {/* TAB 1: Weather Forecast */}
         {activeTab === 'weather' && (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Real Stage Loading Indicator (Section 7) */}
             {(isLoading || isRefreshing) && (
-              <div className="bg-white rounded-3xl p-5 shadow-sm border border-[#E5E2DA] space-y-3">
+              <div className="bg-white rounded-2xl p-5 shadow-sm border border-emerald-500/30 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-emerald-700 animate-spin text-[20px]">
-                      progress_activity
+                    <span className="material-symbols-outlined text-emerald-700 text-[20px] animate-spin">
+                      sync
                     </span>
-                    <h3 className="font-extrabold text-sm text-[#163A2D]">
-                      {bi('ઓપન-મેટિઓ જીવંત હવામાન ડેટા લોડ થઈ રહ્યો છે...', 'Fetching Live Open-Meteo Weather Data...', 'Live Open-Meteo Mausam Data Load Ho Raha Hai...').primary}
+                    <h3 className="text-sm font-bold text-[#163A2D]">
+                      Syncing Real-time Open-Meteo Telemetry...
                     </h3>
                   </div>
-                  <span className="text-[11px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                    Source: Open-Meteo
+                  <span className="text-xs font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                    Live Open-Meteo
                   </span>
                 </div>
 
-                {/* Sequential Real Stages (NO fake timer / NO fake percentage) */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-                  {/* Stage 1: Location */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                  {/* Stage 1: Location resolution */}
                   <div className={`p-3 rounded-2xl border flex items-center gap-2.5 ${
                     loadingStage === 'getting_location'
                       ? 'bg-amber-50 border-amber-300 text-amber-900'
@@ -609,56 +697,56 @@ export const WeatherSoilIntelligence: React.FC = () => {
             {/* Current Real-time Condition Card (Rendered only with real data) */}
             {weatherData && (
               <>
-                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-[#E5E2DA] relative overflow-hidden">
+                <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-sm border border-[#E5E2DA] relative overflow-hidden">
                   <div className="absolute right-0 top-0 w-80 h-80 bg-emerald-50 rounded-full blur-3xl -z-0 pointer-events-none" />
 
-                  <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                  <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6 items-center">
                     {/* Main Gauge / Temp */}
-                    <div className="md:col-span-6 flex items-center gap-6">
-                      <div className="w-24 h-24 rounded-3xl bg-amber-100 text-amber-700 flex items-center justify-center shadow-inner shrink-0">
-                        <span className="material-symbols-outlined text-[54px]">{weatherData.current.icon}</span>
+                    <div className="md:col-span-6 flex items-center gap-4 sm:gap-6">
+                      <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-2xl sm:rounded-3xl bg-amber-100 text-amber-700 flex items-center justify-center shadow-inner shrink-0">
+                        <span className="material-symbols-outlined text-[36px] sm:text-[54px]">{weatherData.current.icon}</span>
                       </div>
                       <div>
-                        <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider bg-emerald-100 px-2.5 py-1 rounded-full">
-                          {currentLocation.locationName} • {weatherData.isOffline ? 'Offline Cache' : 'Live Open-Meteo'}
+                        <span className="text-[10px] sm:text-xs font-bold text-emerald-800 uppercase tracking-wider bg-emerald-100 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full">
+                          {currentLocation.locationName} • {weatherData.isOffline ? 'Offline' : 'Live Radar'}
                         </span>
-                        <div className="flex items-baseline gap-2 mt-1">
-                          <span className="text-5xl md:text-6xl font-black text-[#163A2D]">{weatherData.current.temp}°C</span>
-                          <span className="text-base font-semibold text-[#717974]">Feels like {weatherData.current.apparentTemp}°C</span>
+                        <div className="flex items-baseline gap-1.5 sm:gap-2 mt-0.5 sm:mt-1">
+                          <span className="text-4xl sm:text-5xl md:text-6xl font-black text-[#163A2D]">{weatherData.current.temp}°C</span>
+                          <span className="text-xs sm:text-base font-semibold text-[#717974]">Feels {weatherData.current.apparentTemp}°C</span>
                         </div>
-                        <p className="text-sm font-bold text-[#414844] mt-0.5">
-                          {language === 'gu' ? weatherData.current.conditionGu : weatherData.current.condition} • પવન: {weatherData.current.windSpeed} km/h
+                        <p className="text-xs sm:text-sm font-bold text-[#414844] mt-0.5">
+                          {language === 'gu' ? weatherData.current.conditionGu : weatherData.current.condition} • {weatherData.current.windSpeed} km/h
                         </p>
                       </div>
                     </div>
 
                     {/* Micro-metrics Grid */}
-                    <div className="md:col-span-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      <div className="bg-[#F6F3EA] p-3 rounded-2xl border border-[#E5E2DA]">
-                        <span className="text-xs text-[#717974] block">Humidity</span>
-                        <span className="text-base font-extrabold text-[#163A2D] flex items-center gap-1 mt-0.5">
-                          <span className="material-symbols-outlined text-blue-600 text-sm">humidity_mid</span>
+                    <div className="md:col-span-6 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+                      <div className="bg-[#F6F3EA] p-2 sm:p-3 rounded-xl sm:rounded-2xl border border-[#E5E2DA]">
+                        <span className="text-[10px] sm:text-xs text-[#717974] block">Humidity</span>
+                        <span className="text-sm sm:text-base font-extrabold text-[#163A2D] flex items-center gap-1 mt-0.5">
+                          <span className="material-symbols-outlined text-blue-600 text-xs sm:text-sm">humidity_mid</span>
                           {weatherData.current.humidity}%
                         </span>
                       </div>
-                      <div className="bg-[#F6F3EA] p-3 rounded-2xl border border-[#E5E2DA]">
-                        <span className="text-xs text-[#717974] block">Wind Velocity</span>
-                        <span className="text-base font-extrabold text-[#163A2D] flex items-center gap-1 mt-0.5">
-                          <span className="material-symbols-outlined text-teal-600 text-sm">air</span>
+                      <div className="bg-[#F6F3EA] p-2 sm:p-3 rounded-xl sm:rounded-2xl border border-[#E5E2DA]">
+                        <span className="text-[10px] sm:text-xs text-[#717974] block">Wind Velocity</span>
+                        <span className="text-sm sm:text-base font-extrabold text-[#163A2D] flex items-center gap-1 mt-0.5">
+                          <span className="material-symbols-outlined text-teal-600 text-xs sm:text-sm">air</span>
                           {weatherData.current.windSpeed} km/h
                         </span>
                       </div>
-                      <div className="bg-[#F6F3EA] p-3 rounded-2xl border border-[#E5E2DA]">
-                        <span className="text-xs text-[#717974] block">Precipitation</span>
-                        <span className="text-base font-extrabold text-[#163A2D] flex items-center gap-1 mt-0.5">
-                          <span className="material-symbols-outlined text-blue-500 text-sm">water_drop</span>
+                      <div className="bg-[#F6F3EA] p-2 sm:p-3 rounded-xl sm:rounded-2xl border border-[#E5E2DA]">
+                        <span className="text-[10px] sm:text-xs text-[#717974] block">Precipitation</span>
+                        <span className="text-sm sm:text-base font-extrabold text-[#163A2D] flex items-center gap-1 mt-0.5">
+                          <span className="material-symbols-outlined text-blue-500 text-xs sm:text-sm">water_drop</span>
                           {weatherData.current.precipitation} mm
                         </span>
                       </div>
-                      <div className="bg-[#F6F3EA] p-3 rounded-2xl border border-[#E5E2DA]">
-                        <span className="text-xs text-[#717974] block">Rain Chance</span>
-                        <span className="text-base font-extrabold text-[#163A2D] flex items-center gap-1 mt-0.5">
-                          <span className="material-symbols-outlined text-amber-500 text-sm">rainy</span>
+                      <div className="bg-[#F6F3EA] p-2 sm:p-3 rounded-xl sm:rounded-2xl border border-[#E5E2DA]">
+                        <span className="text-[10px] sm:text-xs text-[#717974] block">Rain Chance</span>
+                        <span className="text-sm sm:text-base font-extrabold text-[#163A2D] flex items-center gap-1 mt-0.5">
+                          <span className="material-symbols-outlined text-amber-500 text-xs sm:text-sm">rainy</span>
                           {weatherData.current.rainProb}%
                         </span>
                       </div>
@@ -666,10 +754,10 @@ export const WeatherSoilIntelligence: React.FC = () => {
                   </div>
 
                   {/* Real Attribution Bar */}
-                  <div className="mt-5 pt-3 border-t border-[#E5E2DA] flex flex-wrap items-center justify-between text-[11px] text-[#717974] gap-2">
+                  <div className="mt-4 pt-2.5 border-t border-[#E5E2DA] flex flex-wrap items-center justify-between text-[10px] sm:text-[11px] text-[#717974] gap-2">
                     <span className="flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[14px] text-emerald-700">info</span>
-                      <span>Source: Open-Meteo (15-min weather model telemetry)</span>
+                      <span className="material-symbols-outlined text-[13px] sm:text-[14px] text-emerald-700">info</span>
+                      <span>Source: Open-Meteo Telemetry</span>
                     </span>
                     <span>Updated: {weatherData.current.lastUpdated}</span>
                   </div>
@@ -677,27 +765,27 @@ export const WeatherSoilIntelligence: React.FC = () => {
 
                 {/* 24-Hour Real Hourly Telemetry Carousel */}
                 {weatherData.hourly && weatherData.hourly.length > 0 && (
-                  <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E2DA]">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-base font-extrabold text-[#163A2D] flex items-center gap-2">
-                        <span className="material-symbols-outlined text-emerald-700">schedule</span>
-                        <span>24-Hour Real-Time Telemetry (કલાકવાર આગાહી)</span>
+                  <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm border border-[#E5E2DA]">
+                    <div className="flex items-center justify-between mb-3 sm:mb-4">
+                      <h3 className="text-sm sm:text-base font-extrabold text-[#163A2D] flex items-center gap-1.5 sm:gap-2">
+                        <span className="material-symbols-outlined text-emerald-700 text-[18px] sm:text-[20px]">schedule</span>
+                        <span>{bi('૨૪-કલાક આગાહી', '24-Hour Telemetry', '24-Ghanta Mausam').primary}</span>
                       </h3>
-                      <span className="text-[11px] font-bold text-[#717974]">Open-Meteo Hourly</span>
+                      <span className="text-[10px] sm:text-[11px] font-bold text-[#717974]">Hourly</span>
                     </div>
-                    <div className="flex items-center gap-3 overflow-x-auto pb-2 no-scrollbar">
+                    <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-2 no-scrollbar">
                       {weatherData.hourly.slice(0, 16).map((hr, idx) => (
                         <div
                           key={idx}
-                          className="shrink-0 p-3.5 rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA] text-center min-w-[92px] space-y-1 hover:border-emerald-300 transition-colors"
+                          className="shrink-0 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA] text-center min-w-[76px] sm:min-w-[92px] space-y-1 hover:border-emerald-300 transition-colors"
                         >
-                          <span className="text-[11px] font-bold text-[#717974] block">{hr.time}</span>
-                          <span className="material-symbols-outlined text-[28px] text-emerald-800 block">
+                          <span className="text-[10px] sm:text-[11px] font-bold text-[#717974] block">{hr.time}</span>
+                          <span className="material-symbols-outlined text-[24px] sm:text-[28px] text-emerald-800 block">
                             {hr.icon}
                           </span>
                           <span className="text-xs font-black text-[#163A2D] block">{hr.temperature}°C</span>
-                          <span className="text-[10px] text-blue-600 font-bold block flex items-center justify-center gap-0.5">
-                            <span className="material-symbols-outlined text-[11px]">water_drop</span>
+                          <span className="text-[9px] sm:text-[10px] text-blue-600 font-bold block flex items-center justify-center gap-0.5">
+                            <span className="material-symbols-outlined text-[10px] sm:text-[11px]">water_drop</span>
                             {hr.precipitationProbability}%
                           </span>
                           <span className="text-[10px] text-[#717974] block">
@@ -762,10 +850,16 @@ export const WeatherSoilIntelligence: React.FC = () => {
                 <div>
                   <h2 className="text-xl font-extrabold text-[#163A2D] flex items-center gap-2">
                     <span className="material-symbols-outlined text-emerald-700">water_drop</span>
-                    <span>Multi-Depth Soil Moisture Matrix (જમીન ભેજ સ્થિતિ)</span>
+                    <span>{bi('મલ્ટી-ડેપ્થ જમીન ભેજ મેટ્રિક્સ', 'Multi-Depth Soil Moisture Matrix', 'Mitti Nami Matrix').primary}</span>
                   </h2>
                   <p className="text-xs md:text-sm text-[#717974] mt-0.5">
-                    Sensor Node: Kamrej Block A • Soil Type: Deep Black Cotton Clay (કાળી ચીકણી જમીન)
+                    {plots && plots['A'] ? (
+                      `Sensor Node: ${plots['A'].name} • Soil Type: ${plots['A'].soilType}`
+                    ) : user?.isDemo ? (
+                      'Sensor Node: Kamrej Block A • Soil Type: Deep Black Cotton Clay (કાળી ચીકણી જમીન)'
+                    ) : (
+                      bi('તમારા પ્લોટ સાથે સેન્સર પ્રોબ્સ લિંક કરો', 'Configure plots in My Farm to link sensor probes', 'Plot jodein sensor ke liye').primary
+                    )}
                   </p>
                 </div>
                 <span className="px-3 py-1 bg-emerald-100 text-emerald-900 rounded-full text-xs font-bold self-start md:self-auto">
@@ -814,76 +908,164 @@ export const WeatherSoilIntelligence: React.FC = () => {
             </div>
 
             {/* Soil Health Card & NPK Nutrients */}
-            <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-[#E5E2DA]">
-              <div className="flex items-center justify-between pb-5 border-b border-[#E5E2DA]">
-                <div>
-                  <h2 className="text-xl font-extrabold text-[#163A2D] flex items-center gap-2">
-                    <span className="material-symbols-outlined text-emerald-700">science</span>
-                    <span>Soil Health Card (N-P-K & Macro-Nutrients)</span>
-                  </h2>
-                  <p className="text-xs md:text-sm text-[#717974]">Last Lab Tested: 14 Aug 2026 • Soil Card #GJ-KAM-9921</p>
+            {!soilReport ? (
+              <div className="bg-white rounded-3xl p-8 shadow-sm border border-[#E5E2DA] text-center space-y-4">
+                <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center mx-auto border border-emerald-200">
+                  <span className="material-symbols-outlined text-[34px]">science</span>
                 </div>
-                <button
-                  onClick={() => navigate('/expenses')}
-                  className="px-4 py-2 bg-[#163A2D] text-white rounded-xl text-xs font-bold shadow hover:bg-emerald-900 transition-colors"
-                >
-                  Order Fertilizers
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                {/* Nitrogen */}
-                <div className="p-4 rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA]">
-                  <div className="flex justify-between items-center">
-                    <span className="font-extrabold text-sm text-[#163A2D]">Nitrogen (N)</span>
-                    <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-800 text-[11px] font-bold">Medium</span>
-                  </div>
-                  <div className="text-2xl font-black text-[#163A2D] mt-2">182 <span className="text-xs font-normal text-[#717974]">kg/ha</span></div>
-                  <p className="text-[11px] text-[#414844] mt-1">Optimum: 280-560 kg/ha</p>
-                </div>
-
-                {/* Phosphorus */}
-                <div className="p-4 rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA]">
-                  <div className="flex justify-between items-center">
-                    <span className="font-extrabold text-sm text-[#163A2D]">Phosphorus (P)</span>
-                    <span className="px-2 py-0.5 rounded bg-red-100 text-red-800 text-[11px] font-bold">Low</span>
-                  </div>
-                  <div className="text-2xl font-black text-red-700 mt-2">24 <span className="text-xs font-normal text-[#717974]">kg/ha</span></div>
-                  <p className="text-[11px] text-[#414844] mt-1">Optimum: 35-60 kg/ha</p>
-                </div>
-
-                {/* Potassium */}
-                <div className="p-4 rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA]">
-                  <div className="flex justify-between items-center">
-                    <span className="font-extrabold text-sm text-[#163A2D]">Potassium (K)</span>
-                    <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[11px] font-bold">High</span>
-                  </div>
-                  <div className="text-2xl font-black text-emerald-800 mt-2">310 <span className="text-xs font-normal text-[#717974]">kg/ha</span></div>
-                  <p className="text-[11px] text-[#414844] mt-1">Optimum: 150-280 kg/ha</p>
-                </div>
-
-                {/* pH & EC */}
-                <div className="p-4 rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA]">
-                  <div className="flex justify-between items-center">
-                    <span className="font-extrabold text-sm text-[#163A2D]">pH / EC</span>
-                    <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[11px] font-bold">Neutral</span>
-                  </div>
-                  <div className="text-2xl font-black text-[#163A2D] mt-2">7.4 <span className="text-xs font-normal text-[#717974]">pH</span></div>
-                  <p className="text-[11px] text-[#414844] mt-1">EC: 0.42 dS/m (Safe)</p>
-                </div>
-              </div>
-
-              {/* Agronomist Correction Note */}
-              <div className="mt-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-300 flex items-start gap-3">
-                <span className="material-symbols-outlined text-emerald-700 text-[24px] mt-0.5">tips_and_updates</span>
-                <div>
-                  <h4 className="font-bold text-sm text-emerald-950">AI Agronomist Fertilizer Recommendation:</h4>
-                  <p className="text-xs md:text-sm text-emerald-900 mt-0.5">
-                    Phosphorus is currently in the lower quartile. Apply 25 kg SSP (Single Super Phosphate) per acre during the next scheduled fertigation to support robust root elongation and flower retention.
+                <div className="max-w-md mx-auto">
+                  <h3 className="text-lg font-bold text-[#163A2D]">
+                    {bi('કોઈ જમીન ચકાસણી રિપોર્ટ નથી', 'No Soil Health Card Uploaded', 'Koi Mitti Report Nahi Hai').primary}
+                  </h3>
+                  <p className="text-xs text-[#717974] mt-1.5 leading-relaxed">
+                    {bi(
+                      'તમારા ખેતરનું Soil Health Card (PDF અથવા ફોટો) અપલોડ કરો જેથી AI ચોક્કસ ખાતર આયોજન અને N-P-K પોષક તત્ત્વોની ગણતરી કરી શકે.',
+                      'Upload your laboratory Soil Health Card (PDF or photo) or enter values manually to unlock tailored fertilizer recommendations and N-P-K dosage.',
+                      'Mitti jaanch report upload karein ya manually enter karein.'
+                    ).primary}
                   </p>
                 </div>
+                <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                  <label className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#163A2D] hover:bg-emerald-900 text-white text-xs sm:text-sm font-bold shadow-md cursor-pointer transition-all active:scale-95">
+                    <span className="material-symbols-outlined text-[20px]">upload_file</span>
+                    <span>
+                      {isProcessingSoilFile
+                        ? bi('વિશ્લેષણ થાય છે...', 'Analyzing Report...', 'Analysis ho raha hai...').primary
+                        : bi('કાર્ડ અપલોડ કરો (PDF / Image)', 'Upload Soil Card (PDF / Image)', 'Soil Card Upload Karein').primary}
+                    </span>
+                    <input
+                      type="file"
+                      accept=".pdf,image/*"
+                      onChange={handleSoilFileUpload}
+                      disabled={isProcessingSoilFile}
+                      className="hidden"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSoilExtractionResult(null);
+                      setShowSoilModal(true);
+                    }}
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#F6F3EA] hover:bg-[#ECE8DC] text-[#163A2D] text-xs sm:text-sm font-bold border border-[#E5E2DA] transition-all"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">edit_note</span>
+                    <span>{bi('મેન્યુઅલ એન્ટ્રી', 'Manual Entry', 'Manual Entry').primary}</span>
+                  </button>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-[#E5E2DA]">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-[#E5E2DA] gap-3">
+                  <div>
+                    <h2 className="text-xl font-extrabold text-[#163A2D] flex items-center gap-2">
+                      <span className="material-symbols-outlined text-emerald-700">science</span>
+                      <span>{bi('જમીન આરોગ્ય કાર્ડ (N-P-K પોષક તત્ત્વો)', 'Soil Health Card (N-P-K & Macro-Nutrients)', 'Mitti Swasthya Card').primary}</span>
+                    </h2>
+                    <p className="text-xs md:text-sm text-[#717974] mt-0.5">
+                      Last Lab Tested: {soilReport.sampleDate || 'Recent'} • Lab: {soilReport.labName || 'Soil Testing Lab'}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#F6F3EA] hover:bg-[#ECE8DC] text-[#163A2D] rounded-xl text-xs font-bold border border-[#E5E2DA] cursor-pointer transition-colors">
+                      <span className="material-symbols-outlined text-[16px]">refresh</span>
+                      <span>{bi('કાર્ડ બદલો', 'Update Card', 'Update Card').primary}</span>
+                      <input
+                        type="file"
+                        accept=".pdf,image/*"
+                        onChange={handleSoilFileUpload}
+                        disabled={isProcessingSoilFile}
+                        className="hidden"
+                      />
+                    </label>
+                    <button
+                      onClick={() => navigate('/expenses')}
+                      className="px-4 py-2 bg-[#163A2D] text-white rounded-xl text-xs font-bold shadow hover:bg-emerald-900 transition-colors"
+                    >
+                      {bi('ખાતર મંગાવો', 'Order Fertilizers', 'Khad Order Karein').primary}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                  {/* Nitrogen */}
+                  {(() => {
+                    const status = getNpkStatus(soilReport.nitrogenKgHa, 280, 560);
+                    return (
+                      <div className="p-4 rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA]">
+                        <div className="flex justify-between items-center">
+                          <span className="font-extrabold text-sm text-[#163A2D]">Nitrogen (N)</span>
+                          <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${status.color}`}>{status.label}</span>
+                        </div>
+                        <div className="text-2xl font-black text-[#163A2D] mt-2">
+                          {soilReport.nitrogenKgHa} <span className="text-xs font-normal text-[#717974]">kg/ha</span>
+                        </div>
+                        <p className="text-[11px] text-[#414844] mt-1">Optimum: 280-560 kg/ha</p>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Phosphorus */}
+                  {(() => {
+                    const status = getNpkStatus(soilReport.phosphorusKgHa, 35, 60);
+                    return (
+                      <div className="p-4 rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA]">
+                        <div className="flex justify-between items-center">
+                          <span className="font-extrabold text-sm text-[#163A2D]">Phosphorus (P)</span>
+                          <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${status.color}`}>{status.label}</span>
+                        </div>
+                        <div className={`text-2xl font-black mt-2 ${status.label === 'Low' ? 'text-red-700' : 'text-[#163A2D]'}`}>
+                          {soilReport.phosphorusKgHa} <span className="text-xs font-normal text-[#717974]">kg/ha</span>
+                        </div>
+                        <p className="text-[11px] text-[#414844] mt-1">Optimum: 35-60 kg/ha</p>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Potassium */}
+                  {(() => {
+                    const status = getNpkStatus(soilReport.potassiumKgHa, 150, 280);
+                    return (
+                      <div className="p-4 rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA]">
+                        <div className="flex justify-between items-center">
+                          <span className="font-extrabold text-sm text-[#163A2D]">Potassium (K)</span>
+                          <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${status.color}`}>{status.label}</span>
+                        </div>
+                        <div className="text-2xl font-black text-emerald-800 mt-2">
+                          {soilReport.potassiumKgHa} <span className="text-xs font-normal text-[#717974]">kg/ha</span>
+                        </div>
+                        <p className="text-[11px] text-[#414844] mt-1">Optimum: 150-280 kg/ha</p>
+                      </div>
+                    );
+                  })()}
+
+                  {/* pH & Organic Carbon */}
+                  <div className="p-4 rounded-2xl bg-[#F6F3EA] border border-[#E5E2DA]">
+                    <div className="flex justify-between items-center">
+                      <span className="font-extrabold text-sm text-[#163A2D]">pH / Org. Carbon</span>
+                      <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[11px] font-bold">
+                        {soilReport.ph >= 6.5 && soilReport.ph <= 7.8 ? 'Neutral' : 'Checked'}
+                      </span>
+                    </div>
+                    <div className="text-2xl font-black text-[#163A2D] mt-2">
+                      {soilReport.ph} <span className="text-xs font-normal text-[#717974]">pH</span>
+                    </div>
+                    <p className="text-[11px] text-[#414844] mt-1">Organic Carbon: {soilReport.organicCarbonPercent}%</p>
+                  </div>
+                </div>
+
+                {/* Dynamic Agronomist Correction Note */}
+                <div className="mt-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-300 flex items-start gap-3">
+                  <span className="material-symbols-outlined text-emerald-700 text-[24px] mt-0.5">tips_and_updates</span>
+                  <div>
+                    <h4 className="font-bold text-sm text-emerald-950">AI Agronomist Fertilizer Recommendation:</h4>
+                    <p className="text-xs md:text-sm text-emerald-900 mt-0.5">
+                      {getDynamicRecommendation(soilReport)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -1109,6 +1291,161 @@ export const WeatherSoilIntelligence: React.FC = () => {
               >
                 <span className="material-symbols-outlined text-[15px]">my_location</span>
                 <span>Use Device GPS</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Soil Health Card Review / Edit Modal */}
+      {showSoilModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-[#E5E2DA] max-h-[90vh] overflow-y-auto space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E5E2DA]">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-emerald-700 text-[24px]">science</span>
+                <div>
+                  <h3 className="font-extrabold text-base sm:text-lg text-[#163A2D]">
+                    {bi('જમીન ચકાસણી રિપોર્ટ વિગતો', 'Soil Health Card Details', 'Mitti Jaanch Report').primary}
+                  </h3>
+                  <p className="text-[11px] text-[#717974]">
+                    {soilExtractionResult ? 'Auto-extracted from document • Confirm or adjust below' : 'Enter lab test numbers'}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSoilModal(false)}
+                className="w-8 h-8 rounded-full bg-[#F6F3EA] hover:bg-[#ECE8DC] flex items-center justify-center text-[#717974]"
+              >
+                <span className="material-symbols-outlined text-[18px]">close</span>
+              </button>
+            </div>
+
+            {soilExtractionResult && (
+              <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-200 flex items-center gap-2 text-xs text-emerald-900">
+                <span className="material-symbols-outlined text-emerald-700 text-[18px]">verified</span>
+                <span>AI Confidence: {soilExtractionResult.confidence}% • 6 parameters extracted</span>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-[#414844] mb-1">
+                    {bi('લેબ / સંસ્થાનું નામ', 'Testing Lab Name', 'Lab Ka Naam').primary}
+                  </label>
+                  <input
+                    type="text"
+                    value={manualSoilForm.labName}
+                    onChange={(e) => setManualSoilForm({ ...manualSoilForm, labName: e.target.value })}
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-[#E5E2DA] bg-[#FCF9F0] focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-[#414844] mb-1">
+                    {bi('સેમ્પલ તારીખ', 'Sample Date', 'Sample Ki Tareekh').primary}
+                  </label>
+                  <input
+                    type="date"
+                    value={manualSoilForm.sampleDate}
+                    onChange={(e) => setManualSoilForm({ ...manualSoilForm, sampleDate: e.target.value })}
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-[#E5E2DA] bg-[#FCF9F0] focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-[#414844] mb-1">
+                    {bi('નાઇટ્રોજન (N) kg/ha', 'Nitrogen (N) kg/ha', 'Nitrogen').primary}
+                  </label>
+                  <input
+                    type="number"
+                    value={manualSoilForm.nitrogenKgHa}
+                    onChange={(e) => setManualSoilForm({ ...manualSoilForm, nitrogenKgHa: Number(e.target.value) })}
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-[#E5E2DA] bg-[#FCF9F0] focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-[#414844] mb-1">
+                    {bi('ફોસ્ફરસ (P) kg/ha', 'Phosphorus (P) kg/ha', 'Phosphorus').primary}
+                  </label>
+                  <input
+                    type="number"
+                    value={manualSoilForm.phosphorusKgHa}
+                    onChange={(e) => setManualSoilForm({ ...manualSoilForm, phosphorusKgHa: Number(e.target.value) })}
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-[#E5E2DA] bg-[#FCF9F0] focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-[#414844] mb-1">
+                    {bi('પોટેશિયમ (K) kg/ha', 'Potassium (K) kg/ha', 'Potassium').primary}
+                  </label>
+                  <input
+                    type="number"
+                    value={manualSoilForm.potassiumKgHa}
+                    onChange={(e) => setManualSoilForm({ ...manualSoilForm, potassiumKgHa: Number(e.target.value) })}
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-[#E5E2DA] bg-[#FCF9F0] focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-[#414844] mb-1">
+                    {bi('જમીન pH', 'Soil pH', 'Mitti pH').primary}
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={manualSoilForm.ph}
+                    onChange={(e) => setManualSoilForm({ ...manualSoilForm, ph: Number(e.target.value) })}
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-[#E5E2DA] bg-[#FCF9F0] focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#414844] mb-1">
+                  {bi('ઓર્ગેનિક કાર્બન (%)', 'Organic Carbon (%)', 'Organic Carbon').primary}
+                </label>
+                <input
+                  type="number"
+                  step="0.05"
+                  value={manualSoilForm.organicCarbonPercent}
+                  onChange={(e) => setManualSoilForm({ ...manualSoilForm, organicCarbonPercent: Number(e.target.value) })}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-[#E5E2DA] bg-[#FCF9F0] focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#414844] mb-1">
+                  {bi('વિશેષ નોંધ / ટીકા', 'Agronomist Notes', 'Vishesh Note').primary}
+                </label>
+                <textarea
+                  rows={2}
+                  value={manualSoilForm.notes}
+                  onChange={(e) => setManualSoilForm({ ...manualSoilForm, notes: e.target.value })}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-[#E5E2DA] bg-[#FCF9F0] focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                />
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-[#E5E2DA] flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowSoilModal(false)}
+                className="px-4 py-2 text-xs font-bold text-[#717974] hover:text-[#163A2D] transition-colors"
+              >
+                {bi('રદ કરો', 'Cancel', 'Radd Karein').primary}
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveConfirmedSoilReport}
+                className="px-5 py-2.5 bg-[#163A2D] hover:bg-emerald-900 text-white rounded-xl text-xs font-bold shadow-md transition-all active:scale-95"
+              >
+                {bi('કાર્ડ સાચવો', 'Save Soil Card', 'Save Karein').primary}
               </button>
             </div>
           </div>
